@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "pilottai"
+version = "0.1.0"
+description = ""
+authors = ["Anuj Gupta <anuj0456@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.urls]
+Homepage = "https://pilottai.com"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pydantic = "^2.7.1"
+pydantic-settings = "^2.2.1"
+pyaudio = "^0.2.14"
+opencv-python = "^4.9.0.80"
+websockets = "^14.1"
+psutil = "^6.1.1"
+pypdf2 = "^3.0.1"
+
+[tool.poetry.group.dev.dependencies]
+mkdocstrings = "^0.25.1"
+mkdocs-material = "^9.5.24"
+mkdocstrings-python = "^1.10.3"
+mkdocs = "^1.6.0"
+openai = "^1.30.2"
+streamlit = "^1.35.0"
+streamlit-option-menu = "^0.3.13"
+tk = "^0.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

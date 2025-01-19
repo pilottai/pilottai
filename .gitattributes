@@ -1,0 +1,4 @@
+pilott/* linguist-documentation=false
+examples/*.j linguist-language=Java
+*.html linguist-vendored
+*.css linguist-vendored
