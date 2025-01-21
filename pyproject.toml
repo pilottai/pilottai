@@ -1,7 +1,6 @@
 [tool.poetry]
 name = "pilott"
-version = "0.1.0"
-description = ""
+description = "A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent task processing. Features dynamic scaling, fault tolerance, and advanced load balancing."
 authors = ["Anuj Gupta <anuj0456@gmail.com>"]
 readme = "README.md"
 
@@ -29,5 +28,11 @@ streamlit-option-menu = "^0.3.13"
 tk = "^0.1.0"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core",  "poetry-dynamic-versioning"]
+build-backend = "poetry-dynamic-versioning.backend"
+
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"  # Use semantic versioning style
+pattern = "^v?(?P<base>\\d+\\.\\d+\\.\\d+)$"

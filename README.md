@@ -1,7 +1,11 @@
 # 🤖 PilottAI Framework
 
 <div align="center">
-  <img src="interface/assets/logo.png" alt="PilottAI Framework Logo" width="400"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/anuj0456/pilottai/main/interface/assets/logo.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/anuj0456/pilottai/main/interface/assets/logo.png">
+    <img alt="PilottAI Framework Logo" src="https://raw.githubusercontent.com/anuj0456/pilottai/main/interface/assets/logo.png" width="400">
+  </picture>
   <h3>Build Intelligent Multi-Agent Systems with Python</h3>
   <p><em>Scale your AI applications with orchestrated autonomous agents</em></p>
 </div>
