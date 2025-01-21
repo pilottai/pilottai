@@ -1,7 +1,7 @@
 # 🤖 PilottAI Framework
 
 <div align="center">
-  <img src="docs/assets/logo.svg" alt="PilottAI Framework Logo" width="400"/>
+  <img src="interface/assets/logo.png" alt="PilottAI Framework Logo" width="400"/>
   <h3>Build Intelligent Multi-Agent Systems with Python</h3>
   <p><em>Scale your AI applications with orchestrated autonomous agents</em></p>
 </div>
@@ -12,8 +12,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Documentation Status](https://readthedocs.org/projects/pilottai/badge/?version=latest)](https://pilottai.readthedocs.io)
-[![Downloads](https://pepy.tech/badge/pilott)](https://pepy.tech/project/pilott)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+[//]: # ([![Downloads]&#40;https://pepy.tech/badge/pilott&#41;]&#40;https://pepy.tech/project/pilott&#41;)
+
 
 </div>
 
