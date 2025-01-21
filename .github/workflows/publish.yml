@@ -11,23 +11,29 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.x'
+        python-version: '3.12'
 
-    - name: Install dependencies
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+
+    - name: Install poetry-dynamic-versioning
       run: |
-        python -m pip install --upgrade pip
-        pip install setuptools wheel twine build
+        poetry self add "poetry-dynamic-versioning[plugin]"
 
     - name: Build package
-      run: python -m build
+      run: poetry build
 
     - name: Publish to PyPI
       env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      run: |
-        python -m twine upload dist/*
+        POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+      run: poetry publish
