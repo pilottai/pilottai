@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pilottai"
+name = "pilott"
 version = "0.1.0"
 description = ""
 authors = ["Anuj Gupta <anuj0456@gmail.com>"]
