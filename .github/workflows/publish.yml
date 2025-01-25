@@ -30,6 +30,9 @@ jobs:
       run: |
         poetry self add "poetry-dynamic-versioning[plugin]"
 
+    - name: Install dependencies
+      run: poetry install --no-root
+
     - name: Update lock file
       run: poetry lock
 
