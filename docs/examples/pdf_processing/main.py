@@ -1,4 +1,3 @@
-"""PDF Processing Pipeline example runner."""
 from typing import Dict
 from pilott import Serve
 from pilott.core import AgentConfig, AgentRole, LogConfig

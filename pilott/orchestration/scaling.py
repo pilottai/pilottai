@@ -1,13 +1,11 @@
-# File: pilott/orchestration/scaling.py
-
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 import asyncio
 from datetime import datetime, timedelta
 import traceback
 import logging
 from pydantic import BaseModel, Field
 
-from pilott.core.agent import BaseAgent, AgentStatus
+from pilott.core.agent import BaseAgent
 
 
 class FaultToleranceConfig(BaseModel):
