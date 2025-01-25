@@ -19,36 +19,24 @@ jobs:
       with:
         python-version: '3.9'
 
-    - name: Install and configure Poetry
-      run: |
-        curl -sSL https://install.python-poetry.org | python3 -
-        export PATH="/home/runner/.local/bin:$PATH"
-        poetry config virtualenvs.create false
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
 
     - name: Install poetry-dynamic-versioning
       run: |
-        export PATH="/home/runner/.local/bin:$PATH"
         poetry self add "poetry-dynamic-versioning[plugin]"
 
-    - name: Fix lock file
-      run: |
-        export PATH="/home/runner/.local/bin:$PATH"
-        rm -f poetry.lock
-        poetry lock
-
-    - name: Install dependencies
-      run: |
-        export PATH="/home/runner/.local/bin:$PATH"
-        poetry install --no-root
+    - name: Update lock file
+      run: poetry lock
 
     - name: Build package
-      run: |
-        export PATH="/home/runner/.local/bin:$PATH"
-        poetry build
+      run: poetry build
 
     - name: Publish to PyPI
       env:
         POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
-      run: |
-        export PATH="/home/runner/.local/bin:$PATH"
-        poetry publish
+      run: poetry publish
