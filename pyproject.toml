@@ -13,7 +13,7 @@ asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = ">=3.8,<4.0"
 pydantic = "^2.7.1"
 pydantic-settings = "^2.2.1"
 pyaudio = "^0.2.14"
