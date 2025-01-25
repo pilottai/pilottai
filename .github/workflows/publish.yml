@@ -31,7 +31,7 @@ jobs:
         poetry self add "poetry-dynamic-versioning[plugin]"
 
     - name: Update lock file
-      run: poetry lock --no-update
+      run: poetry lock
 
     - name: Build package
       run: poetry build
