@@ -22,23 +22,33 @@ jobs:
     - name: Install and configure Poetry
       run: |
         curl -sSL https://install.python-poetry.org | python3 -
+        export PATH="/home/runner/.local/bin:$PATH"
         poetry config virtualenvs.create false
 
     - name: Install poetry-dynamic-versioning
-      run: poetry self add "poetry-dynamic-versioning[plugin]"
+      run: |
+        export PATH="/home/runner/.local/bin:$PATH"
+        poetry self add "poetry-dynamic-versioning[plugin]"
 
     - name: Fix lock file
       run: |
+        export PATH="/home/runner/.local/bin:$PATH"
         rm -f poetry.lock
-        poetry lock --no-update
+        poetry lock
 
     - name: Install dependencies
-      run: poetry install --no-root
+      run: |
+        export PATH="/home/runner/.local/bin:$PATH"
+        poetry install --no-root
 
     - name: Build package
-      run: poetry build
+      run: |
+        export PATH="/home/runner/.local/bin:$PATH"
+        poetry build
 
     - name: Publish to PyPI
       env:
         POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
-      run: poetry publish
+      run: |
+        export PATH="/home/runner/.local/bin:$PATH"
+        poetry publish
