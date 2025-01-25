@@ -26,15 +26,19 @@ jobs:
         virtualenvs-create: true
         virtualenvs-in-project: true
 
+    - name: Clear Poetry cache
+      run: |
+        rm -rf ~/.cache/pypoetry
+        rm -f poetry.lock
+
     - name: Install poetry-dynamic-versioning
       run: |
         poetry self add "poetry-dynamic-versioning[plugin]"
 
-    - name: Install dependencies
-      run: poetry install --no-root
-
-    - name: Update lock file
-      run: poetry lock
+    - name: Clean install
+      run: |
+        poetry lock
+        poetry install --sync --no-root
 
     - name: Build package
       run: poetry build
