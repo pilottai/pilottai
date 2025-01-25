@@ -24,10 +24,13 @@ jobs:
         curl -sSL https://install.python-poetry.org | python3 -
         poetry config virtualenvs.create false
 
+    - name: Install poetry-dynamic-versioning
+      run: poetry self add "poetry-dynamic-versioning[plugin]"
+
     - name: Fix lock file
       run: |
         rm -f poetry.lock
-        poetry lock
+        poetry lock --no-update
 
     - name: Install dependencies
       run: poetry install --no-root
