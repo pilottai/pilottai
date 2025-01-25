@@ -25,8 +25,8 @@ class LLMHandler(ABC):
             self.logger.addHandler(handler)
 
     async def generate_response(self,
-                                messages: List[Dict[str, str]],
-                                tools: Optional[List[Dict]] = None) -> Dict[str, Any]:
+                              messages: List[Dict[str, str]],
+                              tools: Optional[List[Dict]] = None) -> Dict[str, Any]:
         """Generate response from LLM with rate limiting"""
         # Implement rate limiting
         if self.config.get('max_rpm'):
@@ -50,29 +50,7 @@ class LLMHandler(ABC):
 
     @abstractmethod
     async def _generate(self,
-                        messages: List[Dict[str, str]],
-                        tools: Optional[List[Dict]] = None) -> Dict[str, Any]:
+                       messages: List[Dict[str, str]],
+                       tools: Optional[List[Dict]] = None) -> Dict[str, Any]:
         """Abstract method for actual LLM generation"""
-        pass
-
-
-class OpenAIHandler(LLMHandler):
-    """OpenAI-specific implementation"""
-
-    async def _generate(self,
-                        messages: List[Dict[str, str]],
-                        tools: Optional[List[Dict]] = None) -> Dict[str, Any]:
-        """Implement OpenAI API calls"""
-        # Implement OpenAI API integration here
-        pass
-
-
-class AnthropicHandler(LLMHandler):
-    """Anthropic-specific implementation"""
-
-    async def _generate(self,
-                        messages: List[Dict[str, str]],
-                        tools: Optional[List[Dict]] = None) -> Dict[str, Any]:
-        """Implement Anthropic API calls"""
-        # Implement Anthropic API integration here
         pass

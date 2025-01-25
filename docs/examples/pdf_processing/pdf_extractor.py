@@ -1,5 +1,3 @@
-"""PDF extraction tool implementation."""
-
 from pilott.tools import Tool
 from typing import Dict, Any
 import pypdf
