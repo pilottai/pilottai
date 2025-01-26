@@ -3,37 +3,21 @@ import asyncio
 from datetime import datetime, timedelta
 import traceback
 import logging
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 from pilott.core.agent import BaseAgent
 
 
 class FaultToleranceConfig(BaseModel):
     """Configuration for fault tolerance system"""
-    health_check_interval: int = Field(
-        default=30,
-        description="Interval between health checks (seconds)"
-    )
-    max_recovery_attempts: int = Field(
-        default=3,
-        description="Maximum number of recovery attempts before replacement"
-    )
-    recovery_cooldown: int = Field(
-        default=300,
-        description="Cooldown period between recovery attempts (seconds)"
-    )
-    heartbeat_timeout: int = Field(
-        default=60,
-        description="Maximum time between heartbeats (seconds)"
-    )
-    resource_threshold: float = Field(
-        default=0.9,
-        description="Maximum resource usage threshold"
-    )
-    task_timeout: int = Field(
-        default=1800,  # 30 minutes
-        description="Time before a task is considered stuck"
-    )
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    health_check_interval: int = 30
+    max_recovery_attempts: int = 3
+    recovery_cooldown: int = 300
+    heartbeat_timeout: int = 60
+    resource_threshold: float = 0.9
+    task_timeout: int = 1800
 
 
 class FaultTolerance:
@@ -110,23 +94,27 @@ class FaultTolerance:
         """Check if an agent is healthy"""
         try:
             # Check multiple health indicators
-            checks = await asyncio.gather(
-                self._check_heartbeat(agent),
-                self._check_resource_usage(agent),
-                self._check_task_progress(agent),
-                return_exceptions=True
-            )
-
-            # Filter out exceptions and check results
-            valid_checks = [check for check in checks if not isinstance(check, Exception)]
-            if not valid_checks:
-                self.logger.error(f"All health checks failed for agent {agent.id}")
+            heartbeat_ok = await self._check_heartbeat(agent)
+            if not heartbeat_ok:
+                self.logger.warning(f"Agent {agent.id} failed heartbeat check")
                 return False
 
-            return all(valid_checks)
+            metrics = await agent.get_metrics()
+            resource_ok = metrics['resource_usage'] < self.config.resource_threshold
+            if not resource_ok:
+                self.logger.warning(f"Agent {agent.id} exceeded resource threshold")
+                return False
+
+            stuck_tasks = [task for task in agent.tasks.values()
+                          if self._is_task_stuck(task)]
+            if stuck_tasks:
+                self.logger.warning(f"Agent {agent.id} has {len(stuck_tasks)} stuck tasks")
+                return False
+
+            return True
 
         except Exception as e:
-            self.logger.error(f"Health check error for {agent.id}: {str(e)}\n{traceback.format_exc()}")
+            self.logger.error(f"Health check error for {agent.id}: {str(e)}")
             return False
 
     async def _check_heartbeat(self, agent: BaseAgent) -> bool:
@@ -134,13 +122,7 @@ class FaultTolerance:
         try:
             last_heartbeat = await agent.send_heartbeat()
             timeout = timedelta(seconds=self.config.heartbeat_timeout)
-            is_alive = datetime.now() - last_heartbeat < timeout
-
-            if not is_alive:
-                self.logger.warning(f"Agent {agent.id} missed heartbeat")
-
-            return is_alive
-
+            return datetime.now() - last_heartbeat < timeout
         except Exception as e:
             self.logger.error(f"Heartbeat check failed for {agent.id}: {str(e)}")
             return False
@@ -214,10 +196,10 @@ class FaultTolerance:
 
         return False
 
-    async def _recover_agent(self, agent: BaseAgent):
+    async def _recover_agent(self, agent: BaseAgent) -> None:
         """Attempt to recover an agent"""
         agent_id = agent.id
-        self.recovery_attempts[agent_id] += 1
+        self.recovery_attempts[agent_id] = self.recovery_attempts.get(agent_id, 0) + 1
         self.health_checks[agent_id] = datetime.now()
 
         try:
@@ -235,16 +217,13 @@ class FaultTolerance:
             # Verify recovery
             if await self._check_agent_health(agent):
                 self.recovery_attempts[agent_id] = 0
-                await self.orchestrator.broadcast_update("agent_recovered", {
-                    "agent_id": agent_id,
-                    "timestamp": datetime.now().isoformat()
-                })
                 self.logger.info(f"Successfully recovered agent {agent_id}")
             else:
                 raise Exception("Recovery verification failed")
 
         except Exception as e:
             self.logger.error(f"Recovery failed for {agent_id}: {str(e)}")
+            # Try replacement if max attempts reached
             if self.recovery_attempts[agent_id] >= self.config.max_recovery_attempts:
                 await self._replace_agent(agent)
 
@@ -255,8 +234,8 @@ class FaultTolerance:
 
             # Create new agent
             new_agent = await self.orchestrator.create_agent(
-                role=agent.config.role,
-                agent_type=agent.config.role_type
+                role=agent.agent_config.role,
+                agent_type=agent.agent_config.role_type
             )
 
             # Move recoverable tasks

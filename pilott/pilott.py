@@ -2,27 +2,27 @@ from typing import Any, Dict, List, Optional, Union
 from datetime import datetime
 import uuid
 import asyncio
+import logging
 
 from pydantic import (
     UUID4,
     BaseModel,
     Field,
     field_validator,
-    ConfigDict
+    ConfigDict,
+    PrivateAttr
 )
 
 from pydantic_core import PydanticCustomError
 
-from pilott.core import BaseAgent, AgentRole
+from pilott.core import BaseAgent
 from pilott.core import AgentConfig
 from pilott.core import Memory
-from pilott.core import AgentFactory
 from pilott.core import TaskRouter
 from pilott.tools import Tool
 from pilott.orchestration import DynamicScaling
 from pilott.orchestration import LoadBalancer
 from pilott.orchestration import FaultTolerance
-from pilott.utils import setup_logger
 
 class Serve(BaseModel):
     """
@@ -30,51 +30,79 @@ class Serve(BaseModel):
     """
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
-        extra='allow'
+        use_enum_values=True
     )
 
-    name: str = Field(default="", description="Name of the bot.")
-    agents: List[BaseAgent] = Field(default_factory=list, description="List of agents part of this pilott.")
-    tools: List[Tool] = Field(default_factory=list, description="Tools at agents disposal")
-    verbose: Union[int, bool] = Field(
-        default=0,
-        description="Indicates the verbosity level for logging during execution."
-    )
-    memory: Optional[Memory] = Field(
-        default_factory=Memory,
-        description="Memory management for the pilott"
-    )
-    id: UUID4 = Field(
-        default_factory=uuid.uuid4,
-        frozen=True,
-        description="A unique identifier for the pilott instance."
-    )
-    config: AgentConfig = Field(
-        default_factory=lambda: AgentConfig(
-            role="orchestrator",
-            role_type=AgentRole.ORCHESTRATOR,
-            goal="Orchestrate and manage agent operations",
-            description="Main orchestrator for the pilott system"
-        )
-    )
-    child_agents: Dict[str, BaseAgent] = Field(default_factory=dict)
-    # Systems
-    dynamic_scaling: Optional[DynamicScaling] = None
-    load_balancer: Optional[LoadBalancer] = None
-    fault_tolerance: Optional[FaultTolerance] = None
-    task_router: Optional[TaskRouter] = None
+    name: str = Field(default="")
+    verbose: Union[int, bool] = Field(default=0)
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    config: Optional[AgentConfig] = None
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        self.logger = setup_logger(self)
+    _logger: Any = PrivateAttr()
+    _dynamic_scaling: Any = PrivateAttr()
+    _load_balancer: Any = PrivateAttr()
+    _fault_tolerance: Any = PrivateAttr()
+    _task_router: Any = PrivateAttr()
+    _agents: List[BaseAgent] = PrivateAttr(default=list)
+    _child_agents: Dict[str, BaseAgent] = PrivateAttr(default=dict)
+
+    def model_post_init(self, context: Optional[Dict] = None) -> None:
+        self._agents = []
+        self._child_agents = {}
+        self._setup_logging()
         self._initialize_systems()
+
+    def _setup_logging(self):
+        """Setup logging for the Serve instance"""
+        self._logger = logging.getLogger(f"Serve_{self.id}")
+        level = logging.DEBUG if self.verbose else logging.INFO
+        self.logger.setLevel(level)
+
+        if not self.logger.handlers:
+            handler = logging.StreamHandler()
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            )
+            handler.setFormatter(formatter)
+            self._logger.addHandler(handler)
 
     def _initialize_systems(self):
         """Initialize orchestration systems"""
-        self.dynamic_scaling = DynamicScaling(self)
-        self.load_balancer = LoadBalancer(self)
-        self.fault_tolerance = FaultTolerance(self)
-        self.task_router = TaskRouter(pilott=self)
+        self._dynamic_scaling = DynamicScaling(self)
+        self._load_balancer = LoadBalancer(self)
+        self._fault_tolerance = FaultTolerance(self)
+        self._task_router = TaskRouter(pilott=self)
+
+    @property
+    def agents(self) -> List[BaseAgent]:
+        """Get list of agents"""
+        return self._agents
+
+    @property
+    def child_agents(self) -> Dict[str, BaseAgent]:
+        """Get dictionary of child agents"""
+        return self._child_agents
+
+    @property
+    def logger(self) -> logging.Logger:
+        """Access logger as a property"""
+        return self._logger
+
+    @property
+    def dynamic_scaling(self) -> Any:
+        return self._dynamic_scaling
+
+    @property
+    def load_balancer(self) -> Any:
+        return self._load_balancer
+
+    @property
+    def fault_tolerance(self) -> Any:
+        return self._fault_tolerance
+
+    @property
+    def task_router(self) -> Any:
+        return self._task_router
 
     @field_validator("id", mode="before")
     @classmethod
@@ -87,37 +115,47 @@ class Serve(BaseModel):
 
     async def start(self):
         """Start the pilott and its systems"""
-        # Start orchestration systems
-        await asyncio.gather(
-            self.dynamic_scaling.start(),
-            self.load_balancer.start(),
-            self.fault_tolerance.start()
-        )
+        try:
+            await asyncio.gather(
+                self._dynamic_scaling.start(),
+                self._load_balancer.start(),
+                self._fault_tolerance.start()
+            )
 
-        # Initialize and start agents
-        for agent in self.agents:
-            await agent.start()
+            # Initialize and start agents
+            for agent in self._agents:
+                await agent.start()
 
-        self.logger.info(f"Pilott {self.name} started successfully")
+            self._logger.info(f"Pilott {self.name} started successfully")
+        except Exception as e:
+            self._logger.error(f"Failed to start pilott: {str(e)}")
+            raise
 
-    async def add_agent(self,
-                        agent_type: str,
-                        config: Optional[AgentConfig] = None,
-                        **kwargs) -> BaseAgent:
-        """Add a new agent to the pilott using the factory"""
-        agent = AgentFactory.create_agent(agent_type, config, **kwargs)
-        self.agents.append(agent)
-        await agent.start()
-        self.logger.info(f"Added new agent: {agent.id} of type {agent_type}")
-        return agent
+    async def add_agent(self, agent: BaseAgent):
+        """Add a new agent to the pilott"""
+        try:
+            if not isinstance(agent, BaseAgent):
+                raise ValueError("agent must be an instance of BaseAgent")
+
+            self._agents.append(agent)
+            self._child_agents[agent.id] = agent
+            self._logger.info(f"Added new agent: {agent.id}")
+        except Exception as e:
+            self.logger.error(f"Failed to add agent: {str(e)}")
+            raise
 
     async def remove_agent(self, agent_id: str):
         """Remove an agent from the pilott"""
-        agent = next((a for a in self.agents if a.id == agent_id), None)
-        if agent:
-            self.agents.remove(agent)
-            await agent.stop()
-            self.logger.info(f"Removed agent: {agent_id}")
+        try:
+            if agent_id in self._child_agents:
+                agent = self._child_agents[agent_id]
+                await agent.stop()
+                self._agents = [a for a in self._agents if a.id != agent_id]
+                del self._child_agents[agent_id]
+                self._logger.info(f"Removed agent: {agent_id}")
+        except Exception as e:
+            self._logger.error(f"Failed to remove agent: {str(e)}")
+            raise
 
     async def get_system_status(self) -> Dict:
         """Get comprehensive system status"""
@@ -132,30 +170,27 @@ class Serve(BaseModel):
 
     async def execute_task(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a task using the router to find suitable agent"""
-        # Get task priority
-        priority = self.task_router.get_task_priority(task)
-        task['priority'] = priority
-
-        # Find suitable agent
-        agent_id = self.task_router.route_task(task)
-        if not agent_id:
-            raise ValueError("No suitable agent found for task")
-
-        agent = next(a for a in self.agents if a.id == agent_id)
-        return await agent.execute_task(task)
+        try:
+            if not self._agents:
+                raise ValueError("No agents available to execute task")
+            agent = self._agents[0]
+            self._logger.info(f"Executing task using agent {agent.id}")
+            task_copy = task.copy()
+            return await agent.execute_task(task_copy)
+        except Exception as e:
+            self._logger.error(f"Task execution failed: {str(e)}")
+            return {"status": "error", "error": str(e)}
 
     async def stop(self):
         """Stop the pilott and all its components"""
-        # Stop all agents
-        for agent in self.agents:
+        for agent in self._agents:
             await agent.stop()
 
-        # Stop orchestration systems
-        if self.dynamic_scaling:
-            await self.dynamic_scaling.stop()
-        if self.load_balancer:
-            await self.load_balancer.stop()
-        if self.fault_tolerance:
-            await self.fault_tolerance.stop()
+        if self._dynamic_scaling:
+            await self._dynamic_scaling.stop()
+        if self._load_balancer:
+            await self._load_balancer.stop()
+        if self._fault_tolerance:
+            await self._fault_tolerance.stop()
 
-        self.logger.info(f"Pilott {self.name} stopped successfully")
+        self._logger.info(f"Pilott {self.name} stopped successfully")
