@@ -5,9 +5,9 @@ from datetime import datetime
 class Memory(BaseModel):
     """Memory management for agents"""
     
-    history: List[Dict[str, Any]] = Field(default_factory=list)
-    context: Dict[str, Any] = Field(default_factory=dict)
-    patterns: Dict[str, Any] = Field(default_factory=dict)
+    history: List[Dict[str, Any]] = Field(default=list)
+    context: Dict[str, Any] = Field(default=dict)
+    patterns: Dict[str, Any] = Field(default=dict)
 
     def store(self, data: Dict[str, Any]):
         """Store new information"""

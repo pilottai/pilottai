@@ -1,6 +1,8 @@
-from typing import Dict, List, Optional, Any
+from typing import Dict, Optional, Any, Tuple
 from pydantic import BaseModel, Field, ConfigDict
 from enum import Enum
+
+from pilott.core import BaseAgent
 
 
 class TaskPriority(str, Enum):
@@ -75,3 +77,26 @@ class TaskRouter(BaseModel):
             return TaskPriority.MEDIUM
         else:
             return TaskPriority.LOW
+
+
+class TaskDelegator:
+    def __init__(self, agent: BaseAgent):
+        self.agent = agent
+        self.delegation_history = {}
+        self.agent_capabilities = {}
+
+    async def evaluate_delegation(self, task: Dict) -> Tuple[bool, Optional[str]]:
+        """Evaluate if and to whom to delegate"""
+        if not self._should_delegate(task):
+            return False, None
+
+        best_agent = await self._find_best_agent(task)
+        return True, best_agent.id if best_agent else None
+
+    async def _find_best_agent(self, task: Dict) -> Optional[BaseAgent]:
+        """Find best agent for delegation"""
+        scores = {}
+        for agent_id, agent in self.agent.child_agents.items():
+            score = await self._calculate_agent_score(agent, task)
+            scores[agent_id] = score
+        return max(scores.items(), key=lambda x: x[1])[0] if scores else None
