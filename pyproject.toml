@@ -19,7 +19,10 @@ pydantic-settings = "^2.2.1"
 websockets = "^14.1"
 psutil = "^6.1.1"
 pypdf2 = "^3.0.1"
-litellm = "^1.59.8"
+litellm = "^1.57.4"
+bs4 = "^0.0.2"
+selenium = "^4.28.1"
+cryptography = "^44.0.0"
 
 [tool.poetry.group.dev.dependencies]
 mkdocstrings = "^0.25.1"

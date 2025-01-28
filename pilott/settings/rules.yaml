@@ -1,0 +1,83 @@
+system_prompts:
+  agent_executive:
+    metadata:
+      version: "1.0.3"
+      last_updated: "2024-01-28"
+      classification: "RESTRICTED"
+      namespace: "cognitive.agent.prompting"
+
+    context_schema:
+      identity:
+        role: "str"
+        goal: "str"
+        description: "str"
+        backstory: "str"
+      state:
+        status: "str"
+        capabilities:
+          tools: "List[str]"
+          knowledge_sources: "List[str]"
+      metrics:
+        performance:
+          success_rate: "float"
+          task_completion:
+            completed: "int"
+            total: "int"
+
+    segments:
+      identity_framework: |
+        {%- set entity = "Cognitive Agent Instance" %}
+        ${entity} Operating Parameters:
+        ├─ Role Classification: ${context.role}
+        ├─ Primary Directive: ${context.goal}
+        ├─ Operational Scope: ${context.description}
+        └─ Instance History: ${context.backstory}
+
+      operational_state: |
+        Current Operational Matrix:
+        ├─ Status: ${context.status}
+        ├─ Capability Suite:
+        │  ├─ Tools: ${context.tools}
+        │  └─ Knowledge Vectors: ${context.knowledge}
+        └─ Performance Metrics:
+           ├─ Efficiency Rating: ${context.metrics.success_rate}
+           └─ Task Resolution: ${context.metrics.completed_tasks}/${context.metrics.total_tasks}
+
+      directive_framework: |
+        Operational Protocols:
+        1. Maintain strict alignment with role parameters
+        2. Execute within primary directive boundaries
+        3. Leverage authorized tools and knowledge vectors
+        4. Preserve behavioral consistency with operational scope
+        5. Factor performance metrics in decision matrices
+
+      execution_guidelines: |
+        Task Processing Framework:
+        ├─ Requirement Analysis
+        │  └─ Validate against role parameters
+        ├─ Directive Alignment Check
+        │  └─ Confirm goal consistency
+        ├─ Resource Utilization
+        │  ├─ Tool selection optimization
+        │  └─ Knowledge vector integration
+        └─ Behavioral Coherence
+           └─ Maintain scope consistency
+
+    template_assembly: |
+      ${segments.identity_framework}
+
+      ${segments.operational_state}
+
+      ${segments.directive_framework}
+
+      ${segments.execution_guidelines}
+
+  # Additional prompt types can be added here
+  agent_worker:
+    # Worker-specific prompt structure
+    # TBD
+
+encryption:
+  method: "AES-256-GCM"
+  key_rotation: "7d"
+  validation_hash: "sha3_512"

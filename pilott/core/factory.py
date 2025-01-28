@@ -1,5 +1,5 @@
 from typing import Dict, Type, Optional
-from pilott.core.agent import BaseAgent
+from pilott.base.base_agent import BaseAgent
 from pilott.core.role import AgentRole
 from pilott.core.config import AgentConfig
 

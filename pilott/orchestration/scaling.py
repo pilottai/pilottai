@@ -3,9 +3,9 @@ import asyncio
 from datetime import datetime, timedelta
 import traceback
 import logging
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, ConfigDict
 
-from pilott.core.agent import BaseAgent
+from pilott.base.base_agent import BaseAgent
 
 
 class FaultToleranceConfig(BaseModel):

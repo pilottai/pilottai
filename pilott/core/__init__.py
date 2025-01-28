@@ -1,4 +1,4 @@
-from pilott.core.agent import BaseAgent, AgentStatus
+from pilott.core.agent import Agent
 from pilott.core.config import AgentConfig, LLMConfig, LogConfig
 from pilott.core.memory import Memory
 from pilott.core.factory import AgentFactory
@@ -11,7 +11,7 @@ __all__ = [
     'AgentConfig',
     'LLMConfig',
     'LogConfig',
-    'BaseAgent',
+    'Agent',
     'AgentStatus',
     'Memory',
     'AgentFactory',

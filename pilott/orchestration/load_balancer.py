@@ -5,8 +5,8 @@ import logging
 from pydantic import BaseModel, Field
 import traceback
 
-from pilott.core.agent import BaseAgent, AgentStatus
-
+from pilott.base.base_agent import BaseAgent
+from pilott.core import AgentStatus
 
 class LoadBalancerConfig(BaseModel):
     """Configuration for the load balancer"""
