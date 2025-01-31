@@ -5,6 +5,7 @@ from pilott.core.factory import AgentFactory
 from pilott.core.router import TaskRouter, TaskPriority
 from pilott.core.role import AgentRole
 from pilott.core.status import AgentStatus
+from pilott.core.task import Task
 
 __all__ = [
     'AgentRole',

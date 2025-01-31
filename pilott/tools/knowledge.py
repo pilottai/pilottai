@@ -11,19 +11,52 @@ class KnowledgeSource(BaseModel):
     last_access: datetime = Field(default_factory=datetime.now)
     access_count: int = 0
 
-    def connect(self) -> bool:
+    async def connect(self) -> bool:
         """Connect to knowledge source"""
-        # Implement connection logic
-        pass
+        try:
+            if self.type == "database":
+                # Add database connection logic
+                return True
+            elif self.type == "api":
+                # Add API connection logic
+                return True
+            elif self.type == "file":
+                # Add file system connection logic
+                return True
+            return False
+        except Exception:
+            return False
 
-    def query(self, query: str) -> Any:
+    async def query(self, query: str) -> Any:
         """Query the knowledge source"""
         self.access_count += 1
         self.last_access = datetime.now()
-        # Implement query logic
-        pass
 
-    def disconnect(self):
+        try:
+            if self.type == "database":
+                # Add database query logic
+                return {}
+            elif self.type == "api":
+                # Add API query logic
+                return {}
+            elif self.type == "file":
+                # Add file system query logic
+                return {}
+            return None
+        except Exception:
+            return None
+
+    async def disconnect(self):
         """Disconnect from knowledge source"""
-        # Implement disconnect logic
-        pass
+        try:
+            if self.type == "database":
+                # Add database disconnect logic
+                pass
+            elif self.type == "api":
+                # Add API disconnect logic
+                pass
+            elif self.type == "file":
+                # Add file system disconnect logic
+                pass
+        except Exception:
+            pass

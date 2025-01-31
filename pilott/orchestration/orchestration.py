@@ -1,59 +1,284 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 from datetime import datetime, timedelta
 import asyncio
 import psutil
 import logging
 from pydantic import BaseModel, Field
+from collections import deque
+import weakref
+
+class ScalingMetrics(BaseModel):
+    timestamp: datetime
+    load: float
+    num_agents: int
+    cpu_usage: float
+    memory_usage: float
+    queue_size: int
 
 
 class ScalingConfig(BaseModel):
-    """Configuration for dynamic scaling"""
-    scale_up_threshold: float = Field(
-        default=0.8,
-        description="Load threshold to trigger scaling up (0-1)"
-    )
-    scale_down_threshold: float = Field(
-        default=0.3,
-        description="Load threshold to trigger scaling down (0-1)"
-    )
-    min_agents: int = Field(
-        default=2,
-        description="Minimum number of agents to maintain"
-    )
-    max_agents: int = Field(
-        default=10,
-        description="Maximum number of agents allowed"
-    )
-    cooldown_period: int = Field(
-        default=300,
-        description="Cooldown period in seconds between scaling operations"
-    )
-    check_interval: int = Field(
-        default=60,
-        description="Interval in seconds between load checks"
-    )
-    scale_up_increment: int = Field(
-        default=1,
-        description="Number of agents to add when scaling up"
-    )
-    scale_down_increment: int = Field(
-        default=1,
-        description="Number of agents to remove when scaling down"
-    )
+    scale_up_threshold: float = Field(ge=0.0, le=1.0, default=0.8)
+    scale_down_threshold: float = Field(ge=0.0, le=1.0, default=0.3)
+    min_agents: int = Field(ge=1, default=2)
+    max_agents: int = Field(ge=1, default=10)
+    cooldown_period: int = Field(ge=0, default=300)
+    check_interval: int = Field(ge=1, default=60)
+    scale_up_increment: int = Field(ge=1, default=1)
+    scale_down_increment: int = Field(ge=1, default=1)
+    metrics_retention_period: int = Field(ge=0, default=3600)
 
 
 class DynamicScaling:
-    """Manages dynamic scaling of agents based on system load"""
-
     def __init__(self, orchestrator, config: Optional[Dict] = None):
-        self.orchestrator = orchestrator
+        self.orchestrator = weakref.proxy(orchestrator)
         self.config = ScalingConfig(**(config or {}))
         self.logger = logging.getLogger("DynamicScaling")
         self.running = False
         self.scaling_task: Optional[asyncio.Task] = None
-        self.metrics_history = []  # Initialize metrics history
+        self.metrics_history: deque = deque(maxlen=60)  # 1 hour of minute-by-minute metrics
         self.last_scale_time = datetime.now()
         self._setup_logging()
+        self._scaling_lock = asyncio.Lock()
+
+    async def start(self):
+        if self.running:
+            self.logger.warning("Dynamic scaling is already running")
+            return
+
+        try:
+            self.running = True
+            self.scaling_task = asyncio.create_task(self._scaling_loop())
+            self.logger.info("Dynamic scaling started")
+        except Exception as e:
+            self.running = False
+            self.logger.error(f"Failed to start dynamic scaling: {str(e)}")
+            raise
+
+    async def stop(self):
+        if not self.running:
+            return
+
+        try:
+            self.running = False
+            if self.scaling_task:
+                self.scaling_task.cancel()
+                try:
+                    await self.scaling_task
+                except asyncio.CancelledError:
+                    pass
+            self.logger.info("Dynamic scaling stopped")
+        except Exception as e:
+            self.logger.error(f"Error stopping dynamic scaling: {str(e)}")
+
+    async def _scaling_loop(self):
+        while self.running:
+            try:
+                async with self._scaling_lock:
+                    await self._check_and_adjust_scale()
+                await asyncio.sleep(self.config.check_interval)
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                self.logger.error(f"Error in scaling loop: {str(e)}")
+                await asyncio.sleep(self.config.check_interval)
+
+    async def _check_and_adjust_scale(self):
+        try:
+            current_metrics = await self._get_system_metrics()
+            self._update_metrics_history(current_metrics)
+
+            if not self._can_scale():
+                return
+
+            trend = self._analyze_load_trend()
+            if trend > self.config.scale_up_threshold:
+                await self._scale_up()
+            elif trend < self.config.scale_down_threshold:
+                await self._scale_down()
+
+        except Exception as e:
+            self.logger.error(f"Error adjusting scale: {str(e)}")
+
+    async def _get_system_metrics(self) -> ScalingMetrics:
+        try:
+            agent_metrics = await asyncio.gather(*[
+                agent.get_metrics()
+                for agent in self.orchestrator.child_agents.values()
+            ])
+
+            num_agents = len(self.orchestrator.child_agents)
+            if num_agents == 0:
+                return ScalingMetrics(
+                    timestamp=datetime.now(),
+                    load=0.0,
+                    num_agents=0,
+                    cpu_usage=0.0,
+                    memory_usage=0.0,
+                    queue_size=0
+                )
+
+            # Calculate system-wide metrics
+            total_queue_size = sum(m.get('queue_size', 0) for m in agent_metrics)
+            avg_queue_util = sum(m.get('queue_utilization', 0) for m in agent_metrics) / num_agents
+
+            # System resource metrics
+            cpu_usage = psutil.cpu_percent() / 100
+            memory_usage = psutil.virtual_memory().percent / 100
+
+            # Calculate composite load
+            load = (
+                    0.35 * avg_queue_util +
+                    0.25 * cpu_usage +
+                    0.25 * memory_usage +
+                    0.15 * (total_queue_size / (num_agents * 100))  # Normalize queue size
+            )
+
+            return ScalingMetrics(
+                timestamp=datetime.now(),
+                load=min(1.0, load),
+                num_agents=num_agents,
+                cpu_usage=cpu_usage,
+                memory_usage=memory_usage,
+                queue_size=total_queue_size
+            )
+
+        except Exception as e:
+            self.logger.error(f"Error getting system metrics: {str(e)}")
+            raise
+
+    def _update_metrics_history(self, metrics: ScalingMetrics):
+        self.metrics_history.append(metrics)
+
+        # Clean up old metrics
+        cutoff = datetime.now() - timedelta(seconds=self.config.metrics_retention_period)
+        while self.metrics_history and self.metrics_history[0].timestamp < cutoff:
+            self.metrics_history.popleft()
+
+    def _analyze_load_trend(self) -> float:
+        if len(self.metrics_history) < 5:
+            return 0.0
+
+        recent_metrics = list(self.metrics_history)[-5:]
+        weighted_sum = sum(
+            m.load * (i + 1)  # More recent metrics have higher weight
+            for i, m in enumerate(recent_metrics)
+        )
+        weight_sum = sum(range(1, len(recent_metrics) + 1))
+        return weighted_sum / weight_sum
+
+    async def _scale_up(self):
+        current_agents = len(self.orchestrator.child_agents)
+        if current_agents >= self.config.max_agents:
+            self.logger.info("Cannot scale up: maximum agents reached")
+            return
+
+        try:
+            agents_to_add = min(
+                self.config.scale_up_increment,
+                self.config.max_agents - current_agents
+            )
+
+            for _ in range(agents_to_add):
+                new_agent = await self.orchestrator.create_agent()
+                if new_agent:
+                    await self.orchestrator.add_child_agent(new_agent)
+
+            self.last_scale_time = datetime.now()
+            self.logger.info(f"Scaled up by {agents_to_add} agents")
+
+        except Exception as e:
+            self.logger.error(f"Error scaling up: {str(e)}")
+            raise
+
+    async def _scale_down(self):
+        current_agents = len(self.orchestrator.child_agents)
+        if current_agents <= self.config.min_agents:
+            self.logger.info("Cannot scale down: minimum agents reached")
+            return
+
+        try:
+            agents_to_remove = min(
+                self.config.scale_down_increment,
+                current_agents - self.config.min_agents
+            )
+
+            removed = 0
+            for _ in range(agents_to_remove):
+                idle_agent = await self._find_idle_agent()
+                if idle_agent:
+                    await self._safely_remove_agent(idle_agent)
+                    removed += 1
+
+            if removed > 0:
+                self.last_scale_time = datetime.now()
+                self.logger.info(f"Scaled down by {removed} agents")
+
+        except Exception as e:
+            self.logger.error(f"Error scaling down: {str(e)}")
+            raise
+
+    async def _safely_remove_agent(self, agent):
+        """Safely remove an agent with proper cleanup"""
+        try:
+            # Wait for agent to finish current tasks
+            await agent.wait_for_tasks()
+            # Stop agent
+            await agent.stop()
+            # Remove from orchestrator
+            await self.orchestrator.remove_child_agent(agent.id)
+        except Exception as e:
+            self.logger.error(f"Error removing agent {agent.id}: {str(e)}")
+            raise
+
+    def _can_scale(self) -> bool:
+        if not self.running:
+            return False
+        cooldown_elapsed = (datetime.now() - self.last_scale_time).seconds > self.config.cooldown_period
+        if not cooldown_elapsed:
+            self.logger.debug("Scaling cooldown period not elapsed")
+            return False
+        return True
+
+    async def _find_idle_agent(self):
+        """Find an idle agent suitable for removal"""
+        try:
+            idle_agents = []
+            for agent in self.orchestrator.child_agents.values():
+                metrics = await agent.get_metrics()
+                if (
+                        agent.status == 'idle' and
+                        metrics['queue_size'] == 0 and
+                        metrics['active_tasks'] == 0
+                ):
+                    idle_agents.append((agent, metrics['success_rate']))
+
+            if not idle_agents:
+                return None
+
+            # Remove agent with lowest success rate
+            return min(idle_agents, key=lambda x: x[1])[0]
+
+        except Exception as e:
+            self.logger.error(f"Error finding idle agent: {str(e)}")
+            return None
+
+    async def get_scaling_metrics(self) -> Dict:
+        """Get current scaling metrics"""
+        try:
+            current_metrics = await self._get_system_metrics()
+            trend = self._analyze_load_trend()
+
+            return {
+                'current_metrics': current_metrics.model_dump(),
+                'load_trend': trend,
+                'history': [m.dict() for m in self.metrics_history],
+                'last_scale_time': self.last_scale_time.isoformat(),
+                'can_scale_up': len(self.orchestrator.child_agents) < self.config.max_agents,
+                'can_scale_down': len(self.orchestrator.child_agents) > self.config.min_agents
+            }
+        except Exception as e:
+            self.logger.error(f"Error getting scaling metrics: {str(e)}")
+            return {}
 
     def _setup_logging(self):
         """Setup logging for dynamic scaling"""
@@ -65,59 +290,6 @@ class DynamicScaling:
                 logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             )
             self.logger.addHandler(handler)
-
-    async def start(self):
-        """Start the dynamic scaling monitor"""
-        if self.running:
-            self.logger.warning("Dynamic scaling is already running")
-            return
-
-        self.running = True
-        self.scaling_task = asyncio.create_task(self._scaling_loop())
-        self.logger.info("Dynamic scaling started")
-
-    async def stop(self):
-        """Stop the dynamic scaling monitor"""
-        if not self.running:
-            return
-
-        self.running = False
-        if self.scaling_task:
-            self.scaling_task.cancel()
-            try:
-                await self.scaling_task
-            except asyncio.CancelledError:
-                pass
-        self.logger.info("Dynamic scaling stopped")
-
-    async def _scaling_loop(self):
-        """Main loop for monitoring and scaling"""
-        while self.running:
-            try:
-                await self._check_and_adjust_scale()
-                await asyncio.sleep(self.config.check_interval)
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                self.logger.error(f"Error in scaling loop: {str(e)}")
-                await asyncio.sleep(self.config.check_interval)
-
-    async def _check_and_adjust_scale(self):
-        """Check system load and adjust agent count if necessary"""
-        try:
-            current_load = await self._get_system_load()
-            self._update_metrics_history(current_load)
-
-            if not self._can_scale():
-                return
-
-            if current_load > self.config.scale_up_threshold:
-                await self._scale_up()
-            elif current_load < self.config.scale_down_threshold:
-                await self._scale_down()
-
-        except Exception as e:
-            self.logger.error(f"Error adjusting scale: {str(e)}")
 
     async def _get_system_load(self) -> float:
         """Calculate current system load using multiple metrics"""
@@ -155,131 +327,11 @@ class DynamicScaling:
                     0.20 * cpu_load +
                     0.20 * memory_load
             )
-
             self.logger.debug(
                 f"Load metrics - Task: {task_load:.2f}, Queue: {avg_queue_util:.2f}, "
                 f"CPU: {cpu_load:.2f}, Memory: {memory_load:.2f}, Total: {load:.2f}"
             )
-
             return min(1.0, load)
-
         except Exception as e:
             self.logger.error(f"Error calculating system load: {str(e)}")
             return 0.0
-
-    def _update_metrics_history(self, current_load: float):
-        """Update metrics history for trend analysis"""
-        self.metrics_history.append({
-            'timestamp': datetime.now(),
-            'load': current_load,
-            'num_agents': len(self.orchestrator.child_agents)
-        })
-
-        # Keep only last hour of metrics
-        cutoff = datetime.now() - timedelta(hours=1)
-        self.metrics_history = [
-            m for m in self.metrics_history
-            if m['timestamp'] > cutoff
-        ]
-
-    def _analyze_load_trend(self) -> float:
-        """Analyze load trend to make better scaling decisions"""
-        if len(self.metrics_history) < 5:
-            return 0.0
-
-        recent_loads = [m['load'] for m in self.metrics_history[-5:]]
-        return sum(recent_loads) / len(recent_loads)
-
-    async def _scale_up(self):
-        """Add new agents to handle increased load"""
-        current_agents = len(self.orchestrator.child_agents)
-        if current_agents >= self.config.max_agents:
-            self.logger.info("Cannot scale up: maximum agents reached")
-            return
-
-        try:
-            agents_to_add = min(
-                self.config.scale_up_increment,
-                self.config.max_agents - current_agents
-            )
-
-            for _ in range(agents_to_add):
-                new_agent = await self.orchestrator.create_agent()
-                await self.orchestrator.add_child_agent(new_agent)
-
-            self.last_scale_time = datetime.now()
-            self.logger.info(f"Scaled up by {agents_to_add} agents")
-
-        except Exception as e:
-            self.logger.error(f"Error scaling up: {str(e)}")
-
-    async def _scale_down(self):
-        """Remove underutilized agents"""
-        current_agents = len(self.orchestrator.child_agents)
-        if current_agents <= self.config.min_agents:
-            self.logger.info("Cannot scale down: minimum agents reached")
-            return
-
-        try:
-            agents_to_remove = min(
-                self.config.scale_down_increment,
-                current_agents - self.config.min_agents
-            )
-
-            removed = 0
-            for _ in range(agents_to_remove):
-                idle_agent = await self._find_idle_agent()
-                if idle_agent:
-                    await self.orchestrator.remove_child_agent(idle_agent.id)
-                    removed += 1
-
-            if removed > 0:
-                self.last_scale_time = datetime.now()
-                self.logger.info(f"Scaled down by {removed} agents")
-
-        except Exception as e:
-            self.logger.error(f"Error scaling down: {str(e)}")
-
-    def _can_scale(self) -> bool:
-        """Check if scaling is allowed based on cooldown and conditions"""
-        if not self.running:
-            return False
-
-        cooldown_elapsed = (
-                                   datetime.now() - self.last_scale_time
-                           ).seconds > self.config.cooldown_period
-
-        if not cooldown_elapsed:
-            self.logger.debug("Scaling cooldown period not elapsed")
-            return False
-
-        return True
-
-    async def _find_idle_agent(self) -> Optional['BaseAgent']:
-        """Find an idle agent suitable for removal"""
-        try:
-            idle_agents = []
-            for agent in self.orchestrator.child_agents.values():
-                metrics = await agent.get_metrics()
-                if (agent.status == 'idle' and
-                        metrics['total_tasks'] == 0 and
-                        metrics['queue_utilization'] == 0):
-                    idle_agents.append((agent, metrics['success_rate']))
-
-            # Sort by success rate ascending (remove less successful agents first)
-            idle_agents.sort(key=lambda x: x[1])
-            return idle_agents[0][0] if idle_agents else None
-
-        except Exception as e:
-            self.logger.error(f"Error finding idle agent: {str(e)}")
-            return None
-
-    async def get_scaling_metrics(self) -> Dict:
-        """Get current scaling metrics"""
-        return {
-            'current_agents': len(self.orchestrator.child_agents),
-            'load_history': self.metrics_history[-10:] if self.metrics_history else [],
-            'last_scale_time': self.last_scale_time.isoformat(),
-            'can_scale_up': len(self.orchestrator.child_agents) < self.config.max_agents,
-            'can_scale_down': len(self.orchestrator.child_agents) > self.config.min_agents
-        }
