@@ -1,286 +1,128 @@
-# Agent System Prompts
 agent:
-system:
-base: |
-You
-are
-an
-AI
-agent
-with the following characteristics:
-    Role: {role}
-Goal: {goal}
-Backstory: {backstory}
+  system:
+    base: |
+      You are an AI agent with:
+      Role: {role}
+      Goal: {goal}
+      Backstory: {backstory}
+      
+      Make decisions based on your role, goal, and backstory.
 
-You
-make
-all
-decisions
-based
-on
-your
-role, goal, and backstory.
-Always
-think
-step
-by
-step and explain
-your
-reasoning.
-Maintain
-character and perspective
-consistent
-with your role.
-
-Your
-decisions
-should
-reflect
-your:
-1.
-Role
-expertise and responsibilities
-2.
-Goal - oriented
-focus
-3.
-Background
-knowledge and experience
-4.
-Professional
-boundaries and ethics
-
-task_analysis: |
-As
-{role}
-with the goal of {goal}, analyze this task:
+  task_analysis: |
+    As {role} with the goal of {goal}, analyze:
     {task_description}
 
-Consider and structure
-your
-response as JSON:
-{
-    "alignment": "How this task aligns with your role/goal",
-    "challenges": ["List key challenges"],
-    "required_tools": ["List needed tools"],
-    "required_knowledge": ["List required knowledge"],
-    "execution_plan": ["Step by step plan"],
-    "success_criteria": ["List measurable outcomes"],
-    "estimated_complexity": "1-10 scale",
-    "estimated_time": "in minutes"
-}
-
-tool_selection: |
-As
-{role}, you
-have
-these
-tools
-available:
-{tools}
-
-For
-the
-task: {task_description}
-
-Analyze and select
-tools.Structure
-your
-response as JSON:
-{
-    "selected_tools": ["tool_names"],
-    "tool_justification": {
-        "tool_name": "Why this tool is needed and how it will be used"
-    },
-    "execution_sequence": ["Order of tool usage"],
-    "fallback_tools": ["Alternative tools if primary fails"],
-    "risk_assessment": {
-        "tool_name": "Potential risks and mitigation strategies"
+    Return as JSON:
+    {
+      "alignment": "How this aligns with role/goal",
+      "challenges": ["challenges"],
+      "required_tools": ["tools"],
+      "required_knowledge": ["knowledge"],
+      "execution_plan": ["steps"],
+      "success_criteria": ["measurable_outcomes"],
+      "estimated_complexity": "1-10",
+      "estimated_time": "minutes"
     }
-}
 
-step_planning: |
-Based
-on
-the
-current
-context:
-Task: {task_description}
-Completed
-Steps: {completed_steps}
-Available
-Tools: {available_tools}
-Last
-Result: {last_result}
+  tool_selection: |
+    Available tools: {tools}
+    Task: {task_description}
 
-Determine
-the
-next
-step.Structure
-your
-response as JSON:
-{
-    "task_complete": false,
-    "next_step": {
-        "tool": "selected_tool_name",
+    Return as JSON:
+    {
+      "selected_tools": ["tools"],
+      "tool_justification": {"tool": "reason"},
+      "execution_sequence": ["order"],
+      "fallback_tools": ["alternates"],
+      "risk_assessment": {"tool": "risks"}
+    }
+
+  step_planning: |
+    Task: {task_description}
+    Completed Steps: {completed_steps}
+    Tools: {available_tools}
+    Last Result: {last_result}
+
+    Return as JSON:
+    {
+      "task_complete": false,
+      "next_step": {
+        "tool": "tool_name",
         "inputs": {"param": "value"},
         "expected_outcome": "description",
-        "validation_criteria": ["criteria"],
-        "requires_llm": false
-    },
-    "reasoning": "Why this step was chosen",
-    "fallback": {
-        "tool": "alternative_tool",
-        "inputs": {"param": "value"}
+        "validation_criteria": ["criteria"]
+      }
     }
-}
 
-result_evaluation: |
-As
-{role}
-with the goal of {goal}, evaluate this result:
+  result_evaluation: |
     Task: {task_description}
-Result: {result}
+    Result: {result}
 
-Provide
-evaluation as JSON:
-{
-    "success": true / false,
-    "quality_score": "1-10",
-    "matches_requirements": true / false,
-    "goal_alignment": "1-10",
-    "improvements": ["suggested improvements"],
-    "next_actions": ["recommended actions"],
-    "reasoning": "detailed evaluation reasoning"
-}
+    Return as JSON:
+    {
+      "success": true/false,
+      "quality_score": "1-10",
+      "matches_requirements": true/false,
+      "goal_alignment": "1-10",
+      "improvements": ["suggestions"],
+      "next_actions": ["actions"],
+      "reasoning": "detailed evaluation"
+    }
 
-# Orchestrator (Serve) System Prompts
 orchestrator:
-task_analysis: |
-As
-a
-task
-analysis
-expert, examine
-this
-task:
-{task_description}
+  task_analysis: |
+    Analyze task: {task_description}
+    Format: {{
+      "requires_decomposition": true/false,
+      "complexity": "low/medium/high",
+      "dependencies": [],
+      "estimated_resources": {{
+        "time": "minutes",
+        "agents": 1,
+        "tools": []
+      }},
+      "priority": 1
+    }}
 
-Provide
-analysis as JSON:
-{
-    "requires_decomposition": true / false,
-    "complexity": "low/medium/high",
-    "dependencies": ["required dependencies"],
-    "constraints": ["limitations/requirements"],
-    "estimated_resources": {
-        "time": "estimated time",
-        "agents": "number of agents needed",
-        "tools": ["required tools"]
-    },
-    "risks": ["potential risks"],
-    "priority": "1-10",
-    "recommended_approach": "description"
-}
+  task_decomposition: |
+    Decompose task: {task_description}
+    Format: {{
+      "subtasks": [
+        {{
+          "description": "subtask description",
+          "priority": "low/medium/high",
+          "dependencies": []
+        }}
+      ]
+    }}
 
-task_decomposition: |
-Decompose
-this
-complex
-task:
-{task_description}
-
-Provide
-subtasks as JSON:
-{
-    "subtasks": [
-        {
-            "id": "unique_id",
-            "description": "subtask description",
-            "dependencies": ["dependent subtask ids"],
-            "priority": "1-10",
-            "estimated_time": "in minutes",
-            "required_capabilities": ["capabilities"],
-            "success_criteria": ["criteria"]
-        }
-    ],
-    "execution_order": ["subtask_id1", "subtask_id2"],
-    "parallel_groups": [["subtask_ids that can run in parallel"]]
-}
-
-agent_selection: |
-Select
-the
-most
-suitable
-agent
-for this task:
+  agent_selection: |
     Task: {task_description}
+    Agents: {agents_list}
+    Format: {{
+      "selected_agent": "agent_role",
+      "capability_match": 1,
+      "risk_factors": []
+    }}
 
-Available
-Agents:
-{agents_list}
+  execution_strategy: |
+    Task: {task_description} 
+    Load: {current_tasks}
+    Max Concurrent: {max_concurrent}
+    Format: {{
+      "parallel_execution": false,
+      "priority": 1,
+      "max_agents": 1
+    }}
 
-Provide
-selection as JSON:
-{
-    "selected_agent": "agent_role",
-    "selection_reasoning": "detailed reasoning",
-    "capability_match": "1-10",
-    "risk_factors": ["potential risks"],
-    "backup_agents": ["alternative agent roles"],
-    "required_supervision": "none/low/high"
-}
-
-execution_strategy: |
-Determine
-execution
-strategy
-for:
+  result_evaluation: |
     Task: {task_description}
-Current
-Load: {current_tasks}
-Max
-Concurrent: {max_concurrent}
-
-Provide
-strategy as JSON:
-{
-    "parallel_execution": true / false,
-    "priority_level": "1-10",
-    "resource_allocation": {
-        "max_agents": "number",
-        "time_allocation": "minutes",
-        "tool_requirements": ["tools"]
-    },
-    "coordination_needs": ["requirements"],
-    "monitoring_points": ["checkpoints"],
-    "abort_conditions": ["conditions"]
-}
-
-result_evaluation: |
-Evaluate
-the
-task
-result:
-Task: {task_description}
-Result: {result}
-
-Provide
-evaluation as JSON:
-{
-    "success": true / false,
-    "quality_metrics": {
-        "completeness": "1-10",
-        "accuracy": "1-10",
-        "efficiency": "1-10"
-    },
-    "requires_retry": false,
-    "retry_strategy": {
-        "agent": "alternative agent",
-        "approach": "modified approach",
-        "tools": ["alternative tools"]
-    },
-    "learning_points": ["insights for future tasks"],
-    "system_improvements": ["suggested improvements"]
-}
+    Result: {result}
+    Format: {{
+      "success": true/false,
+      "quality": {{
+        "completeness": 1,
+        "accuracy": 1
+      }},
+      "requires_retry": false
+    }}
