@@ -2,7 +2,7 @@ name: Publish Python Package
 
 on:
   release:
-    types: [created]
+    types: [created, published]
 
 jobs:
   deploy:
@@ -17,7 +17,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.12'
+        python-version: '3.9'
 
     - name: Install Poetry
       uses: snok/install-poetry@v1
@@ -29,6 +29,9 @@ jobs:
     - name: Install poetry-dynamic-versioning
       run: |
         poetry self add "poetry-dynamic-versioning[plugin]"
+
+    - name: Update lock file
+      run: poetry lock
 
     - name: Build package
       run: poetry build

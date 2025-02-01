@@ -1,38 +1,39 @@
-"""PDF extraction tool implementation."""
-
-from pilott.tools import Tool
 from typing import Dict, Any
+from pathlib import Path
 import pypdf
-import io
+from pilott.tools import Tool
 
 
 class PDFExtractorTool(Tool):
-    """Tool for extracting content from PDFs."""
-
     def __init__(self):
         super().__init__(
             name="pdf_extractor",
-            description="Extracts text content from PDF files",
-            function=self.extract_pdf
+            description="Extracts text from PDFs",
+            parameters={
+                "file_path": {
+                    "type": "string",
+                    "description": "Path to PDF file"
+                }
+            }
         )
 
-    def extract_pdf(self, pdf_content: bytes) -> Dict[str, Any]:
-        """Extract text content from PDF."""
+    async def execute(self, file_path: str) -> Dict[str, Any]:
         try:
-            # Create PDF reader object
-            pdf_file = io.BytesIO(pdf_content)
-            pdf_reader = pypdf.PdfReader(pdf_file)
+            path = Path(file_path)
+            with open(path, 'rb') as file:
+                pdf = pypdf.PdfReader(file)
+                content = {
+                    f"page_{i + 1}": page.extract_text()
+                    for i, page in enumerate(pdf.pages)
+                    if page.extract_text().strip()
+                }
 
-            # Extract content from each page
-            content = {}
-            for i, page in enumerate(pdf_reader.pages):
-                content[f"page_{i + 1}"] = page.extract_text()
-
-            return {
-                "status": "success",
-                "total_pages": len(pdf_reader.pages),
-                "content": content
-            }
+                return {
+                    "status": "success",
+                    "filename": path.name,
+                    "total_pages": len(pdf.pages),
+                    "content": content
+                }
         except Exception as e:
             return {
                 "status": "error",
