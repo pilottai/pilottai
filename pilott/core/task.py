@@ -317,12 +317,6 @@ class Task(BaseModel):
             raise ValueError("Complexity must be between 1 and 10")
         return v
 
-    @field_validator('deadline')
-    def validate_deadline(cls, v):
-        if v and v < datetime.now():
-            raise ValueError("Deadline cannot be in the past")
-        return v
-
     @property
     def is_overdue(self) -> bool:
         """Check if task is past its deadline"""
@@ -367,13 +361,3 @@ class Task(BaseModel):
         if self.tools:
             prompt += f"\nAvailable Tools: {', '.join(self.tools)}"
         return prompt
-
-    def validate_result(self, result: Any) -> bool:
-        """Validate result against expected output"""
-        if not self.expected_output:
-            return True
-        try:
-            # Implement validation logic based on expected_output schema
-            return True
-        except Exception:
-            return False
