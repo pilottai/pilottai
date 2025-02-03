@@ -1,0 +1,200 @@
+.agents-section {
+    padding: 5rem 5%;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    background: rgba(11, 6, 31, 0.8);
+    min-height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.agents-section h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #fff 0%, #A8A4FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.section-subtitle {
+    color: var(--text-light);
+    opacity: 0.8;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+}
+
+.command-input {
+    max-width: 600px;
+    margin: 2rem auto 3rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.command-icon {
+    font-size: 1.2rem;
+    color: var(--secondary-color);
+}
+
+.command-input input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    padding: 0.5rem 0;
+}
+
+.command-input input:focus {
+    outline: none;
+}
+
+.swap-btn {
+    background: rgba(108, 92, 231, 0.2);
+    border: 1px solid rgba(108, 92, 231, 0.3);
+    color: var(--secondary-color);
+    padding: 0.4rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.swap-btn:hover {
+    background: rgba(108, 92, 231, 0.3);
+}
+
+.agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 2rem;
+    margin: 3rem auto;
+    max-width: 1400px;
+    padding: 0 2rem;
+}
+
+.agent-card {
+    perspective: 1000px;
+    background: none;
+    padding: 0;
+    cursor: pointer;
+    height: 300px;
+}
+
+.card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.8s;
+    transform-style: preserve-3d;
+}
+
+.agent-card:hover .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+
+.card-front {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.card-back {
+    background: rgba(108, 92, 231, 0.1);
+    border: 1px solid rgba(108, 92, 231, 0.2);
+    transform: rotateY(180deg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.card-back h3 {
+    color: var(--secondary-color);
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+}
+
+.agent-details {
+    text-align: left;
+}
+
+.detail-item {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.detail-item strong {
+    color: var(--secondary-color);
+    margin-right: 0.5rem;
+}
+
+.agent-avatar {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+    position: relative;
+    background: rgba(108, 92, 231, 0.1);
+}
+
+.agent-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.agent-info h3 {
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.agent-role {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+@media (max-width: 768px) {
+    .agents-section {
+        padding: 3rem 1rem;
+    }
+
+    .agents-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        padding: 0;
+        gap: 1rem;
+    }
+
+    .agent-card {
+        height: 280px;
+    }
+
+    .agent-avatar {
+        width: 80px;
+        height: 80px;
+    }
+
+    .command-input {
+        margin: 1.5rem auto 2rem;
+        padding: 0.3rem 0.8rem;
+    }
+}

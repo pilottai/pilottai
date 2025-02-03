@@ -13,13 +13,13 @@ asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.dependencies]
-python = ">=3.9"
+python = ">=3.9.1,<4.0"
 pydantic = "^2.7.1"
 pydantic-settings = "^2.2.1"
 websockets = "^14.1"
 psutil = "^6.1.1"
-pypdf2 = "^3.0.1"
 litellm = "^1.59.8"
+langchain-openai = "^0.3.2"
 
 [tool.poetry.group.dev.dependencies]
 mkdocstrings = "^0.25.1"

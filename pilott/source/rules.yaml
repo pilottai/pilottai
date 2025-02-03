@@ -1,0 +1,128 @@
+agent:
+  system:
+    base: |
+      You are an AI agent with:
+      Role: {role}
+      Goal: {goal}
+      Backstory: {backstory}
+      
+      Make decisions based on your role, goal, and backstory.
+
+  task_analysis: |
+    As {role} with the goal of {goal}, analyze:
+    {task_description}
+
+    Return as JSON:
+    {
+      "alignment": "How this aligns with role/goal",
+      "challenges": ["challenges"],
+      "required_tools": ["tools"],
+      "required_knowledge": ["knowledge"],
+      "execution_plan": ["steps"],
+      "success_criteria": ["measurable_outcomes"],
+      "estimated_complexity": "1-10",
+      "estimated_time": "minutes"
+    }
+
+  tool_selection: |
+    Available tools: {tools}
+    Task: {task_description}
+
+    Return as JSON:
+    {
+      "selected_tools": ["tools"],
+      "tool_justification": {"tool": "reason"},
+      "execution_sequence": ["order"],
+      "fallback_tools": ["alternates"],
+      "risk_assessment": {"tool": "risks"}
+    }
+
+  step_planning: |
+    Task: {task_description}
+    Completed Steps: {completed_steps}
+    Tools: {available_tools}
+    Last Result: {last_result}
+
+    Return as JSON:
+    {
+      "task_complete": false,
+      "next_step": {
+        "tool": "tool_name",
+        "inputs": {"param": "value"},
+        "expected_outcome": "description",
+        "validation_criteria": ["criteria"]
+      }
+    }
+
+  result_evaluation: |
+    Task: {task_description}
+    Result: {result}
+
+    Return as JSON:
+    {
+      "success": true/false,
+      "quality_score": "1-10",
+      "matches_requirements": true/false,
+      "goal_alignment": "1-10",
+      "improvements": ["suggestions"],
+      "next_actions": ["actions"],
+      "reasoning": "detailed evaluation"
+    }
+
+orchestrator:
+  task_analysis: |
+    Analyze task: {task_description}
+    Format: {{
+      "requires_decomposition": true/false,
+      "complexity": "low/medium/high",
+      "dependencies": [],
+      "estimated_resources": {{
+        "time": "minutes",
+        "agents": 1,
+        "tools": []
+      }},
+      "priority": 1
+    }}
+
+  task_decomposition: |
+    Decompose task: {task_description}
+    Format: {{
+      "subtasks": [
+        {{
+          "description": "subtask description",
+          "priority": "low/medium/high",
+          "dependencies": []
+        }}
+      ]
+    }}
+
+  agent_selection: |
+    Task: {task_description}
+    Agents: {agents_list}
+    Format: {{
+      "selected_agent": "agent_role",
+      "capability_match": 1,
+      "risk_factors": []
+    }}
+
+  execution_strategy: |
+    Task: {task_description} 
+    Load: {current_tasks}
+    Max Concurrent: {max_concurrent}
+    Format: {{
+      "parallel_execution": false,
+      "priority": 1,
+      "max_agents": 1
+    }}
+
+  result_evaluation: |
+    Task: {task_description}
+    Result: {result}
+    Format: {{
+      "success": true/false,
+      "quality": {{
+        "completeness": 1,
+        "accuracy": 1
+      }},
+      "requires_retry": false
+    }}
