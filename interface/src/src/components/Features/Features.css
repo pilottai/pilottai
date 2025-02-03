@@ -1,0 +1,114 @@
+.key-features {
+    padding: 5rem 5%;
+    position: relative;
+    overflow: hidden;
+    background: rgba(11, 6, 31, 0.8);
+}
+
+.key-features h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    background: linear-gradient(135deg, #fff 0%, #A8A4FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.features-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.feature-block {
+    padding: 2rem;
+    border-radius: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.feature-block:hover {
+    transform: translateY(-5px);
+}
+
+.feature-block::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at top right, rgba(168, 164, 255, 0.1), transparent 70%);
+    pointer-events: none;
+}
+
+.feature-block .feature-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.feature-block h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: var(--text-light);
+}
+
+.feature-block ul {
+    list-style: none;
+    margin-bottom: 2rem;
+}
+
+.feature-block ul li {
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+}
+
+.feature-block ul li::before {
+    content: '→';
+    margin-right: 0.5rem;
+    color: var(--secondary-color);
+}
+
+.feature-animation {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    width: 120px;
+    height: 120px;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.hierarchical-agents {
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.05), rgba(168, 164, 255, 0.05));
+}
+
+.production-ready {
+    background: linear-gradient(135deg, rgba(168, 164, 255, 0.05), rgba(108, 92, 231, 0.05));
+}
+
+.advanced-memory {
+    background: linear-gradient(135deg, rgba(108, 92, 231, 0.05), rgba(168, 164, 255, 0.05));
+}
+
+.integrations {
+    background: linear-gradient(135deg, rgba(168, 164, 255, 0.05), rgba(108, 92, 231, 0.05));
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .features-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .key-features h2 {
+        font-size: 2rem;
+    }
+}
