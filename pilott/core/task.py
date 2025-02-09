@@ -2,24 +2,8 @@ from typing import Dict, Optional, Any, List
 from pydantic import BaseModel, Field
 from datetime import datetime
 import uuid
-from enum import Enum
 
-
-class TaskStatus(str, Enum):
-    """Task execution status"""
-    PENDING = "pending"
-    IN_PROGRESS = "in_progress"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
-
-
-class TaskPriority(str, Enum):
-    """Task priority levels"""
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
+from pilott.enums.task_e import TaskStatus, TaskPriority
 
 
 class TaskResult(BaseModel):

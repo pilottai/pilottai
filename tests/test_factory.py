@@ -1,10 +1,10 @@
 import pytest
 import asyncio
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import AsyncMock, patch
 from pilott.core.factory import AgentFactory
 from pilott.core.agent import BaseAgent
 from pilott.core.config import AgentConfig
-from pilott.core.role import AgentRole
+from pilott.enums.role import AgentRole
 
 class MockAgent(BaseAgent):
     """Proper mock agent that inherits from BaseAgent"""

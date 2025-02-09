@@ -1,21 +1,14 @@
 from typing import Dict, List, Optional, Any, Union
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import asyncio
 import logging
-from datetime import datetime
-from enum import Enum
 
 from pilott.core.agent import BaseAgent
-from pilott.core.task import Task, TaskResult, TaskPriority
+from pilott.core.task import Task, TaskResult
 from pilott.core.memory import Memory
 from pilott.core.config import AgentConfig, LLMConfig
-from pilott.engine.llm import LLMHandler
-
-
-class ProcessType(str, Enum):
-    """Processing type for task execution"""
-    SEQUENTIAL = "sequential"
-    PARALLEL = "parallel"
+from pilott.enums.process import ProcessType
+from pilott.enums.task_e import TaskPriority
 
 
 class ServeConfig(BaseModel):
@@ -158,7 +151,7 @@ class Serve:
             self.logger.error(f"Failed to create task: {str(e)}")
             raise
 
-    async def execute(self, tasks: List[Task]) -> List[TaskResult]:
+    async def execute(self, tasks: List[dict[str, str]]) -> List[TaskResult]:
         """
         Execute a list of tasks.
 
@@ -172,9 +165,15 @@ class Serve:
             await self.start()
 
         try:
+            processed_tasks = []
+            for task in tasks:
+                if isinstance(task, dict):
+                    task = Task(**task)
+                processed_tasks.append(task)
+
             if self.config.process_type == ProcessType.PARALLEL:
-                return await self._execute_parallel(tasks)
-            return await self._execute_sequential(tasks)
+                return await self._execute_parallel(processed_tasks)
+            return await self._execute_sequential(processed_tasks)
 
         except Exception as e:
             self.logger.error(f"Task execution failed: {str(e)}")

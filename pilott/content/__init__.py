@@ -1,0 +1,1 @@
+from pilott.content.content_manager import KnowledgeManager
