@@ -1,5 +1,4 @@
-from typing import Dict, List, Optional, Any
-from pydantic import BaseModel
+from typing import Dict, List, Optional
 import asyncio
 import logging
 from datetime import datetime
@@ -43,7 +42,7 @@ class BaseAgent:
         # Setup logging
         self.logger = self._setup_logger()
 
-    async def execute_task(self, task: Task) -> TaskResult:
+    async def execute_task(self, task: Task) -> Optional[TaskResult]:
         """
         Execute a task with proper handling and monitoring.
 
@@ -302,7 +301,7 @@ class BaseAgent:
             self.logger.error(f"Failed to stop agent: {str(e)}")
             raise
 
-    async def execute_task(self, task: Task) -> TaskResult:
+    async def execute_task(self, task: Task) -> Optional[TaskResult]:
         """Execute a task with memory integration"""
         if not self.llm:
             raise ValueError("LLM configuration required for task execution")
