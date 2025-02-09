@@ -1,31 +1,36 @@
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timedelta
 import logging
 import asyncio
 import litellm
 from litellm import ModelResponse
 
+from pilott.core import LLMConfig
+
 
 class LLMHandler:
     """Handles LLM interactions with proper error handling"""
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: Union[LLMConfig, Dict[str, Any]]):
         if not isinstance(config, dict):
             raise ValueError("Config must be a dictionary")
 
         if not config.get("api_key"):
             raise ValueError("API key is required")
 
-        self.config = {
-            "model": config.get("model_name", "gpt-4"),
-            "provider": config.get("provider", "openai"),
-            "api_key": config["api_key"],
-            "temperature": float(config.get("temperature", 0.7)),
-            "max_tokens": int(config.get("max_tokens", 2000)),
-            "max_rpm": config.get("max_rpm", 0),  # Default to 0 if not specified
-            "retry_attempts": int(config.get("retry_attempts", 3)),
-            "retry_delay": float(config.get("retry_delay", 1.0))
-        }
+        if isinstance(config, dict):
+            self.config = {
+                "model": config.get("model_name", "gpt-4"),
+                "provider": config.get("provider", "openai"),
+                "api_key": config["api_key"],
+                "temperature": float(config.get("temperature", 0.7)),
+                "max_tokens": int(config.get("max_tokens", 2000)),
+                "max_rpm": config.get("max_rpm", 0),  # Default to 0 if not specified
+                "retry_attempts": int(config.get("retry_attempts", 3)),
+                "retry_delay": float(config.get("retry_delay", 1.0))
+            }
+        else:
+            self.config = config.model_dump()
 
         self.logger = logging.getLogger(f"LLMHandler_{id(self)}")
         self.last_call = datetime.min
