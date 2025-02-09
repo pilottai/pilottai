@@ -1,0 +1,187 @@
+# Document Processing Agent Example
+
+This example demonstrates how to set up and use a document processing agent with the PilottAI framework.
+
+## Features
+
+- Text extraction from various document formats
+- Content analysis capabilities
+- Document summarization
+- Configurable processing tools
+
+## Setup
+
+1. Install required dependencies:
+```bash
+pip install pilott
+```
+
+2. Configure your environment:
+```bash
+export OPENAI_API_KEY="your-api-key"
+```
+
+## Tools Included
+
+### Text Extractor
+Extracts text content from documents:
+```python
+text_extractor = Tool(
+    name="text_extractor",
+    parameters={
+        "file_path": "str",
+        "format": "str"
+    }
+)
+```
+
+### Content Analyzer
+Analyzes document content:
+```python
+content_analyzer = Tool(
+    name="content_analyzer",
+    parameters={
+        "text": "str",
+        "analysis_type": "str"
+    }
+)
+```
+
+### Summarizer
+Generates document summaries:
+```python
+summarizer = Tool(
+    name="summarizer",
+    parameters={
+        "text": "str",
+        "max_length": "int"
+    }
+)
+```
+
+## Quick Start
+
+```python
+from pilott import Serve
+from pilott.core import AgentConfig, LLMConfig
+
+# Initialize and run
+async def main():
+    pilott = Serve(name="DocumentProcessor")
+    
+    # Add document processing agent
+    doc_processor = await pilott.add_agent(
+        role="document_processor",
+        goal="Process documents efficiently",
+        tools=["text_extractor", "content_analyzer", "summarizer"]
+    )
+
+    # Process a document
+    task = {
+        "type": "document_analysis",
+        "document": {
+            "path": "document.pdf",
+            "type": "pdf"
+        }
+    }
+    
+    result = await pilott.execute([task])
+```
+
+## Supported Document Types
+
+- PDF files
+- Text documents
+- Word documents (docx)
+- HTML files
+
+## Common Use Cases
+
+1. **Document Analysis**
+   ```python
+   task = {
+       "type": "document_analysis",
+       "description": "Analyze quarterly report"
+   }
+   ```
+
+2. **Text Extraction**
+   ```python
+   task = {
+       "type": "text_extraction",
+       "document": {"path": "file.pdf"}
+   }
+   ```
+
+3. **Content Summarization**
+   ```python
+   task = {
+       "type": "summarization",
+       "document": {"path": "article.txt"}
+   }
+   ```
+
+## Configuration Options
+
+Customize agent behavior:
+```python
+config = AgentConfig(
+    role="document_processor",
+    goal="Process documents efficiently",
+    max_concurrent_tasks=5,
+    task_timeout=300
+)
+```
+
+## Best Practices
+
+1. **Document Handling**
+   - Validate document formats before processing
+   - Handle large documents in chunks
+   - Implement proper error handling
+
+2. **Performance**
+   - Configure appropriate timeouts
+   - Use concurrent processing when possible
+   - Monitor memory usage for large documents
+
+3. **Error Handling**
+   - Validate input documents
+   - Handle unsupported formats gracefully
+   - Implement retry logic for failed operations
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. **File Access Errors**
+   - Ensure proper file permissions
+   - Verify file paths are correct
+   - Check file format compatibility
+
+2. **Processing Timeouts**
+   - Adjust task_timeout in configuration
+   - Process large documents in smaller chunks
+   - Monitor system resources
+
+## Example Output
+
+```python
+# Example result
+{
+    'success': True,
+    'output': {
+        'summary': 'Document summary...',
+        'analysis': 'Content analysis...',
+        'metadata': {
+            'pages': 5,
+            'format': 'pdf',
+            'processing_time': '2.3s'
+        }
+    }
+}
+```
+
+## Code
+
+Ready to use code [document_processor.py](../../pilott/agents/document_processing.py) 

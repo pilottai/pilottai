@@ -1,0 +1,52 @@
+# Email Agent Example
+
+Simple example showing how to set up an email handling agent with PilottAI framework.
+
+## Setup
+
+```bash
+pip install pilott
+```
+
+## Example Usage
+
+```python
+from pilott import Serve
+from pilott.core import AgentConfig, LLMConfig
+
+# Initialize
+pilott = Serve(name="EmailAgent")
+
+# Create agent
+email_agent = await pilott.add_agent(
+    role="email_manager",
+    goal="Handle email communications",
+    tools=["email_sender", "email_analyzer"]
+)
+
+# Send email
+task = {
+    "type": "send_email",
+    "template": "welcome",
+    "recipient": "user@example.com"
+}
+
+result = await pilott.execute([task])
+```
+
+## Tools
+
+- email_sender: Send emails with attachments
+- email_analyzer: Analyze email content and intent
+- template_manager: Handle email templates
+
+## Features
+
+- Email sending and analysis
+- Template management
+- Sentiment analysis
+- Priority handling
+
+## Code
+
+Ready to use code [email_agent.py](../../pilott/agents/email_agent.py) 
