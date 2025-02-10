@@ -204,7 +204,7 @@ pilott/
 
 ## Contributing
 
-We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for details on:
+We welcome contributions! See our [Contributing Guide](.github/CONTRIBUTING.md) for details on:
 - Development setup
 - Coding standards
 - Pull request process
