@@ -1,16 +1,11 @@
 from typing import Dict, Optional, Any, Tuple, List
 from pydantic import BaseModel, Field, ConfigDict
-from enum import Enum
 import asyncio
 from datetime import datetime, timedelta
 import logging
 
+from  pilott.enums.task_e import TaskPriority
 
-class TaskPriority(str, Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
 
 class RouterConfig(BaseModel):
     load_check_interval: int = Field(ge=1, default=5)

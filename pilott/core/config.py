@@ -1,7 +1,7 @@
 import shutil
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
-from pilott.core.role import AgentRole
+from pilott.enums.role import AgentRole
 from pathlib import Path
 from cryptography.fernet import Fernet
 import json
@@ -50,6 +50,8 @@ class LLMConfig(BaseModel):
     api_key: SecretStr
     temperature: float = Field(ge=0.0, le=1.0, default=0.7)
     max_tokens: int = Field(gt=0, default=2000)
+    max_rpm: int = Field(gt=0, default=0)
+    retry_delay: float = Field(gt=0, default=1.0)
     function_calling_model: Optional[str] = None
     system_template: Optional[str] = None
     prompt_template: Optional[str] = None

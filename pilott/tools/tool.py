@@ -4,14 +4,8 @@ from datetime import datetime
 import logging
 import traceback
 import asyncio
-from enum import Enum
 
-
-class ToolStatus(str, Enum):
-    READY = "ready"
-    BUSY = "busy"
-    ERROR = "error"
-    DISABLED = "disabled"
+from pilott.enums.tool_e import ToolStatus
 
 
 class ToolMetrics(BaseModel):

@@ -7,9 +7,10 @@ import psutil
 from aiohttp._websocket.reader_c import deque
 from pydantic import BaseModel, ConfigDict, Field
 import weakref
-from enum import Enum
 
-from pilott.core import BaseAgent, Task
+from pilott.core.agent import BaseAgent
+from pilott.core.task import Task
+from pilott.enums.health import HealthStatus
 
 
 class ScalingMetrics(BaseModel):
@@ -30,12 +31,6 @@ class ScalingConfig(BaseModel):
     scale_up_increment: int = Field(ge=1, default=1)
     scale_down_increment: int = Field(ge=1, default=1)
     metrics_retention_period: int = Field(ge=0, default=3600)
-
-class HealthStatus(str, Enum):
-    HEALTHY = "healthy"
-    DEGRADED = "degraded"
-    UNHEALTHY = "unhealthy"
-    CRITICAL = "critical"
 
 class AgentHealth(BaseModel):
     status: HealthStatus
