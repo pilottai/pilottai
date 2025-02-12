@@ -1,4 +1,4 @@
-# PilottAI Framework
+<h1 align="center">PilottAI</h1>
 
 <div align="center">
   <picture>
