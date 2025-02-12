@@ -1,45 +1,38 @@
-# Release Notes - v0.1.3
+# Changelog
 
-## 🔧 Core Improvements
+## [0.2.0] - 2024-02-09
 
-### Memory System Enhancement
-- Redesigned memory storage system for better type safety
-- Improved dictionary handling in EnhancedMemory
-- Added proper serialization for memory items
-- Fixed memory storage issues across agent pipeline
+### Added
+- New specialized agents with example implementations:
+  - Customer Service Agent for ticket and support management
+  - Document Processing Agent for document analysis
+  - Email Agent for email handling and templates
+  - Learning Agent for knowledge acquisition
+  - Marketing Expert Agent for campaign management
+  - Research Analyst Agent for data analysis
+  - Sales Representative Agent for lead management
+  - Social Media Agent for content scheduling
+  - Web Search Agent for search operations
 
-### Agent Pipeline Stability
-- Enhanced task processing with better error handling
-- Improved type handling in agent communications
-- Fixed task result propagation
-- Added better state management in agent lifecycle
+- Each agent includes:
+  - Core tool implementations
+  - Usage examples
+  - Configuration templates
+  - Basic documentation
 
-### Task Processing
-- Improved PDF extraction reliability
-- Enhanced task evaluation mechanisms
-- Better handling of task metadata
-- Fixed task queue management issues
+### Changed
+- Enhanced agent documentation format
+- Updated example code structure
+- Improved tool organization
 
-## 🐛 Bug Fixes
-- Fixed memory storage type assignment errors
-- Resolved dictionary handling issues in task processing
-- Fixed agent pipeline state management bugs
-- Improved error handling in task execution
+### Dependencies
+- Added required dependencies in pyproject.toml
+- Updated core package requirements
 
-## 📚 Documentation Updates
-- Added detailed memory system documentation
-- Updated agent pipeline examples
-- Enhanced troubleshooting guides
-- Improved API documentation
+## [0.1.0] - 2024-01-21
 
-## 🔧 Technical Details
-- Improved type safety throughout the codebase
-- Enhanced error boundaries and recovery mechanisms
-- Better handling of asynchronous operations
-- Optimized memory usage in agent pipeline
-
-## 🔜 Coming Soon
-- Enhanced monitoring and metrics
-- Additional agent types and capabilities
-- Improved task routing mechanisms
-- Extended LLM provider support
+### Added
+- Initial release
+- Basic agent framework
+- Core functionality
+- Base documentation

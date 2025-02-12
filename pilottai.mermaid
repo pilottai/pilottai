@@ -1,0 +1,102 @@
+classDiagram
+    class Serve {
+        +agents: Dict[str, BaseAgent]
+        +tasks: Dict[str, Task]
+        +memory: Memory
+        +add_agent()
+        +create_task()
+        +execute()
+        +start()
+        +stop()
+    }
+
+    class BaseAgent {
+        +id: str
+        +config: AgentConfig
+        +status: AgentStatus
+        +tools: Dict[str, Tool]
+        +memory: Memory
+        +llm: LLMHandler
+        +execute_task()
+        +evaluate_task_suitability()
+        +start()
+        +stop()
+    }
+
+    class Memory {
+        +store_task_start()
+        +store_task_result()
+        +store_task_context()
+        +get_task_history()
+        +get_similar_tasks()
+        +search()
+    }
+
+    class TaskRouter {
+        +route_task()
+        +_calculate_agent_scores()
+        +_find_best_agent()
+        +_analyze_agent_loads()
+    }
+
+    class DynamicScaling {
+        +_check_and_adjust_scale()
+        +_scale_up()
+        +_scale_down()
+        +_get_system_metrics()
+    }
+
+    class LoadBalancer {
+        +_balance_system_load()
+        +_redistribute_tasks()
+        +_calculate_agent_suitability()
+    }
+
+    class FaultTolerance {
+        +_check_system_health()
+        +_handle_unhealthy_agent()
+        +_recover_agent()
+        +_replace_agent()
+    }
+
+    class Tool {
+        +name: str
+        +description: str
+        +function: Any
+        +execute()
+        +get_metrics()
+    }
+
+    class LLMHandler {
+        +generate_response()
+        +_rate_limit()
+        +_process_response()
+    }
+
+    class Task {
+        +id: str
+        +description: str
+        +status: TaskStatus
+        +priority: TaskPriority
+        +mark_started()
+        +mark_completed()
+    }
+
+    Serve *-- BaseAgent : manages
+    Serve *-- Memory : uses
+    BaseAgent *-- Tool : uses
+    BaseAgent *-- Memory : has
+    BaseAgent *-- LLMHandler : uses
+    Serve *-- TaskRouter : routes tasks
+    Serve *-- DynamicScaling : scales system
+    Serve *-- LoadBalancer : balances load
+    Serve *-- FaultTolerance : handles faults
+    BaseAgent -- Task : executes
+    Task -- TaskRouter : routed by
+
+    note for Serve "Main orchestrator for the framework"
+    note for BaseAgent "Core agent implementation"
+    note for TaskRouter "Routes tasks to appropriate agents"
+    note for DynamicScaling "Handles system scaling"
+    note for LoadBalancer "Balances workload across agents"
+    note for FaultTolerance "Handles system resilience"

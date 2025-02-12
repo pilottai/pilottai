@@ -1,7 +1,7 @@
 import shutil
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
-from pilott.core.role import AgentRole
+from pilott.enums.role import AgentRole
 from pathlib import Path
 from cryptography.fernet import Fernet
 import json
@@ -50,6 +50,8 @@ class LLMConfig(BaseModel):
     api_key: SecretStr
     temperature: float = Field(ge=0.0, le=1.0, default=0.7)
     max_tokens: int = Field(gt=0, default=2000)
+    max_rpm: int = Field(gt=0, default=0)
+    retry_delay: float = Field(gt=0, default=1.0)
     function_calling_model: Optional[str] = None
     system_template: Optional[str] = None
     prompt_template: Optional[str] = None
@@ -108,40 +110,35 @@ class AgentConfig(BaseModel):
     )
 
     # Basic Configuration
+    # Required fields
     role: str
-    role_type: AgentRole = AgentRole.WORKER
     goal: str
     description: str
-    backstory: Optional[str] = None
 
-    # Knowledge and Tools
+    # Optional fields with defaults
+    role_type: AgentRole = AgentRole.WORKER
+    backstory: Optional[str] = None
     knowledge_sources: List[str] = Field(default_factory=list)
     tools: List[str] = Field(default_factory=list)
     required_capabilities: List[str] = Field(default_factory=list)
-
-    # Execution Settings
-    max_iterations: int = Field(gt=0, default=20)
-    max_rpm: Optional[int] = Field(gt=0, default=None)
-    max_execution_time: Optional[int] = Field(gt=0, default=None)
-    retry_limit: int = Field(ge=0, default=2)
-    code_execution_mode: str = Field(default="safe", pattern="^(safe|restricted|unrestricted)$")
-
-    # Features
+    max_iterations: int = 20
+    max_rpm: Optional[int] = None
+    max_execution_time: Optional[int] = None
+    retry_limit: int = 2
+    code_execution_mode: str = "safe"
     memory_enabled: bool = True
     verbose: bool = False
     can_delegate: bool = False
     use_cache: bool = True
     can_execute_code: bool = False
+    max_child_agents: int = 10
+    max_queue_size: int = 100
+    max_task_complexity: int = 5
+    delegation_threshold: float = 0.7
+    max_concurrent_tasks: int = 5
+    task_timeout: int = 300
 
-    # Resource Limits
-    max_child_agents: int = Field(gt=0, default=10)
-    max_queue_size: int = Field(gt=0, default=100)
-    max_task_complexity: int = Field(ge=1, le=10, default=5)
-    delegation_threshold: float = Field(ge=0.0, le=1.0, default=0.7)
-
-    # Performance Settings
-    max_concurrent_tasks: int = Field(gt=0, default=5)
-    task_timeout: int = Field(gt=0, default=300)
+    # Optional resource limits with defaults
     resource_limits: Dict[str, float] = Field(
         default_factory=lambda: {
             "cpu_percent": 80.0,
@@ -150,10 +147,10 @@ class AgentConfig(BaseModel):
         }
     )
 
-    # WebSocket Configuration
+    # Optional websocket settings
     websocket_enabled: bool = True
     websocket_host: str = "localhost"
-    websocket_port: int = Field(ge=1024, le=65535, default=8765)
+    websocket_port: int = 8765
 
     @field_validator('resource_limits')
     def validate_resource_limits(cls, v):

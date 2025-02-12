@@ -1,16 +1,12 @@
 from typing import Any, List, Dict, Optional, Set
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 import logging
 import traceback
 import asyncio
-from enum import Enum
 
-class ToolStatus(str, Enum):
-    READY = "ready"
-    BUSY = "busy"
-    ERROR = "error"
-    DISABLED = "disabled"
+from pilott.enums.tool_e import ToolStatus
+
 
 class ToolMetrics(BaseModel):
     usage_count: int = 0
@@ -22,61 +18,77 @@ class ToolMetrics(BaseModel):
     last_error: Optional[str] = None
     error_types: Dict[str, int] = Field(default_factory=dict)
 
-class Tool(BaseModel):
-    name: str
-    description: str
-    function: Any
-    parameters: Dict[str, Any]
-    permissions: List[str] = Field(default_factory=list)
-    required_capabilities: List[str] = Field(default_factory=list)
-    timeout: float = Field(gt=0, default=30.0)
-    max_retries: int = Field(ge=0, default=3)
-    retry_delay: float = Field(gt=0, default=1.0)
-    cooldown_period: float = Field(ge=0, default=0.0)
-    max_concurrent: int = Field(ge=1, default=1)
-    enabled: bool = True
-    status: ToolStatus = Field(default=ToolStatus.READY)
-    metrics: ToolMetrics = Field(default_factory=ToolMetrics)
-    execution_lock: asyncio.Lock = None
-    active_executions: Set[str] = Field(default_factory=set)
-    last_execution: datetime = Field(default_factory=datetime.now)
-    logger: Optional[logging.Logger] = None
 
-    def __init__(self, **data):
-        super().__init__(**data)
-        self._setup_logging()
-        self._semaphore = asyncio.Semaphore(self.max_concurrent)
+class Tool:
+    """Tool class separated from Pydantic model for Lock handling"""
 
-    async def setup(self):
+    def __init__(
+            self,
+            name: str,
+            description: str,
+            function: Any,
+            parameters: Dict[str, Any],
+            permissions: List[str] = None,
+            required_capabilities: List[str] = None,
+            timeout: float = 30.0,
+            max_retries: int = 3,
+            retry_delay: float = 1.0,
+            cooldown_period: float = 0.0,
+            max_concurrent: int = 1,
+            enabled: bool = True
+    ):
+        self.name = name
+        self.description = description
+        self.function = function
+        self.parameters = parameters
+        self.permissions = permissions or []
+        self.required_capabilities = required_capabilities or []
+        self.timeout = timeout
+        self.max_retries = max_retries
+        self.retry_delay = retry_delay
+        self.cooldown_period = cooldown_period
+        self.max_concurrent = max_concurrent
+        self.enabled = enabled
+
+        # Runtime attributes
+        self.status = ToolStatus.READY
+        self.metrics = ToolMetrics()
         self.execution_lock = asyncio.Lock()
-        self._setup_logging()
-        return self
+        self._semaphore = asyncio.Semaphore(max_concurrent)
+        self.active_executions: Set[str] = set()
+        self.last_execution = datetime.now()
+        self.logger = self._setup_logger()
 
-    def _setup_logging(self):
-        self.logger = logging.getLogger(f"Tool_{self.name}")
-        if not self.logger.handlers:
+    def _setup_logger(self) -> logging.Logger:
+        """Setup logging"""
+        logger = logging.getLogger(f"Tool_{self.name}")
+        if not logger.handlers:
             handler = logging.StreamHandler()
             formatter = logging.Formatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
-            self.logger.addHandler(handler)
-            self.logger.setLevel(logging.INFO)
+            logger.addHandler(handler)
+            logger.setLevel(logging.INFO)
+        return logger
 
     async def execute(self, execution_id: Optional[str] = None, **kwargs) -> Any:
+        """Execute the tool with proper error handling"""
         if not self.enabled:
             raise ToolError(f"Tool {self.name} is disabled")
+
         execution_id = execution_id or f"{self.name}_{datetime.now().timestamp()}"
         if execution_id in self.active_executions:
             raise ToolError(f"Duplicate execution ID: {execution_id}")
+
         start_time = datetime.now()
         try:
             if not await self._can_execute():
                 raise ToolError(f"Tool {self.name} not ready")
+
             async with self.execution_lock:
-                if len(self.active_executions) >= self.max_concurrent:
-                    raise ToolError("Maximum concurrent executions reached")
                 self.active_executions.add(execution_id)
                 self.status = ToolStatus.BUSY
+
                 try:
                     result = await self._execute_with_retry(execution_id, **kwargs)
                     await self._update_metrics(True, start_time)
@@ -85,14 +97,13 @@ class Tool(BaseModel):
                     self.active_executions.discard(execution_id)
                     if not self.active_executions:
                         self.status = ToolStatus.READY
-        except asyncio.TimeoutError:
-            await self._update_metrics(False, start_time, "Execution timed out")
-            raise ToolTimeoutError(f"Execution timed out after {self.timeout}s")
+
         except Exception as e:
             await self._update_metrics(False, start_time, str(e))
             raise
 
     async def _execute_with_retry(self, execution_id: str, **kwargs) -> Any:
+        """Execute with retry logic"""
         last_error = None
         for attempt in range(self.max_retries):
             try:
@@ -110,11 +121,14 @@ class Tool(BaseModel):
                 self.logger.error(
                     f"Execution failed, attempt {attempt + 1}: {str(e)}\n"
                     f"{traceback.format_exc()}")
+
             if attempt < self.max_retries - 1:
                 await asyncio.sleep(self.retry_delay * (attempt + 1))
+
         raise last_error or ToolError("Execution failed after all retries")
 
     async def _can_execute(self) -> bool:
+        """Check if tool can execute"""
         if not self.enabled:
             return False
         if self.cooldown_period > 0:
@@ -123,18 +137,16 @@ class Tool(BaseModel):
                 return False
         return True
 
-    async def _update_metrics(
-            self,
-            success: bool,
-            start_time: datetime,
-            error: Optional[str] = None):
+    async def _update_metrics(self, success: bool, start_time: datetime, error: Optional[str] = None):
+        """Update tool metrics"""
         execution_time = (datetime.now() - start_time).total_seconds()
         self.metrics.usage_count += 1
         self.metrics.total_execution_time += execution_time
         self.metrics.avg_execution_time = (
-            self.metrics.total_execution_time / self.metrics.usage_count
+                self.metrics.total_execution_time / self.metrics.usage_count
         )
         self.metrics.last_execution = datetime.now()
+
         if success:
             self.metrics.success_count += 1
         else:
@@ -142,47 +154,8 @@ class Tool(BaseModel):
             self.metrics.last_error = error
             error_type = error.split(':')[0] if error else 'unknown'
             self.metrics.error_types[error_type] = (
-                self.metrics.error_types.get(error_type, 0) + 1
+                    self.metrics.error_types.get(error_type, 0) + 1
             )
-
-    async def _cleanup_execution(self, execution_id: str):
-        """Cleanup after execution"""
-        try:
-            self._active_executions.discard(execution_id)
-            if not self._active_executions:
-                self.status = ToolStatus.READY
-            # Periodic cleanup
-            current_time = datetime.now()
-            if (current_time - self._last_cleanup).total_seconds() > 3600:  # 1 hour
-                self._active_executions.clear()
-                self._last_cleanup = current_time
-        except Exception as e:
-            self.logger.error(f"Cleanup error: {str(e)}")
-
-    def _handle_error(self, error: Exception):
-        """Handle and log execution errors"""
-        error_type = type(error).__name__
-        self.logger.error(
-            f"Tool execution error ({error_type}): {str(error)}\n"
-            f"{traceback.format_exc()}")
-        if isinstance(error, asyncio.TimeoutError):
-            error = ToolTimeoutError(str(error))
-        elif not isinstance(error, ToolError):
-            error = ToolError(f"Tool execution failed: {str(error)}")
-        raise error
-
-    def disable(self, reason: str = ""):
-        """Disable tool"""
-        self.enabled = False
-        self.status = ToolStatus.DISABLED
-        if reason:
-            self.logger.warning(f"Tool disabled: {reason}")
-
-    def enable(self):
-        """Enable tool"""
-        self.enabled = True
-        self.status = ToolStatus.READY
-        self.logger.info("Tool enabled")
 
     def get_metrics(self) -> Dict[str, Any]:
         """Get tool metrics"""
@@ -193,24 +166,21 @@ class Tool(BaseModel):
             "enabled": self.enabled
         }
 
-    @property
-    def success_rate(self) -> float:
-        """Calculate success rate"""
-        if self.metrics.usage_count == 0:
-            return 0.0
-        return self.metrics.success_count / self.metrics.usage_count
 
 class ToolError(Exception):
     """Base class for tool errors"""
     pass
 
+
 class ToolTimeoutError(ToolError):
     """Tool execution timeout error"""
     pass
 
+
 class ToolPermissionError(ToolError):
     """Tool permission error"""
     pass
+
 
 class ToolValidationError(ToolError):
     """Tool input validation error"""

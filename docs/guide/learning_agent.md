@@ -1,0 +1,51 @@
+# Learning Agent Example
+
+Simple example showing how to set up a learning agent with PilottAI framework.
+
+## Setup
+
+```bash
+pip install pilott
+```
+
+## Example Usage
+
+```python
+from pilott import Serve
+from pilott.core import AgentConfig, LLMConfig
+
+# Initialize
+pilott = Serve(name="LearningAgent")
+
+# Create agent
+learning_agent = await pilott.add_agent(
+    role="learner",
+    goal="Acquire and organize knowledge",
+    tools=["knowledge_base", "pattern_recognizer"]
+)
+
+# Learn new topic
+task = {
+    "type": "learn_topic",
+    "content": "Machine Learning Basics",
+    "store_results": True
+}
+
+result = await pilott.execute([task])
+```
+
+## Tools
+
+- knowledge_base: Store and retrieve knowledge
+- pattern_recognizer: Identify patterns in data
+
+## Features
+
+- Knowledge acquisition
+- Pattern recognition
+- Data organization
+- Learning tracking
+
+## Code
+
+Ready to use code [learning_agent.py](../../pilott/agents/learning_agent.py)

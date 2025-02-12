@@ -13,7 +13,7 @@
 <div align="center">
   
 [![PyPI version](https://badge.fury.io/py/pilott.svg)](https://badge.fury.io/py/pilott)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation Status](https://readthedocs.org/projects/pilottai/badge/?version=latest)](https://pilottai.readthedocs.io)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -30,6 +30,7 @@ PilottAI is a Python framework for building autonomous multi-agent systems with 
   - Manager and worker agent hierarchies
   - Intelligent task routing
   - Context-aware processing
+  - Specialized agent implementations
 
 - 🚀 **Production Ready**
   - Asynchronous processing
@@ -108,6 +109,20 @@ if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
 ```
+
+## Specialized Agents
+
+PilottAI includes ready-to-use specialized agents:
+
+- 🎫 [Customer Service Agent](pilott/agents/customer_service.md): Ticket and support management
+- 📄 [Document Processing Agent](pilott/agents/document_processing.md): Document analysis and extraction
+- 📧 [Email Agent](pilott/agents/email_agent.md): Email handling and template management
+- 🧠 [Learning Agent](pilott/agents/learning_agent.md): Knowledge acquisition and pattern recognition
+- 📢 [Marketing Expert Agent](pilott/agents/marketing_expert.md): Campaign management and content creation
+- 📊 [Research Analyst Agent](pilott/agents/research_analyst.md): Data analysis and research synthesis
+- 💼 [Sales Representative Agent](pilott/agents/sales_rep.md): Lead management and proposals
+- 🌐 [Social Media Agent](pilott/agents/social_media_agent.md): Content scheduling and engagement
+- 🔍 [Web Search Agent](pilott/agents/web_search.md): Search operations and analysis
 
 ## Documentation
 
@@ -189,7 +204,7 @@ pilott/
 
 ## Contributing
 
-We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) for details on:
+We welcome contributions! See our [Contributing Guide](.github/CONTRIBUTING.md) for details on:
 - Development setup
 - Coding standards
 - Pull request process

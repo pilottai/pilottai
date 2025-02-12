@@ -1,0 +1,52 @@
+# Social Media Agent Example
+
+Simple example showing how to set up a social media management agent with PilottAI framework.
+
+## Setup
+
+```bash
+pip install pilott
+```
+
+## Example Usage
+
+```python
+from pilott import Serve
+from pilott.core import AgentConfig, LLMConfig
+
+# Initialize
+pilott = Serve(name="SocialMediaManager")
+
+# Create agent
+social_agent = await pilott.add_agent(
+    role="social_media_manager",
+    goal="Manage social media presence and engagement",
+    tools=["content_scheduler", "engagement_analyzer"]
+)
+
+# Schedule content
+task = {
+    "type": "schedule_content",
+    "platform": "twitter",
+    "content": "Exciting announcement coming!",
+    "schedule_time": "2024-03-15T10:00:00Z"
+}
+
+result = await pilott.execute([task])
+```
+
+## Tools
+
+- content_scheduler: Schedule social media content
+- engagement_analyzer: Analyze post engagement
+
+## Features
+
+- Content scheduling
+- Engagement analysis
+- Performance tracking
+- Multi-platform support
+
+## Code
+
+Ready to use code [social_media_agent.py](../../pilott/agents/social_media_agent.py)
