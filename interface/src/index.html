@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0KWQJ6W85D"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-0KWQJ6W85D');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/logo.png">
+    <title>PilottAI - MultiAgent Framework</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
+
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <nav>
+        <div class="logo">
+            <img src="assets/logo.png" alt="PilottAI Logo">
+            <span>PilottAI</span>
+        </div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#architecture">Architecture</a>
+            <a href="#documentation">Documentation</a>
+            <a href="#contact">Contact</a>
+            <button class="try-button">Try PilottAI</button>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <div class="hero-content">
+            <h1>Building Complex<br>Multi-Agent Systems</h1>
+            <p>Whether you're developing autonomous AI applications, distributed task processors, or intelligent automation systems, PilottAI provides the building blocks you need.</p>
+            <div class="cta-buttons">
+                <button class="primary-button">Get Started</button>
+                <a href="https://github.com/anuj0456/pilottai" class="github-button" target="_blank">
+                    <i class="fab fa-github"></i>
+                </a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="agent-network"></div>
+        </div>
+    </header>
+
+    <section id="features" class="features">
+        <h2>Advanced Features</h2>
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3>Advanced Agent Architecture</h3>
+                <ul>
+                    <li>Hierarchical multi-agent system</li>
+                    <li>Built-in task orchestration</li>
+                    <li>Flexible communication patterns</li>
+                    <li>Memory management</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Enterprise Performance</h3>
+                <ul>
+                    <li>Asynchronous processing</li>
+                    <li>Dynamic scaling</li>
+                    <li>Intelligent load balancing</li>
+                    <li>Fault tolerance</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔌</div>
+                <h3>Seamless Integration</h3>
+                <ul>
+                    <li>LLM provider support</li>
+                    <li>Extensible tool system</li>
+                    <li>Document processing</li>
+                    <li>WebSocket support</li>
+                </ul>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Production Reliability</h3>
+                <ul>
+                    <li>Comprehensive monitoring</li>
+                    <li>Error handling</li>
+                    <li>Resource optimization</li>
+                    <li>Advanced configuration</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <section id="agents" class="agents-section">
+        <h2>Meet Your AI Team</h2>
+        <p class="section-subtitle">Your first Private software company team solving complex challenges</p>
+
+        <div class="command-input">
+            <span class="command-icon">⌘</span>
+            <input type="text" placeholder="Build the target application based on the input requirements document." readonly>
+            <button class="swap-btn">Swap</button>
+        </div>
+
+        <div class="agents-grid">
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="Thomas">
+                        </div>
+                        <div class="agent-info">
+                            <h3>Thomas</h3>
+                            <span class="agent-role">AI Research Lead</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>Thomas</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> Machine Learning, Neural Networks</p>
+                            <p class="detail-item"><strong>Experience:</strong> 8+ years in AI</p>
+                            <p class="detail-item"><strong>Focus:</strong> Advanced AI Architectures</p>
+                            <p class="detail-item"><strong>Skills:</strong> Python, TensorFlow, PyTorch</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="Mike">
+                        </div>
+                        <div class="agent-info">
+                            <h3>Mike</h3>
+                            <span class="agent-role">Team Leader</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>Mike</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> Team Management, Strategy</p>
+                            <p class="detail-item"><strong>Experience:</strong> 10+ years</p>
+                            <p class="detail-item"><strong>Focus:</strong> Team Coordination</p>
+                            <p class="detail-item"><strong>Skills:</strong> Leadership, Planning</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="Alice">
+                        </div>
+                        <div class="agent-info">
+                            <h3>Alice</h3>
+                            <span class="agent-role">Product Manager</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>Alice</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> Product Strategy</p>
+                            <p class="detail-item"><strong>Experience:</strong> 6+ years</p>
+                            <p class="detail-item"><strong>Focus:</strong> User Experience</p>
+                            <p class="detail-item"><strong>Skills:</strong> Agile, Roadmapping</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="Bob">
+                        </div>
+                        <div class="agent-info">
+                            <h3>Bob</h3>
+                            <span class="agent-role">Architect</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>Bob</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> System Architecture</p>
+                            <p class="detail-item"><strong>Experience:</strong> 8+ years</p>
+                            <p class="detail-item"><strong>Focus:</strong> Scalable Systems</p>
+                            <p class="detail-item"><strong>Skills:</strong> Java, Spring, AWS</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="Eve">
+                        </div>
+                        <div class="agent-info">
+                            <h3>Eve</h3>
+                            <span class="agent-role">Project Manager</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>Eve</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> Project Management</p>
+                            <p class="detail-item"><strong>Experience:</strong> 10+ years</p>
+                            <p class="detail-item"><strong>Focus:</strong> Project Planning</p>
+                            <p class="detail-item"><strong>Skills:</strong> Agile, Scrum, Jira</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="Alex">
+                        </div>
+                        <div class="agent-info">
+                            <h3>Alex</h3>
+                            <span class="agent-role">Engineer</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>Alex</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> Software Development</p>
+                            <p class="detail-item"><strong>Experience:</strong> 6+ years</p>
+                            <p class="detail-item"><strong>Focus:</strong> Front-end Development</p>
+                            <p class="detail-item"><strong>Skills:</strong> JavaScript, React, Angular</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="Edward">
+                        </div>
+                        <div class="agent-info">
+                            <h3>Edward</h3>
+                            <span class="agent-role">QA Engineer</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>Edward</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> Quality Assurance</p>
+                            <p class="detail-item"><strong>Experience:</strong> 8+ years</p>
+                            <p class="detail-item"><strong>Focus:</strong> Test Automation</p>
+                            <p class="detail-item"><strong>Skills:</strong> Selenium, Appium, JUnit</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="David">
+                        </div>
+                        <div class="agent-info">
+                            <h3>David</h3>
+                            <span class="agent-role">Data Analyst</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>David</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> Data Analysis</p>
+                            <p class="detail-item"><strong>Experience:</strong> 6+ years</p>
+                            <p class="detail-item"><strong>Focus:</strong> Data Visualization</p>
+                            <p class="detail-item"><strong>Skills:</strong> Excel, Tableau, Power BI</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="Swen">
+                        </div>
+                        <div class="agent-info">
+                            <h3>Swen</h3>
+                            <span class="agent-role">Issue Solver</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>Swen</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> Problem Solving</p>
+                            <p class="detail-item"><strong>Experience:</strong> 10+ years</p>
+                            <p class="detail-item"><strong>Focus:</strong> Critical Thinking</p>
+                            <p class="detail-item"><strong>Skills:</strong> Analytical Thinking, Creative Problem Solving</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="agent-card">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="agent-avatar">
+                            <img src="assets/a1.png" alt="Charlie">
+                        </div>
+                        <div class="agent-info">
+                            <h3>Charlie</h3>
+                            <span class="agent-role">DevOps Engineer</span>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <h3>Charlie</h3>
+                        <div class="agent-details">
+                            <p class="detail-item"><strong>Expertise:</strong> Infrastructure & Automation</p>
+                            <p class="detail-item"><strong>Experience:</strong> 7+ years</p>
+                            <p class="detail-item"><strong>Focus:</strong> CI/CD & Cloud</p>
+                            <p class="detail-item"><strong>Skills:</strong> Docker, Kubernetes, Jenkins</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="performance" class="performance">
+        <h2>Why Choose PilottAI?</h2>
+        <div class="stats-container">
+            <div class="stat-card">
+                <h3>10x</h3>
+                <p>Faster Development</p>
+            </div>
+            <div class="stat-card">
+                <h3>99.9%</h3>
+                <p>Uptime</p>
+            </div>
+            <div class="stat-card">
+                <h3>24/7</h3>
+                <p>Support</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>PilottAI</h4>
+                <p>Building the future of multi-agent systems</p>
+            </div>
+            <div class="footer-section">
+                <h4>Links</h4>
+                <a href="#features">Features</a>
+                <a href="#docs">Documentation</a>
+                <a href="#pricing">Pricing</a>
+            </div>
+            <div class="footer-section">
+                <h4>Connect</h4>
+                <div class="social-links">
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-twitter"></i>
+                        <span>Twitter</span>
+                    </a>
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-github"></i>
+                        <span>GitHub</span>
+                    </a>
+                    <a href="#" class="social-icon">
+                        <i class="fab fa-discord"></i>
+                        <span>Discord</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 PilottAI. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="waves.js"></script>
+</body>
+</html>
