@@ -2,6 +2,8 @@
 *.py linguist-language=Python
 *.pyx linguist-language=Python
 *.pyd linguist-language=Python
+*.html linguist-detectable=true
+*.js linguist-detectable=true
 
 # Documentation
 docs/* linguist-documentation
