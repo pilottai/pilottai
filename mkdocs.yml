@@ -1,0 +1,170 @@
+site_name: PilottAI Framework
+site_url: https://docs.pilottai.com
+site_description: A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent task processing.
+site_author: PilottAI Team
+repo_url: https://github.com/anuj0456/pilottai
+repo_name: pilottai
+edit_uri: edit/main/docs/
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: getting-started/installation.md
+    - Quick Start: getting-started/quickstart.md
+    - Basic Concepts: getting-started/concepts.md
+  - Core Components:
+    - Agents:
+      - Base Agent: core/agents/base-agent.md
+      - Customer Service: core/agents/customer-service.md
+      - Document Processing: core/agents/document-processing.md
+      - Email Agent: core/agents/email-agent.md
+      - Learning Agent: core/agents/learning-agent.md
+      - Marketing Expert: core/agents/marketing-expert.md
+      - Research Analyst: core/agents/research-analyst.md
+      - Sales Representative: core/agents/sales-rep.md
+      - Social Media Agent: core/agents/social-media-agent.md
+      - Web Search Agent: core/agents/web-search.md
+    - Memory:
+      - Memory System: core/memory/overview.md
+      - Enhanced Memory: core/memory/enhanced-memory.md
+    - Configuration:
+      - Agent Config: core/config/agent-config.md
+      - LLM Config: core/config/llm-config.md
+      - Log Config: core/config/log-config.md
+  - Orchestration:
+    - Overview: orchestration/overview.md
+    - Dynamic Scaling: orchestration/dynamic-scaling.md
+    - Load Balancing: orchestration/load-balancer.md
+    - Fault Tolerance: orchestration/fault-tolerance.md
+  - Tools:
+    - Overview: tools/overview.md
+    - Tool Development: tools/development.md
+    - Built-in Tools: tools/built-in.md
+  - Examples:
+    - Basic Usage: examples/basic.md
+    - Multi-Agent System: examples/multi-agent.md
+    - Custom Agents: examples/custom-agents.md
+    - Tool Integration: examples/tool-integration.md
+  - API Reference:
+    - Core API: api/core.md
+    - Agent API: api/agent.md
+    - Memory API: api/memory.md
+    - Tool API: api/tool.md
+  - Contributing:
+    - Guidelines: contributing/guidelines.md
+    - Development Setup: contributing/development.md
+    - Code Style: contributing/code-style.md
+  - FAQ: faq.md
+
+theme:
+  name: material
+  custom_dir: docs/overrides
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.copy
+  palette:
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+  font:
+    text: Space Grotesk
+    code: Source Code Pro
+  icon:
+    repo: fontawesome/brands/github
+  logo: assets/logo.png
+  favicon: assets/logo.png
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_category_heading: true
+            show_bases: true
+  - git-revision-date-localized:
+      type: datetime
+  - minify:
+      minify_html: true
+      minify_js: true
+      minify_css: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: anuj0456
+      repo: pilottai
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+extra:
+  analytics:
+    provider: google
+    property: !ENV GOOGLE_ANALYTICS_KEY
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/anuj0456/pilottai
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/pilottai
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/pilottai
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+copyright: Copyright &copy; 2024 PilottAI Team
