@@ -7,7 +7,6 @@ on:
       - 'docs/**'
       - 'mkdocs.yml'
       - '.github/workflows/deploy-docs.yml'
-  # Allow manual deployment
   workflow_dispatch:
 
 permissions:
