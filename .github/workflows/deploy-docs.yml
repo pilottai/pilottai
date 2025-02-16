@@ -1,19 +1,12 @@
 name: Deploy Documentation
+
 on:
-  push:
-    branches: [ main,dev ]
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - '.github/workflows/docs.yml'
   pull_request:
-    branches:
-      - main
+    branches: [ 'dev' ]
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
-      - '.github/workflows/docs.yml'
-  # Allow manual deployment
+      - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:
 
 permissions:

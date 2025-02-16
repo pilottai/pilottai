@@ -2,7 +2,7 @@ name: Deploy Interface to S3
 
 on:
   pull_request:
-    branches: [ dev ]
+    branches: [ 'dev' ]
     paths:
       - 'interface/src/**'
   workflow_dispatch:
