@@ -47,11 +47,11 @@ jobs:
             --paths "/src/*"
 
       - name: Deployment status notification
-        if: always()
+        if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            const status = ${{ job.status }}
+            const status = '${{ job.status }}'
             const message = status === 'success'
               ? '✅ Interface deployment to S3 completed successfully'
               : '❌ Interface deployment to S3 failed'
