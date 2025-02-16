@@ -2,16 +2,16 @@
 
 <div align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/anuj0456/pilottai/main/interface/assets/logo.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/anuj0456/pilottai/main/interface/assets/logo.png">
-    <img alt="PilottAI Framework Logo" src="https://raw.githubusercontent.com/anuj0456/pilottai/main/interface/assets/logo.png" width="400">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/anuj0456/pilottai/main/docs/assets/logo.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/anuj0456/pilottai/main/docs/assets/logo.png">
+    <img alt="PilottAI Framework Logo" src="https://raw.githubusercontent.com/anuj0456/pilottai/main/docs/assets/logo.png" width="100">
   </picture>
   <h3>Build Intelligent Multi-Agent Systems with Python</h3>
   <p><em>Scale your AI applications with orchestrated autonomous agents</em></p>
 </div>
 
 <div align="center">
-  
+
 [![PyPI version](https://badge.fury.io/py/pilott.svg)](https://badge.fury.io/py/pilott)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -82,26 +82,26 @@ config = AgentConfig(
 async def main():
     # Initialize system
     pilott = Serve(name="DocumentProcessor")
-    
+
     try:
         # Start system
         await pilott.start()
-        
+
         # Add agent
         agent = await pilott.add_agent(
             agent_type="processor",
             config=config,
             llm_config=llm_config
         )
-        
+
         # Process document
         result = await pilott.execute_task({
             "type": "process_document",
             "file_path": "document.pdf"
         })
-        
+
         print(f"Processing result: {result}")
-        
+
     finally:
         await pilott.stop()
 
