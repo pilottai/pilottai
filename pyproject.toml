@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pilott"
-version = "0.0.0"
+version = "0.0.00"
 description = "A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent task processing. Features dynamic scaling, fault tolerance, and advanced load balancing."
 authors = ["Anuj Gupta <anuj0456@gmail.com>"]
 readme = "README.md"
