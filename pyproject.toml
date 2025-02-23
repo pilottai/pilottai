@@ -20,6 +20,7 @@ websockets = "^14.1"
 psutil = "^6.1.1"
 litellm = "^1.59.8"
 langchain-openai = "^0.3.2"
+cryptography = "^44.0.1"
 
 [tool.poetry.group.dev.dependencies]
 mkdocstrings = "^0.25.1"

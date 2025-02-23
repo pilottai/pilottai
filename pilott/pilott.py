@@ -240,13 +240,10 @@ class Serve:
 
     async def _execute_parallel(self, tasks: List[Task]) -> List[TaskResult]:
         """Execute tasks in parallel"""
-        async with asyncio.TaskGroup() as group:
-            task_futures = [
-                group.create_task(self._execute_single_task(task))
-                for task in tasks
-            ]
-
-        return [task.result() for task in task_futures]
+        return await asyncio.gather(
+            *[self._execute_single_task(task) for task in tasks],
+            return_exceptions=True
+        )
 
     async def _execute_single_task(self, task: Task) -> TaskResult:
         """Execute a single task"""
@@ -298,7 +295,7 @@ class Serve:
 
         for agent in self.agents.values():
             if agent.status != "busy":
-                score = await agent.evaluate_task_suitability(task.dict())
+                score = await agent.evaluate_task_suitability(task.model_dump())
                 if score > best_score:
                     best_score = score
                     best_agent = agent
