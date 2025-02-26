@@ -7,7 +7,7 @@ repo_name: pilottai
 edit_uri: edit/main/docs/
 
 nav:
-  - Home: index.md
+  - Home: '/'
   - Getting Started:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quickstart.md
@@ -45,16 +45,19 @@ nav:
     - Multi-Agent System: examples/multi-agent.md
     - Custom Agents: examples/custom-agents.md
     - Tool Integration: examples/tool-integration.md
+    - Document Processing: examples/document-processing.md
   - API Reference:
     - Core API: api/core.md
     - Agent API: api/agent.md
     - Memory API: api/memory.md
     - Tool API: api/tool.md
+    - Orchestration API: api/orchestration.md
   - Contributing:
     - Guidelines: contributing/guidelines.md
     - Development Setup: contributing/development.md
     - Code Style: contributing/code-style.md
   - FAQ: faq.md
+  - Changelog: changelog.md
 
 theme:
   name: material
@@ -67,6 +70,7 @@ theme:
     - search.highlight
     - content.tabs.link
     - content.code.copy
+    - content.code.annotate
   palette:
     - scheme: slate
       primary: deep purple
@@ -167,4 +171,4 @@ extra_javascript:
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
-copyright: Copyright &copy; 2024 PilottAI Team
+copyright: Copyright &copy; 2025 PilottAI Team

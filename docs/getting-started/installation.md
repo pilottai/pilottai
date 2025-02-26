@@ -1,0 +1,145 @@
+# Installation
+
+This guide covers the installation process for the PilottAI framework.
+
+## Requirements
+
+PilottAI requires the following:
+
+- Python 3.10 or higher
+- Supported operating systems: Linux, macOS, Windows
+- Optional: An API key for your LLM provider (OpenAI, Anthropic, etc.)
+
+## Installation Methods
+
+### Using pip (Recommended)
+
+The simplest way to install PilottAI is using pip:
+
+```bash
+pip install pilott
+```
+
+### Installing with Optional Dependencies
+
+PilottAI offers optional dependency sets for various use cases:
+
+```bash
+# Install with document processing dependencies
+pip install "pilott[docs]"
+
+# Install with development dependencies
+pip install "pilott[dev]"
+
+# Install with all dependencies
+pip install "pilott[all]"
+```
+
+### Installing from Source
+
+To install the latest development version:
+
+```bash
+git clone https://github.com/anuj0456/pilottai.git
+cd pilottai
+pip install -e .
+```
+
+## Verifying Installation
+
+Verify your installation with:
+
+```bash
+python -c "import pilott; print(pilott.__version__)"
+```
+
+This should display the current version of PilottAI.
+
+## Installing LLM Provider SDKs
+
+PilottAI supports multiple LLM providers. Depending on which provider you choose, you may need to install additional packages:
+
+```bash
+# For OpenAI
+pip install openai
+
+# For Anthropic
+pip install anthropic
+
+# For Google VertexAI
+pip install google-cloud-aiplatform
+```
+
+## Configuration
+
+After installation, you'll need to configure your LLM provider API keys. There are several ways to do this:
+
+### Environment Variables
+
+Set your API key as an environment variable:
+
+```bash
+# For OpenAI
+export OPENAI_API_KEY="your-api-key"
+
+# For Anthropic
+export ANTHROPIC_API_KEY="your-api-key"
+```
+
+### Configuration File
+
+You can also create a configuration file `~/.pilottai/config.yaml` with your API keys:
+
+```yaml
+llm:
+  provider: openai
+  api_key: your-api-key
+  model_name: gpt-4
+```
+
+### Runtime Configuration
+
+Alternatively, you can provide your API key at runtime:
+
+```python
+from pilott import Serve
+from pilott.core import LLMConfig
+
+llm_config = LLMConfig(
+    provider="openai",
+    api_key="your-api-key",
+    model_name="gpt-4"
+)
+
+pilott = Serve(llm_config=llm_config)
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**ImportError: No module named 'pilott'**
+
+- Make sure you've installed the package correctly
+- Check that your Python environment matches the one where you installed the package
+
+**ModuleNotFoundError: No module named 'openai'**
+
+- Install the required provider SDK: `pip install openai`
+
+**API key error**
+
+- Ensure your API key is correctly set and valid
+- Check that you're using the right environment variable name
+
+### Getting Help
+
+If you encounter any issues during installation:
+
+- Check our [FAQ](../faq.md) page
+- Look for similar issues on our [GitHub repository](https://github.com/anuj0456/pilottai/issues)
+- Join our [Discord community](https://discord.gg/pilottai) for real-time support
+
+## Next Steps
+
+Now that you have PilottAI installed, continue to the [Quick Start](quickstart.md) guide to create your first multi-agent system.
