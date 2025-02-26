@@ -14,16 +14,7 @@ nav:
     - Basic Concepts: getting-started/concepts.md
   - Core Components:
     - Agents:
-      - Base Agent: core/agents/base-agent.md
-      - Customer Service: core/agents/customer-service.md
-      - Document Processing: core/agents/document-processing.md
-      - Email Agent: core/agents/email-agent.md
-      - Learning Agent: core/agents/learning-agent.md
-      - Marketing Expert: core/agents/marketing-expert.md
-      - Research Analyst: core/agents/research-analyst.md
-      - Sales Representative: core/agents/sales-rep.md
-      - Social Media Agent: core/agents/social-media-agent.md
-      - Web Search Agent: core/agents/web-search.md
+      - Base Agent: core/base-agent.md
     - Memory:
       - Memory System: core/memory/overview.md
       - Enhanced Memory: core/memory/enhanced-memory.md
