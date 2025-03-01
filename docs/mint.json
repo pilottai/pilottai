@@ -50,19 +50,19 @@
     {
       "group": "Core Components",
       "pages": [
-        "core/agents/base-agent",
+        "core/base-agent",
         {
-          "group": "Specialized Agents",
+          "group": "Examples",
           "pages": [
-            "core/agents/customer-service",
-            "core/agents/document-processing",
-            "core/agents/email-agent",
-            "core/agents/learning-agent",
-            "core/agents/marketing-expert",
-            "core/agents/research-analyst",
-            "core/agents/sales-rep",
-            "core/agents/social-media-agent",
-            "core/agents/web-search"
+            "core/examples/customer-service",
+            "core/examples/document-processor",
+            "core/examples/email-agent",
+            "core/examples/learning-agent",
+            "core/examples/marketing-expert",
+            "core/examples/research-analyst",
+            "core/examples/sales-rep",
+            "core/examples/social-media-agent",
+            "core/examples/web-search"
           ]
         },
         {
@@ -97,15 +97,6 @@
         "tools/overview",
         "tools/development",
         "tools/built-in"
-      ]
-    },
-    {
-      "group": "Examples",
-      "pages": [
-        "examples/basic",
-        "examples/multi-agent",
-        "examples/custom-agents",
-        "examples/tool-integration"
       ]
     },
     {
