@@ -45,7 +45,7 @@ jobs:
         run: |
           aws cloudfront create-invalidation \
             --distribution-id $CLOUDFRONT_DISTRIBUTION_ID \
-            --paths "/src/*"
+            --paths "/*"
 
       - name: Deployment status notification
         if: always() && github.event_name == 'pull_request'
