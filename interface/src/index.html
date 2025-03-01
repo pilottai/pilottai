@@ -12,15 +12,14 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="PilottAI - A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent task processing">
     <link rel="icon" type="image/x-icon" href="assets/logo.png">
-    <title>PilottAI - MultiAgent Framework</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>PilottAI - Multi-Agent Orchestration Framework</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stats.js/r17/Stats.min.js"></script>
-
 </head>
 <body>
     <div id="canvas-container"></div>
@@ -32,21 +31,44 @@
         <div class="nav-links">
             <a href="#features">Features</a>
             <a href="#architecture">Architecture</a>
-            <a href="#documentation">Documentation</a>
-            <a href="#contact">Contact</a>
-            <button class="try-button">Try PilottAI</button>
+            <a href="#agents">Agents</a>
+            <a href="#documentation">Docs</a>
+            <a href="https://github.com/anuj0456/pilottai" target="_blank">GitHub</a>
+            <button class="try-button">Get Started</button>
+        </div>
+        <div class="mobile-menu-toggle">
+            <i class="fas fa-bars"></i>
         </div>
     </nav>
 
     <header class="hero">
         <div class="hero-content">
-            <h1>Building Complex<br>Multi-Agent Systems</h1>
-            <p>Whether you're developing autonomous AI applications, distributed task processors, or intelligent automation systems, PilottAI provides the building blocks you need.</p>
+            <h1>Intelligent <span class="gradient-text">Multi-Agent</span> Systems for Enterprise</h1>
+            <p>Build scalable AI applications with advanced orchestration, fault tolerance, and dynamic scaling. PilottAI provides the production-ready infrastructure for your autonomous agent ecosystem.</p>
             <div class="cta-buttons">
-                <button class="primary-button">Get Started</button>
-                <a href="https://github.com/anuj0456/pilottai" class="github-button" target="_blank">
-                    <i class="fab fa-github"></i>
+               <a href="https://docs.pilottai.com" class="start-button" target="_blank">
+                    <button class="primary-button">Get Started</button>
                 </a>
+                <a href="https://github.com/anuj0456/pilottai" class="github-button" target="_blank">
+                    <i class="fab fa-github"></i> Star on GitHub <span class="github-star-count">...</span>
+                </a>
+<!--                <a href="#demo" class="demo-button">-->
+<!--                    <i class="fas fa-play-circle"></i> Watch Demo-->
+<!--                </a>-->
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="count">10x</span>
+                    <span class="label">Faster Development</span>
+                </div>
+                <div class="stat">
+                    <span class="count">99.9%</span>
+                    <span class="label">Uptime</span>
+                </div>
+                <div class="stat">
+                    <span class="count">MIT</span>
+                    <span class="label">Licensed</span>
+                </div>
             </div>
         </div>
         <div class="hero-visual">
@@ -55,7 +77,10 @@
     </header>
 
     <section id="features" class="features">
-        <h2>Advanced Features</h2>
+        <div class="section-header">
+            <h2>Enterprise-Ready Features</h2>
+            <p>Build production-grade agent systems with battle-tested components</p>
+        </div>
         <div class="feature-grid">
             <div class="feature-card">
                 <div class="feature-icon">🚀</div>
@@ -64,50 +89,258 @@
                     <li>Hierarchical multi-agent system</li>
                     <li>Built-in task orchestration</li>
                     <li>Flexible communication patterns</li>
-                    <li>Memory management</li>
+                    <li>Enhanced memory management</li>
                 </ul>
+                <a href="#" class="feature-link">Learn more <i class="fas fa-arrow-right"></i></a>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">⚡</div>
-                <h3>Enterprise Performance</h3>
+                <h3>Production Reliability</h3>
                 <ul>
                     <li>Asynchronous processing</li>
                     <li>Dynamic scaling</li>
                     <li>Intelligent load balancing</li>
-                    <li>Fault tolerance</li>
+                    <li>Comprehensive fault tolerance</li>
                 </ul>
+                <a href="#" class="feature-link">Learn more <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h3>Advanced Memory System</h3>
+                <ul>
+                    <li>Semantic storage and retrieval</li>
+                    <li>Task history tracking</li>
+                    <li>Context preservation</li>
+                    <li>Intelligent knowledge retrieval</li>
+                </ul>
+                <a href="#" class="feature-link">Learn more <i class="fas fa-arrow-right"></i></a>
             </div>
             <div class="feature-card">
                 <div class="feature-icon">🔌</div>
                 <h3>Seamless Integration</h3>
                 <ul>
-                    <li>LLM provider support</li>
+                    <li>Multiple LLM providers</li>
                     <li>Extensible tool system</li>
                     <li>Document processing</li>
                     <li>WebSocket support</li>
                 </ul>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🛡️</div>
-                <h3>Production Reliability</h3>
-                <ul>
-                    <li>Comprehensive monitoring</li>
-                    <li>Error handling</li>
-                    <li>Resource optimization</li>
-                    <li>Advanced configuration</li>
-                </ul>
+                <a href="#" class="feature-link">Learn more <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
     </section>
 
+    <section id="code-demo" class="code-demo">
+        <div class="section-header">
+            <h2>Simple to Use, Powerful Under the Hood</h2>
+            <p>Get started with just a few lines of code</p>
+        </div>
+        <div class="code-demo-container">
+            <div class="code-tabs">
+                <button class="tab-button active" data-tab="quickstart">Quick Start</button>
+                <button class="tab-button" data-tab="agents">Agents</button>
+                <button class="tab-button" data-tab="orchestration">Orchestration</button>
+                <button class="tab-button" data-tab="memory">Memory</button>
+            </div>
+            <div class="code-panel active" id="quickstart-panel">
+                <pre class="code-block python"><code>
+from pilott import Serve
+from pilott.core import AgentConfig, LLMConfig
+
+# Configure LLM
+llm_config = LLMConfig(
+    model_name="gpt-4",
+    provider="openai",
+    api_key="your-api-key"
+)
+
+async def main():
+    # Initialize system
+    pilott = Serve(name="DocumentProcessor")
+
+    # Add processing agent
+    agent = await pilott.add_agent(
+        role="processor",
+        goal="Process documents efficiently",
+        llm_config=llm_config
+    )
+
+    # Execute task
+    result = await pilott.execute([{
+        "description": "Extract insights from Q1 report",
+        "file_path": "documents/q1_report.pdf"
+    }])
+
+    print(f"Processing result: {result[0].output}")
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+                </code></pre>
+            </div>
+            <div class="code-panel" id="agents-panel">
+                <pre class="code-block python"><code>
+# Create specialized agents
+research_analyst = await pilott.add_agent(
+    role="research_analyst",
+    goal="Analyze data and provide insights",
+    tools=["data_analyzer", "research_synthesizer"],
+    llm_config=llm_config
+)
+
+customer_service = await pilott.add_agent(
+    role="customer_service",
+    goal="Handle customer inquiries professionally",
+    tools=["email_sender", "ticket_manager"],
+    llm_config=llm_config
+)
+
+# Execute agent-specific tasks
+analysis_result = await research_analyst.execute_task({
+    "type": "analyze_market_data",
+    "data_source": "market_survey_2024",
+    "variables": ["price", "demand"]
+})
+                </code></pre>
+            </div>
+            <div class="code-panel" id="orchestration-panel">
+                <pre class="code-block python"><code>
+# Configure orchestration
+from pilott.orchestration import LoadBalancer, DynamicScaling
+
+# Setup load balancing
+lb_config = {
+    "check_interval": 30,
+    "overload_threshold": 0.8
+}
+load_balancer = LoadBalancer(pilott, config=lb_config)
+await load_balancer.start()
+
+# Configure dynamic scaling
+scaling_config = {
+    "min_agents": 2,
+    "max_agents": 10,
+    "scale_up_threshold": 0.8
+}
+dynamic_scaling = DynamicScaling(pilott, config=scaling_config)
+await dynamic_scaling.start()
+
+# System automatically scales based on load
+for i in range(100):
+    pilott.execute([create_task(f"Task {i}")])
+                </code></pre>
+            </div>
+            <div class="code-panel" id="memory-panel">
+                <pre class="code-block python"><code>
+# Enhanced memory management
+from pilott.memory import EnhancedMemory
+
+# Store and retrieve semantic information
+await agent.memory.store_semantic(
+    text="Important customer feedback on the Q1 product launch",
+    metadata={"source": "customer_survey", "sentiment": "positive"},
+    tags={"feedback", "product_launch", "q1"}
+)
+
+# Retrieve relevant context
+related_info = await agent.memory.semantic_search(
+    query="product launch feedback",
+    tags={"customer_survey"},
+    limit=5
+)
+
+# Memory persists across agent executions
+await agent.memory.store_task(
+    task_id="task-123",
+    task_data={"description": "Handle product inquiry", "status": "completed"}
+)
+                </code></pre>
+            </div>
+            <div class="code-actions">
+                <button class="copy-button"><i class="fas fa-copy"></i> Copy</button>
+                <a href="https://github.com/anuj0456/pilottai" target="_blank" class="github-link">View on GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="architecture" class="architecture">
+        <div class="section-header">
+            <h2>Robust Architecture</h2>
+            <p>Built for production-grade AI applications</p>
+        </div>
+        <div class="architecture-diagram">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" class="architecture-svg">
+                <!-- Orchestration Layer -->
+                <rect x="100" y="50" width="600" height="80" rx="10" fill="rgba(108, 92, 231, 0.2)" stroke="#6C5CE7" stroke-width="2"/>
+                <text x="400" y="95" text-anchor="middle" fill="#fff" font-weight="bold">Orchestration Layer</text>
+
+                <!-- Agent Layer -->
+                <rect x="100" y="170" width="600" height="120" rx="10" fill="rgba(108, 92, 231, 0.15)" stroke="#6C5CE7" stroke-width="2"/>
+                <text x="400" y="200" text-anchor="middle" fill="#fff" font-weight="bold">Agent Layer</text>
+
+                <!-- Memory Layer -->
+                <rect x="100" y="330" width="280" height="100" rx="10" fill="rgba(108, 92, 231, 0.1)" stroke="#6C5CE7" stroke-width="2"/>
+                <text x="240" y="380" text-anchor="middle" fill="#fff" font-weight="bold">Memory System</text>
+
+                <!-- LLM Integration Layer -->
+                <rect x="420" y="330" width="280" height="100" rx="10" fill="rgba(108, 92, 231, 0.1)" stroke="#6C5CE7" stroke-width="2"/>
+                <text x="560" y="380" text-anchor="middle" fill="#fff" font-weight="bold">LLM Integration</text>
+
+                <!-- Connection Lines -->
+                <line x1="400" y1="130" x2="400" y2="170" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5,5"/>
+                <line x1="240" y1="290" x2="240" y2="330" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5,5"/>
+                <line x1="560" y1="290" x2="560" y2="330" stroke="#6C5CE7" stroke-width="2" stroke-dasharray="5,5"/>
+
+                <!-- Component Boxes -->
+                <rect x="150" y="70" width="120" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="210" y="95" text-anchor="middle" fill="#fff" font-size="12">Task Router</text>
+
+                <rect x="290" y="70" width="120" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="350" y="95" text-anchor="middle" fill="#fff" font-size="12">Load Balancer</text>
+
+                <rect x="430" y="70" width="120" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="490" y="95" text-anchor="middle" fill="#fff" font-size="12">Dynamic Scaling</text>
+
+                <rect x="570" y="70" width="120" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="630" y="95" text-anchor="middle" fill="#fff" font-size="12">Fault Tolerance</text>
+
+                <!-- Agent Boxes -->
+                <rect x="150" y="220" width="100" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="200" y="245" text-anchor="middle" fill="#fff" font-size="12">Research Agent</text>
+
+                <rect x="270" y="220" width="100" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="320" y="245" text-anchor="middle" fill="#fff" font-size="12">Document Agent</text>
+
+                <rect x="390" y="220" width="100" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="440" y="245" text-anchor="middle" fill="#fff" font-size="12">Email Agent</text>
+
+                <rect x="510" y="220" width="100" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="560" y="245" text-anchor="middle" fill="#fff" font-size="12">Sales Agent</text>
+
+                <rect x="140" y="350" width="90" height="30" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="185" y="370" text-anchor="middle" fill="#fff" font-size="10">Semantic Store</text>
+
+                <rect x="250" y="350" width="90" height="30" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="295" y="370" text-anchor="middle" fill="#fff" font-size="10">Task History</text>
+
+                <rect x="450" y="350" width="90" height="30" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="495" y="370" text-anchor="middle" fill="#fff" font-size="10">OpenAI</text>
+
+                <rect x="560" y="350" width="90" height="30" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
+                <text x="605" y="370" text-anchor="middle" fill="#fff" font-size="10">Anthropic</text>
+            </svg>
+        </div>
+    </section>
+
     <section id="agents" class="agents-section">
-        <h2>Meet Your AI Team</h2>
-        <p class="section-subtitle">Your first Private software company team solving complex challenges</p>
+        <div class="section-header">
+            <h2>Specialized Agent Ecosystem</h2>
+            <p>Pre-built agents for common enterprise tasks</p>
+        </div>
 
         <div class="command-input">
             <span class="command-icon">⌘</span>
-            <input type="text" placeholder="Build the target application based on the input requirements document." readonly>
-            <button class="swap-btn">Swap</button>
+            <input type="text" placeholder="Analyze market trends and create a summary report" readonly>
+            <button class="swap-btn">Examples ▾</button>
         </div>
 
         <div class="agents-grid">
@@ -115,21 +348,21 @@
                 <div class="card-inner">
                     <div class="card-front">
                         <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="Thomas">
+                            <img src="assets/a1.png" alt="Research Analyst">
                         </div>
                         <div class="agent-info">
-                            <h3>Thomas</h3>
-                            <span class="agent-role">AI Research Lead</span>
+                            <h3>Research Analyst</h3>
+                            <span class="agent-role">Data Analysis Expert</span>
                         </div>
                     </div>
                     <div class="card-back">
-                        <h3>Thomas</h3>
+                        <h3>Research Analyst</h3>
                         <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> Machine Learning, Neural Networks</p>
-                            <p class="detail-item"><strong>Experience:</strong> 8+ years in AI</p>
-                            <p class="detail-item"><strong>Focus:</strong> Advanced AI Architectures</p>
-                            <p class="detail-item"><strong>Skills:</strong> Python, TensorFlow, PyTorch</p>
+                            <p class="detail-item"><strong>Skills:</strong> Data Analysis, Pattern Recognition, Insight Generation</p>
+                            <p class="detail-item"><strong>Use Cases:</strong> Market Analysis, Competitive Research, Trend Identification</p>
+                            <p class="detail-item"><strong>Tools:</strong> Data Analyzer, Research Synthesizer</p>
                         </div>
+                        <a href="#" class="learn-more">Learn More</a>
                     </div>
                 </div>
             </div>
@@ -138,21 +371,21 @@
                 <div class="card-inner">
                     <div class="card-front">
                         <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="Mike">
+                            <img src="assets/a1.png" alt="Document Processing">
                         </div>
                         <div class="agent-info">
-                            <h3>Mike</h3>
-                            <span class="agent-role">Team Leader</span>
+                            <h3>Document Agent</h3>
+                            <span class="agent-role">Content Processor</span>
                         </div>
                     </div>
                     <div class="card-back">
-                        <h3>Mike</h3>
+                        <h3>Document Agent</h3>
                         <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> Team Management, Strategy</p>
-                            <p class="detail-item"><strong>Experience:</strong> 10+ years</p>
-                            <p class="detail-item"><strong>Focus:</strong> Team Coordination</p>
-                            <p class="detail-item"><strong>Skills:</strong> Leadership, Planning</p>
+                            <p class="detail-item"><strong>Skills:</strong> Text Extraction, Content Analysis, Summarization</p>
+                            <p class="detail-item"><strong>Use Cases:</strong> Report Analysis, Contract Processing, Document Extraction</p>
+                            <p class="detail-item"><strong>Tools:</strong> Text Extractor, Content Analyzer, Summarizer</p>
                         </div>
+                        <a href="#" class="learn-more">Learn More</a>
                     </div>
                 </div>
             </div>
@@ -161,21 +394,21 @@
                 <div class="card-inner">
                     <div class="card-front">
                         <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="Alice">
+                            <img src="assets/a1.png" alt="Customer Service">
                         </div>
                         <div class="agent-info">
-                            <h3>Alice</h3>
-                            <span class="agent-role">Product Manager</span>
+                            <h3>Customer Service</h3>
+                            <span class="agent-role">Support Specialist</span>
                         </div>
                     </div>
                     <div class="card-back">
-                        <h3>Alice</h3>
+                        <h3>Customer Service</h3>
                         <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> Product Strategy</p>
-                            <p class="detail-item"><strong>Experience:</strong> 6+ years</p>
-                            <p class="detail-item"><strong>Focus:</strong> User Experience</p>
-                            <p class="detail-item"><strong>Skills:</strong> Agile, Roadmapping</p>
+                            <p class="detail-item"><strong>Skills:</strong> Ticket Management, Customer Interaction, Issue Resolution</p>
+                            <p class="detail-item"><strong>Use Cases:</strong> Support Automation, Inquiry Handling, Customer Engagement</p>
+                            <p class="detail-item"><strong>Tools:</strong> Email Sender, Ticket Manager, Knowledge Base</p>
                         </div>
+                        <a href="#" class="learn-more">Learn More</a>
                     </div>
                 </div>
             </div>
@@ -184,219 +417,84 @@
                 <div class="card-inner">
                     <div class="card-front">
                         <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="Bob">
+                            <img src="assets/a1.png" alt="Email Agent">
                         </div>
                         <div class="agent-info">
-                            <h3>Bob</h3>
-                            <span class="agent-role">Architect</span>
+                            <h3>Email Agent</h3>
+                            <span class="agent-role">Communication Expert</span>
                         </div>
                     </div>
                     <div class="card-back">
-                        <h3>Bob</h3>
+                        <h3>Email Agent</h3>
                         <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> System Architecture</p>
-                            <p class="detail-item"><strong>Experience:</strong> 8+ years</p>
-                            <p class="detail-item"><strong>Focus:</strong> Scalable Systems</p>
-                            <p class="detail-item"><strong>Skills:</strong> Java, Spring, AWS</p>
+                            <p class="detail-item"><strong>Skills:</strong> Email Processing, Template Management, Sentiment Analysis</p>
+                            <p class="detail-item"><strong>Use Cases:</strong> Email Automation, Communication Management, Response Generation</p>
+                            <p class="detail-item"><strong>Tools:</strong> Email Sender, Email Analyzer, Template Manager</p>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="agent-card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="Eve">
-                        </div>
-                        <div class="agent-info">
-                            <h3>Eve</h3>
-                            <span class="agent-role">Project Manager</span>
-                        </div>
-                    </div>
-                    <div class="card-back">
-                        <h3>Eve</h3>
-                        <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> Project Management</p>
-                            <p class="detail-item"><strong>Experience:</strong> 10+ years</p>
-                            <p class="detail-item"><strong>Focus:</strong> Project Planning</p>
-                            <p class="detail-item"><strong>Skills:</strong> Agile, Scrum, Jira</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="agent-card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="Alex">
-                        </div>
-                        <div class="agent-info">
-                            <h3>Alex</h3>
-                            <span class="agent-role">Engineer</span>
-                        </div>
-                    </div>
-                    <div class="card-back">
-                        <h3>Alex</h3>
-                        <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> Software Development</p>
-                            <p class="detail-item"><strong>Experience:</strong> 6+ years</p>
-                            <p class="detail-item"><strong>Focus:</strong> Front-end Development</p>
-                            <p class="detail-item"><strong>Skills:</strong> JavaScript, React, Angular</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="agent-card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="Edward">
-                        </div>
-                        <div class="agent-info">
-                            <h3>Edward</h3>
-                            <span class="agent-role">QA Engineer</span>
-                        </div>
-                    </div>
-                    <div class="card-back">
-                        <h3>Edward</h3>
-                        <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> Quality Assurance</p>
-                            <p class="detail-item"><strong>Experience:</strong> 8+ years</p>
-                            <p class="detail-item"><strong>Focus:</strong> Test Automation</p>
-                            <p class="detail-item"><strong>Skills:</strong> Selenium, Appium, JUnit</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="agent-card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="David">
-                        </div>
-                        <div class="agent-info">
-                            <h3>David</h3>
-                            <span class="agent-role">Data Analyst</span>
-                        </div>
-                    </div>
-                    <div class="card-back">
-                        <h3>David</h3>
-                        <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> Data Analysis</p>
-                            <p class="detail-item"><strong>Experience:</strong> 6+ years</p>
-                            <p class="detail-item"><strong>Focus:</strong> Data Visualization</p>
-                            <p class="detail-item"><strong>Skills:</strong> Excel, Tableau, Power BI</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="agent-card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="Swen">
-                        </div>
-                        <div class="agent-info">
-                            <h3>Swen</h3>
-                            <span class="agent-role">Issue Solver</span>
-                        </div>
-                    </div>
-                    <div class="card-back">
-                        <h3>Swen</h3>
-                        <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> Problem Solving</p>
-                            <p class="detail-item"><strong>Experience:</strong> 10+ years</p>
-                            <p class="detail-item"><strong>Focus:</strong> Critical Thinking</p>
-                            <p class="detail-item"><strong>Skills:</strong> Analytical Thinking, Creative Problem Solving</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="agent-card">
-                <div class="card-inner">
-                    <div class="card-front">
-                        <div class="agent-avatar">
-                            <img src="assets/a1.png" alt="Charlie">
-                        </div>
-                        <div class="agent-info">
-                            <h3>Charlie</h3>
-                            <span class="agent-role">DevOps Engineer</span>
-                        </div>
-                    </div>
-                    <div class="card-back">
-                        <h3>Charlie</h3>
-                        <div class="agent-details">
-                            <p class="detail-item"><strong>Expertise:</strong> Infrastructure & Automation</p>
-                            <p class="detail-item"><strong>Experience:</strong> 7+ years</p>
-                            <p class="detail-item"><strong>Focus:</strong> CI/CD & Cloud</p>
-                            <p class="detail-item"><strong>Skills:</strong> Docker, Kubernetes, Jenkins</p>
-                        </div>
+                        <a href="#" class="learn-more">Learn More</a>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
-
-    <section id="performance" class="performance">
-        <h2>Why Choose PilottAI?</h2>
-        <div class="stats-container">
-            <div class="stat-card">
-                <h3>10x</h3>
-                <p>Faster Development</p>
-            </div>
-            <div class="stat-card">
-                <h3>99.9%</h3>
-                <p>Uptime</p>
-            </div>
-            <div class="stat-card">
-                <h3>24/7</h3>
-                <p>Support</p>
-            </div>
+        <div class="section-cta">
+            <button class="secondary-button">View All Agents</button>
+            <a href="#" class="create-link">Create Custom Agent <i class="fas fa-arrow-right"></i></a>
         </div>
     </section>
 
     <footer>
         <div class="footer-content">
-            <div class="footer-section">
-                <h4>PilottAI</h4>
-                <p>Building the future of multi-agent systems</p>
-            </div>
-            <div class="footer-section">
-                <h4>Links</h4>
-                <a href="#features">Features</a>
-                <a href="#docs">Documentation</a>
-                <a href="#pricing">Pricing</a>
-            </div>
-            <div class="footer-section">
-                <h4>Connect</h4>
-                <div class="social-links">
-                    <a href="#" class="social-icon">
-                        <i class="fab fa-twitter"></i>
-                        <span>Twitter</span>
-                    </a>
-                    <a href="#" class="social-icon">
-                        <i class="fab fa-github"></i>
-                        <span>GitHub</span>
-                    </a>
-                    <a href="#" class="social-icon">
-                        <i class="fab fa-discord"></i>
-                        <span>Discord</span>
-                    </a>
+            <div class="footer-section branding">
+                <div class="footer-logo">
+                    <img src="assets/logo.png" alt="PilottAI Logo">
+                    <h3>PilottAI</h3>
                 </div>
+                <p>Building the future of multi-agent systems</p>
+                <div class="social-links">
+                    <a href="https://github.com/anuj0456/pilottai" class="social-icon" title="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://x.com/pilottai" class="social-icon" title="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon" title="Discord"><i class="fab fa-discord"></i></a>
+                    <a href="https://linkedin.com/company/pilottai" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+            <div class="footer-section links">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#architecture">Architecture</a></li>
+                    <li><a href="#agents">Agents</a></li>
+                    <li><a href="#use-cases">Use Cases</a></li>
+                </ul>
+            </div>
+            <div class="footer-section links">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="https://docs.pilottai.com">Documentation</a></li>
+                    <li><a href="https://docs.pilottai.com">API Reference</a></li>
+                    <li><a href="https://docs.pilottai.com/core/examples">Examples</a></li>
+                </ul>
+            </div>
+            <div class="footer-section contact">
+                <h4>Contact</h4>
+                <p><i class="fas fa-envelope"></i> <a href="mailto:support@pilottai.com">support@pilottai.com</a></p>
+                <p><i class="fab fa-github"></i> <a href="https://github.com/anuj0456/pilottai/issues" target="_blank">GitHub Issues</a></p>
+                <p><i class="fab fa-discord"></i> <a href="#">Discord Community</a></p>
             </div>
         </div>
         <div class="footer-bottom">
             <p>&copy; 2025 PilottAI. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">License</a>
+            </div>
         </div>
     </footer>
 
+    <div class="scrolltop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
     <script src="script.js"></script>
-    <script src="waves.js"></script>
 </body>
 </html>
