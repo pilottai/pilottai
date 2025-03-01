@@ -7,37 +7,28 @@ repo_name: pilottai
 edit_uri: edit/main/docs/
 
 nav:
-  - Home: '/'
+  - Home: index.md
   - Getting Started:
-    - Installation: getting-started/installation.md
-    - Quick Start: getting-started/quickstart.md
-    - Basic Concepts: getting-started/concepts.md
+    - Installation: getting-started/installation.mdx
+    - Quick Start: getting-started/quickstart.mdx
+    - Basic Concepts: getting-started/concepts.mdx
   - Core Components:
     - Agents:
-      - Base Agent: core/agents/base-agent.md
-      - Customer Service: core/agents/customer-service.md
-      - Document Processing: core/agents/document-processing.md
-      - Email Agent: core/agents/email-agent.md
-      - Learning Agent: core/agents/learning-agent.md
-      - Marketing Expert: core/agents/marketing-expert.md
-      - Research Analyst: core/agents/research-analyst.md
-      - Sales Representative: core/agents/sales-rep.md
-      - Social Media Agent: core/agents/social-media-agent.md
-      - Web Search Agent: core/agents/web-search.md
+      - Base Agent: core/base-agent.mdx
     - Memory:
-      - Memory System: core/memory/overview.md
+      - Memory System: core/memory/overview.mdx
       - Enhanced Memory: core/memory/enhanced-memory.md
     - Configuration:
       - Agent Config: core/config/agent-config.md
       - LLM Config: core/config/llm-config.md
       - Log Config: core/config/log-config.md
   - Orchestration:
-    - Overview: orchestration/overview.md
-    - Dynamic Scaling: orchestration/dynamic-scaling.md
-    - Load Balancing: orchestration/load-balancer.md
+    - Overview: orchestration/overview.mdx
+    - Dynamic Scaling: orchestration/dynamic-scaling.mdx
+    - Load Balancing: orchestration/load-balancer.mdx
     - Fault Tolerance: orchestration/fault-tolerance.md
   - Tools:
-    - Overview: tools/overview.md
+    - Overview: tools/overview.mdx
     - Tool Development: tools/development.md
     - Built-in Tools: tools/built-in.md
   - Examples:

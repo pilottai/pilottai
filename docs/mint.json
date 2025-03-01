@@ -1,0 +1,139 @@
+{
+  "name": "PilottAI",
+  "logo": {
+    "light": "/assets/logo.png",
+    "dark": "/assets/logo.png"
+  },
+  "favicon": "/assets/logo.png",
+  "colors": {
+    "primary": "#6C5CE7",
+    "light": "#A8A4FF",
+    "dark": "#0B061F"
+  },
+  "topbarLinks": [
+    {
+      "name": "Documentation",
+      "url": "https://docs.pilottai.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "https://docs.pilottai.com/getting-started/installation"
+  },
+  "anchors": [
+    {
+      "name": "API Reference",
+      "icon": "code",
+      "url": "api"
+    },
+    {
+      "name": "Examples",
+      "icon": "play",
+      "url": "examples"
+    },
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/anuj0456/pilottai"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "index",
+        "getting-started/installation",
+        "getting-started/quickstart",
+        "getting-started/concepts"
+      ]
+    },
+    {
+      "group": "Core Components",
+      "pages": [
+        "core/base-agent",
+        {
+          "group": "Examples",
+          "pages": [
+            "core/examples/customer-service",
+            "core/examples/document-processor",
+            "core/examples/email-agent",
+            "core/examples/learning-agent",
+            "core/examples/marketing-expert",
+            "core/examples/research-analyst",
+            "core/examples/sales-rep",
+            "core/examples/social-media-agent",
+            "core/examples/web-search"
+          ]
+        },
+        {
+          "group": "Memory System",
+          "pages": [
+            "core/memory/overview",
+            "core/memory/enhanced-memory"
+          ]
+        },
+        {
+          "group": "Configuration",
+          "pages": [
+            "core/config/agent-config",
+            "core/config/llm-config",
+            "core/config/log-config"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "Orchestration",
+      "pages": [
+        "orchestration/overview",
+        "orchestration/dynamic-scaling",
+        "orchestration/load-balancer",
+        "orchestration/fault-tolerance"
+      ]
+    },
+    {
+      "group": "Tools",
+      "pages": [
+        "tools/overview",
+        "tools/development",
+        "tools/built-in"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api/core",
+        "api/agent",
+        "api/memory",
+        "api/tool"
+      ]
+    },
+    {
+      "group": "Contributing",
+      "pages": [
+        "contributing/guidelines",
+        "contributing/development",
+        "contributing/code-style"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://twitter.com/pilottai",
+    "github": "https://github.com/anuj0456/pilottai",
+    "discord": "https://discord.gg/pilottai"
+  },
+  "analytics": {
+    "ga4": {
+      "measurementId": "G-KEG4R5ZZE1"
+    }
+  },
+  "feedback": {
+    "suggestEdit": true,
+    "raiseIssue": true,
+    "thumbsRating": true
+  },
+  "modeToggle": {
+    "default": "dark"
+  },
+  "backgroundImage": "/images/background-pattern.png"
+}
