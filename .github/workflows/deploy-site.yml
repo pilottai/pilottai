@@ -56,7 +56,7 @@ jobs:
             const message = status === 'success'
               ? '✅ Interface deployment to S3 completed successfully'
               : '❌ Interface deployment to S3 failed'
-            github.rest.issues.createComment({
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.name,
