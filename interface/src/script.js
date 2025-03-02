@@ -175,9 +175,12 @@ const initWaveAnimation = () => {
 
         const PI2 = Math.PI * 2;
         const material = new THREE.SpriteMaterial({
-            color: 0x6C5CE7,
-            opacity: 0.1,
-            transparent: true
+            color: 0xffffff,
+            program: function(context) {
+            context.beginPath();
+            context.arc(0, 0, 0.4, 0, PI2, true);
+            context.fill();
+        }
         });
 
         let i = 0;
