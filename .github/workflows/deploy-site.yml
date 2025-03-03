@@ -46,19 +46,3 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id $CLOUDFRONT_DISTRIBUTION_ID \
             --paths "/*"
-
-      - name: Deployment status notification
-        if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const status = '${{ job.status }}'
-            const message = status === 'success'
-              ? '✅ Interface deployment to S3 completed successfully'
-              : '❌ Interface deployment to S3 failed'
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.name,
-              body: message
-            })
