@@ -1,8 +1,8 @@
 {
   "name": "PilottAI",
   "logo": {
-    "light": "/assets/logo.png",
-    "dark": "/assets/logo.png"
+    "light": "/assets/logo.svg",
+    "dark": "/assets/logo.svg"
   },
   "favicon": "/assets/logo.png",
   "colors": {
