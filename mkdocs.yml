@@ -80,7 +80,7 @@ theme:
     code: Source Code Pro
   icon:
     repo: fontawesome/brands/github
-  logo: assets/logo.png
+  logo: assets/logo.svg
   favicon: assets/logo.png
 
 plugins:
@@ -145,7 +145,7 @@ markdown_extensions:
 extra:
   analytics:
     provider: google
-    property: !ENV GOOGLE_ANALYTICS_KEY
+    property: "G-KEG4R5ZZE1"
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/anuj0456/pilottai
