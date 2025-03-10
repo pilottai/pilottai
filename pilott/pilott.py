@@ -7,7 +7,7 @@ from pilott.core.agent import BaseAgent
 from pilott.core.task import Task, TaskResult
 from pilott.core.memory import Memory
 from pilott.core.config import AgentConfig, LLMConfig
-from pilott.enums.process import ProcessType
+from pilott.enums.process_e import ProcessType
 from pilott.enums.task_e import TaskPriority
 
 
@@ -173,8 +173,10 @@ class Serve:
 
             if self.config.process_type == ProcessType.PARALLEL:
                 return await self._execute_parallel(processed_tasks)
-            return await self._execute_sequential(processed_tasks)
-
+            elif self.config.process_type == ProcessType.SEQUENTIAL:
+                return await self._execute_sequential(processed_tasks)
+            elif self.config.process_type == ProcessType.HIERARCHICAL:
+                return await self._execute_parallel(processed_tasks)
         except Exception as e:
             self.logger.error(f"Task execution failed: {str(e)}")
             raise

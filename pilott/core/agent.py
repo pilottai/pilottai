@@ -6,10 +6,11 @@ import uuid
 
 from pilott.core.config import AgentConfig, LLMConfig
 from pilott.core.task import Task, TaskResult
-from pilott.enums.status import AgentStatus
+from pilott.enums.status_e import AgentStatus
 from pilott.core.memory import Memory
 from pilott.engine.llm import LLMHandler
 from pilott.tools.tool import Tool
+from pilott.source.source import KnowledgeManager
 
 
 class BaseAgent:
@@ -28,6 +29,7 @@ class BaseAgent:
         # Core configuration
         self.config = config
         self.id = str(uuid.uuid4())
+        self.source = KnowledgeManager()
 
         # State management
         self.status = AgentStatus.IDLE
@@ -190,7 +192,7 @@ class BaseAgent:
         Role: {self.config.role}
         Goal: {self.config.goal}
         Backstory: {self.config.backstory or 'No specific backstory.'}
-        
+
         Make decisions and take actions based on your role and goal."""
 
     def _format_task(self, task: Task) -> str:

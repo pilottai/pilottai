@@ -1,6 +1,6 @@
 from typing import Dict, Type, Optional, List
 from pilott.core.agent import BaseAgent
-from pilott.enums.role import AgentRole
+from pilott.enums.role_e import AgentRole
 from pilott.core.config import AgentConfig
 
 

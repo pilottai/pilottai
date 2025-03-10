@@ -5,7 +5,7 @@ from unittest.mock import Mock, AsyncMock
 from pilott import Serve
 from pilott.core import BaseAgent, LLMConfig
 from pilott.core.task import Task, TaskResult
-from pilott.enums.process import ProcessType
+from pilott.enums.process_e import ProcessType
 from pilott.enums.task_e import TaskPriority
 
 import pytest_asyncio

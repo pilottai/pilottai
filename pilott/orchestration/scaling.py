@@ -10,7 +10,7 @@ import weakref
 
 from pilott.core.agent import BaseAgent
 from pilott.core.task import Task
-from pilott.enums.health import HealthStatus
+from pilott.enums.health_e import HealthStatus
 
 
 class ScalingMetrics(BaseModel):
