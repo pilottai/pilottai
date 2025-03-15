@@ -1,10 +1,10 @@
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, LLMConfig, AgentRole
 from pilott.tools import Tool
 
 async def main():
     # Initialize PilottAI Serve
-    pilott = Serve(name="MultiAgentSystem")
+    pilott = Pilott(name="MultiAgentSystem")
 
     # Configure LLM
     llm_config = LLMConfig(
@@ -32,7 +32,7 @@ async def main():
     customer_service = await pilott.add_agent(
         role="customer_service",
         goal="Handle customer inquiries professionally",
-        tools=["email_sender"],
+        tools=[email_tool],
         llm_config=llm_config
     )
 
@@ -40,7 +40,7 @@ async def main():
     doc_processor = await pilott.add_agent(
         role="document_processor",
         goal="Process and analyze documents efficiently",
-        tools=["document_processor"],
+        tools=[document_tool],
         llm_config=llm_config
     )
 
@@ -48,7 +48,7 @@ async def main():
     research_analyst = await pilott.add_agent(
         role="research_analyst",
         goal="Analyze data and provide insights",
-        tools=["document_processor"],
+        tools=[document_tool],
         llm_config=llm_config
     )
 
@@ -57,17 +57,17 @@ async def main():
         {
             "type": "customer_inquiry",
             "description": "Handle refund request",
-            "agent": "customer_service"
+            "agent": customer_service
         },
         {
             "type": "document_analysis",
             "description": "Analyze quarterly report",
-            "agent": "document_processor"
+            "agent": doc_processor
         },
         {
             "type": "market_research",
             "description": "Research competitor pricing",
-            "agent": "research_analyst"
+            "agent": research_analyst
         }
     ]
 

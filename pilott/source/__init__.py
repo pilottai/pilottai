@@ -1,1 +1,1 @@
-from pilott.source.source import KnowledgeManager
+from pilott.source.source import DataManager

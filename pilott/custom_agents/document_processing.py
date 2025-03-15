@@ -1,10 +1,10 @@
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, LLMConfig, AgentRole
 from pilott.tools import Tool
 
 async def main():
     # Initialize PilottAI Serve
-    pilott = Serve(name="DocumentProcessor")
+    pilott = Pilott(name="DocumentProcessor")
 
     # Configure LLM
     llm_config = LLMConfig(
@@ -48,7 +48,7 @@ async def main():
     doc_processor = await pilott.add_agent(
         role="document_processor",
         goal="Process and analyze documents efficiently",
-        tools=["text_extractor", "content_analyzer", "summarizer"],
+        tools=[text_extractor, content_analyzer, summarizer],
         llm_config=llm_config
     )
 
@@ -59,7 +59,8 @@ async def main():
         "document": {
             "path": "reports/q2_2024.pdf",
             "type": "pdf"
-        }
+        },
+        "agent": doc_processor
     }
 
     # Execute task

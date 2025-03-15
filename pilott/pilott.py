@@ -3,10 +3,12 @@ from pydantic import BaseModel
 import asyncio
 import logging
 
+from pilott.agent import ActionAgent, MasterAgent, SuperAgent
 from pilott.core.agent import BaseAgent
 from pilott.core.task import Task, TaskResult
 from pilott.core.memory import Memory
 from pilott.core.config import AgentConfig, LLMConfig
+from pilott.tools.tool import Tool
 from pilott.enums.process_e import ProcessType
 from pilott.enums.task_e import TaskPriority
 
@@ -22,7 +24,7 @@ class ServeConfig(BaseModel):
     max_queue_size: int = 1000
 
 
-class Serve:
+class Pilott:
     """
     Main orchestrator for PilottAI framework.
     Handles agent management, task execution, and system lifecycle.
@@ -48,6 +50,11 @@ class Serve:
         self._running_tasks: Dict[str, asyncio.Task] = {}
         self._completed_tasks: Dict[str, TaskResult] = {}
 
+        # Agent Management
+        self.master_agent: Optional[MasterAgent] = None
+        self.super_agents: List[SuperAgent] = []
+        self.action_agents: List[ActionAgent] = []
+
         # State management
         self._started = False
         self._shutting_down = False
@@ -61,7 +68,7 @@ class Serve:
             role: str,
             goal: str,
             backstory: Optional[str] = None,
-            tools: Optional[List[str]] = None,
+            tools: Optional[List[Tool]] = None,
             llm_config: Optional[Union[Dict, LLMConfig]] = None,
             verbose: bool = False
     ) -> BaseAgent:
@@ -151,7 +158,7 @@ class Serve:
             self.logger.error(f"Failed to create task: {str(e)}")
             raise
 
-    async def execute(self, tasks: List[dict[str, str]]) -> List[TaskResult]:
+    async def execute(self, tasks: List[dict[str, Any]]) -> List[TaskResult] | None:
         """
         Execute a list of tasks.
 
@@ -176,7 +183,7 @@ class Serve:
             elif self.config.process_type == ProcessType.SEQUENTIAL:
                 return await self._execute_sequential(processed_tasks)
             elif self.config.process_type == ProcessType.HIERARCHICAL:
-                return await self._execute_parallel(processed_tasks)
+                return await self._execute_hierarchical(processed_tasks)
         except Exception as e:
             self.logger.error(f"Task execution failed: {str(e)}")
             raise
@@ -247,6 +254,9 @@ class Serve:
             return_exceptions=True
         )
 
+    async def _execute_hierarchical(self, tasks: List[Task]) -> List[TaskResult]:
+        pass
+
     async def _execute_single_task(self, task: Task) -> TaskResult:
         """Execute a single task"""
         try:
@@ -288,7 +298,9 @@ class Serve:
 
     async def _get_agent_for_task(self, task: Task) -> Optional[BaseAgent]:
         """Get appropriate agent for task"""
-        if task.agent_id and task.agent_id in self.agents:
+        if task.agent and task.agent in self.agents:
+            return task.agent
+        elif task.agent_id and task.agent_id in self.agents:
             return self.agents[task.agent_id]
 
         # Find best agent based on task requirements
@@ -303,6 +315,83 @@ class Serve:
                     best_agent = agent
 
         return best_agent
+
+    async def delegate(self, agents: List[BaseAgent], parallel: bool = False) -> List[TaskResult]:
+        if not self._started:
+            await self.start()
+
+        try:
+            if parallel:
+                return await self._execute_agents_parallel(agents)
+            return await self._execute_agents_sequential(agents)
+
+        except Exception as e:
+            self.logger.error(f"Agent-based execution failed: {str(e)}")
+            raise
+
+    async def _execute_agents_sequential(self, agents: List[BaseAgent]) -> List[TaskResult]:
+        """Execute tasks through agents sequentially."""
+        all_results = []
+
+        for agent in agents:
+
+            for task in agent.tasks:
+                try:
+                    await task.mark_started()
+                    result = await agent.execute_task(task)
+                    await task.mark_completed(result)
+                    all_results.append(result)
+                except Exception as e:
+                    self.logger.error(f"Task execution failed on agent {agent.id}: {str(e)}")
+                    error_result = TaskResult(
+                        success=False,
+                        output=None,
+                        error=str(e),
+                        execution_time=0.0
+                    )
+                    await task.mark_completed(error_result)
+                    all_results.append(error_result)
+
+        return all_results
+
+    async def _execute_agents_parallel(self, agents: List[BaseAgent]) -> List[TaskResult]:
+        """Execute tasks through agents in parallel."""
+        all_results = []
+
+        async def process_agent_tasks(agent_id, tasks):
+            agent = self.agents[agent_id]
+            results = []
+            self.logger.info(f"Agent {agent_id} processing {len(tasks)} tasks")
+
+            for task in tasks:
+                try:
+                    await task.mark_started()
+                    result = await agent.execute_task(task)
+                    await task.mark_completed(result)
+                    results.append(result)
+                except Exception as e:
+                    self.logger.error(f"Task execution failed on agent {agent_id}: {str(e)}")
+                    error_result = TaskResult(
+                        success=False,
+                        output=None,
+                        error=str(e),
+                        execution_time=0.0
+                    )
+                    await task.mark_completed(error_result)
+                    results.append(error_result)
+
+            return results
+
+        async with asyncio.TaskGroup() as group:
+            futures = [
+                group.create_task(process_agent_tasks(agent.id, agent.tasks))
+                for agent in agents
+            ]
+
+        for future in futures:
+            all_results.extend(future.result())
+
+        return all_results
 
     def _setup_logger(self) -> logging.Logger:
         """Setup logging"""

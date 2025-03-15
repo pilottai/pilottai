@@ -1,10 +1,10 @@
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, LLMConfig, AgentRole
 from pilott.tools import Tool
 
 async def main():
     # Initialize PilottAI Serve
-    pilott = Serve(name="LearningAgent")
+    pilott = Pilott(name="LearningAgent")
 
     # Configure LLM
     llm_config = LLMConfig(
@@ -36,10 +36,10 @@ async def main():
     )
 
     # Create learning agent
-    learning_agent = await pilott.add_agent(
+    await pilott.add_agent(
         role="learner",
         goal="Acquire and organize knowledge effectively",
-        tools=["knowledge_base", "pattern_recognizer"],
+        tools=[knowledge_base, pattern_recognizer],
         llm_config=llm_config
     )
 

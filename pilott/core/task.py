@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 import uuid
 
+from pilott.core.agent import BaseAgent
 from pilott.enums.task_e import TaskStatus, TaskPriority
 
 
@@ -38,6 +39,7 @@ class Task(BaseModel):
     priority: TaskPriority = Field(default=TaskPriority.MEDIUM)
 
     # Settings
+    agent: Optional[BaseAgent] = None
     agent_id: Optional[str] = None
     context: Dict[str, Any] = Field(default_factory=dict)
     tools: List[str] = Field(default_factory=list)

@@ -1,10 +1,10 @@
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, LLMConfig, AgentRole
 from pilott.tools import Tool
 
 async def main():
     # Initialize PilottAI Serve
-    pilott = Serve(name="SocialMediaManager")
+    pilott = Pilott(name="SocialMediaManager")
 
     # Configure LLM
     llm_config = LLMConfig(
@@ -41,7 +41,7 @@ async def main():
     social_agent = await pilott.add_agent(
         role="social_media_manager",
         goal="Manage social media presence and engagement",
-        tools=["content_scheduler", "engagement_analyzer"],
+        tools=[content_scheduler, engagement_analyzer],
         llm_config=llm_config
     )
 
