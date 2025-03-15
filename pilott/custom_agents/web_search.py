@@ -1,10 +1,10 @@
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, LLMConfig, AgentRole
 from pilott.tools import Tool
 
 async def main():
     # Initialize PilottAI Serve
-    pilott = Serve(name="WebSearchAgent")
+    pilott = Pilott(name="WebSearchAgent")
 
     # Configure LLM
     llm_config = LLMConfig(
@@ -39,7 +39,7 @@ async def main():
     search_agent = await pilott.add_agent(
         role="web_searcher",
         goal="Execute and analyze web searches effectively",
-        tools=["search_executor", "result_analyzer"],
+        tools=[search_executor, result_analyzer],
         llm_config=llm_config
     )
 

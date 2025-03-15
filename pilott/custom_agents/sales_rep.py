@@ -1,10 +1,10 @@
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, LLMConfig, AgentRole
 from pilott.tools import Tool
 
 async def main():
     # Initialize PilottAI Serve
-    pilott = Serve(name="SalesRepresentative")
+    pilott = Pilott(name="SalesRepresentative")
 
     # Configure LLM
     llm_config = LLMConfig(
@@ -40,7 +40,7 @@ async def main():
     sales_agent = await pilott.add_agent(
         role="sales_representative",
         goal="Manage leads and close sales effectively",
-        tools=["lead_manager", "proposal_generator"],
+        tools=[lead_manager, proposal_generator],
         llm_config=llm_config
     )
 

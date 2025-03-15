@@ -1,10 +1,10 @@
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, LLMConfig, AgentRole
 from pilott.tools import Tool
 
 async def main():
     # Initialize PilottAI Serve
-    pilott = Serve(name="MarketingExpert")
+    pilott = Pilott(name="MarketingExpert")
 
     # Configure LLM
     llm_config = LLMConfig(
@@ -39,7 +39,7 @@ async def main():
     marketing_agent = await pilott.add_agent(
         role="marketing_expert",
         goal="Create and optimize marketing campaigns",
-        tools=["content_creator", "campaign_analyzer"],
+        tools=[content_creator, campaign_analyzer],
         llm_config=llm_config
     )
 

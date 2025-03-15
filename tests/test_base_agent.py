@@ -8,7 +8,7 @@ from pilott.core.agent import BaseAgent
 from pilott.core.config import AgentConfig, LLMConfig
 from pilott.core.task import Task, TaskResult
 from pilott.tools.tool import Tool
-from pilott.enums.status import AgentStatus
+from pilott.enums.status_e import AgentStatus
 
 @pytest.fixture
 def agent_config():

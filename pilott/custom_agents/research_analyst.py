@@ -1,10 +1,10 @@
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, LLMConfig, AgentRole
 from pilott.tools import Tool
 
 async def main():
     # Initialize PilottAI Serve
-    pilott = Serve(name="ResearchAnalyst")
+    pilott = Pilott(name="ResearchAnalyst")
 
     # Configure LLM
     llm_config = LLMConfig(
@@ -39,7 +39,7 @@ async def main():
     research_agent = await pilott.add_agent(
         role="research_analyst",
         goal="Conduct thorough research and provide insights",
-        tools=["data_analyzer", "research_synthesizer"],
+        tools=[data_analyzer, research_synthesizer],
         llm_config=llm_config
     )
 

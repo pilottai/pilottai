@@ -2,10 +2,10 @@ import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock
 
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import BaseAgent, LLMConfig
 from pilott.core.task import Task, TaskResult
-from pilott.enums.process import ProcessType
+from pilott.enums.process_e import ProcessType
 from pilott.enums.task_e import TaskPriority
 
 import pytest_asyncio
@@ -46,7 +46,7 @@ async def mock_agent():
 @pytest_asyncio.fixture
 async def serve():
     """Fixture to create a basic Serve instance"""
-    serve_instance = Serve(name="TestServe")
+    serve_instance = Pilott(name="TestServe")
     try:
         yield serve_instance
     finally:

@@ -1,5 +1,5 @@
-from pilott.pilott import Serve
+from pilott.pilott import Pilott
 
 __all__ = [
-    'Serve'
+    'Pilott'
 ]
