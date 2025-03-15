@@ -25,7 +25,7 @@ class KnowledgeSource(BaseModel):
     retry_delay: int = 5
     timeout: int = 30
 
-class KnowledgeManager:
+class DataManager:
     def __init__(self, cache_size: int = 1000, cache_ttl: int = 3600):
         self.sources: Dict[str, KnowledgeSource] = {}
         self.cache: OrderedDict = OrderedDict()

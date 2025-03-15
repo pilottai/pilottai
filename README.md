@@ -60,69 +60,72 @@ pip install pilott
 ## Quick Start
 
 ```python
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, AgentRole, LLMConfig
 
 # Configure LLM
 llm_config = LLMConfig(
-    model_name="gpt-4",
-    provider="openai",
-    api_key="your-api-key"
+  model_name="gpt-4",
+  provider="openai",
+  api_key="your-api-key"
 )
 
 # Setup agent configuration
 config = AgentConfig(
-    role="processor",
-    role_type=AgentRole.WORKER,
-    goal="Process documents efficiently",
-    description="Document processing worker",
-    max_queue_size=100
+  role="processor",
+  role_type=AgentRole.WORKER,
+  goal="Process documents efficiently",
+  description="Document processing worker",
+  max_queue_size=100
 )
 
+
 async def main():
-    # Initialize system
-    pilott = Serve(name="DocumentProcessor")
+  # Initialize system
+  pilott = Pilott(name="DocumentProcessor")
 
-    try:
-        # Start system
-        await pilott.start()
+  try:
+    # Start system
+    await pilott.start()
 
-        # Add agent
-        agent = await pilott.add_agent(
-            agent_type="processor",
-            config=config,
-            llm_config=llm_config
-        )
+    # Add agent
+    agent = await pilott.add_agent(
+      agent_type="processor",
+      config=config,
+      llm_config=llm_config
+    )
 
-        # Process document
-        result = await pilott.execute_task({
-            "type": "process_document",
-            "file_path": "document.pdf"
-        })
+    # Process document
+    result = await pilott.execute_task({
+      "type": "process_document",
+      "file_path": "document.pdf"
+    })
 
-        print(f"Processing result: {result}")
+    print(f"Processing result: {result}")
 
-    finally:
-        await pilott.stop()
+  finally:
+    await pilott.stop()
+
 
 if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
+  import asyncio
+
+  asyncio.run(main())
 ```
 
 ## Specialized Agents
 
 PilottAI includes ready-to-use specialized agents:
 
-- 🎫 [Customer Service Agent](pilott/agents/customer_service.md): Ticket and support management
-- 📄 [Document Processing Agent](pilott/agents/document_processing.md): Document analysis and extraction
-- 📧 [Email Agent](pilott/agents/email_agent.md): Email handling and template management
-- 🧠 [Learning Agent](pilott/agents/learning_agent.md): Knowledge acquisition and pattern recognition
-- 📢 [Marketing Expert Agent](pilott/agents/marketing_expert.md): Campaign management and content creation
-- 📊 [Research Analyst Agent](pilott/agents/research_analyst.md): Data analysis and research synthesis
-- 💼 [Sales Representative Agent](pilott/agents/sales_rep.md): Lead management and proposals
-- 🌐 [Social Media Agent](pilott/agents/social_media_agent.md): Content scheduling and engagement
-- 🔍 [Web Search Agent](pilott/agents/web_search.md): Search operations and analysis
+- 🎫 [Customer Service Agent](pilott/custom_agents/customer_service.md): Ticket and support management
+- 📄 [Document Processing Agent](pilott/custom_agents/document_processing.md): Document analysis and extraction
+- 📧 [Email Agent](pilott/custom_agents/email_agent.md): Email handling and template management
+- 🧠 [Learning Agent](pilott/custom_agents/learning_agent.md): Knowledge acquisition and pattern recognition
+- 📢 [Marketing Expert Agent](pilott/custom_agents/marketing_expert.md): Campaign management and content creation
+- 📊 [Research Analyst Agent](pilott/custom_agents/research_analyst.md): Data analysis and research synthesis
+- 💼 [Sales Representative Agent](pilott/custom_agents/sales_rep.md): Lead management and proposals
+- 🌐 [Social Media Agent](pilott/custom_agents/social_media_agent.md): Content scheduling and engagement
+- 🔍 [Web Search Agent](pilott/custom_agents/web_search.md): Search operations and analysis
 
 ## Documentation
 

@@ -1,10 +1,10 @@
-from pilott import Serve
+from pilott import Pilott
 from pilott.core import AgentConfig, LLMConfig, AgentRole
 from pilott.tools import Tool
 
 async def main():
     # Initialize PilottAI Serve
-    pilott = Serve(name="EmailAgent")
+    pilott = Pilott(name="EmailAgent")
 
     # Configure LLM
     llm_config = LLMConfig(
@@ -50,7 +50,7 @@ async def main():
     email_agent = await pilott.add_agent(
         role="email_manager",
         goal="Handle email communications efficiently",
-        tools=["email_sender", "email_analyzer", "template_manager"],
+        tools=[email_sender, email_analyzer, template_manager],
         llm_config=llm_config
     )
 
@@ -68,7 +68,8 @@ async def main():
         {
             "type": "analyze_email",
             "content": "I'm having issues with my account...",
-            "priority": "high"
+            "priority": "high",
+            "agent":email_agent
         }
     ]
 

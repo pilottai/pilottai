@@ -10,7 +10,7 @@ from pilott.enums.status_e import AgentStatus
 from pilott.core.memory import Memory
 from pilott.engine.llm import LLMHandler
 from pilott.tools.tool import Tool
-from pilott.source.source import KnowledgeManager
+from pilott.source.source import DataManager
 
 
 class BaseAgent:
@@ -29,7 +29,8 @@ class BaseAgent:
         # Core configuration
         self.config = config
         self.id = str(uuid.uuid4())
-        self.source = KnowledgeManager()
+        self.source = Optional[DataManager()]
+        self.tasks = Optional[Union[List[Task], Dict[str, Task]]]
 
         # State management
         self.status = AgentStatus.IDLE
@@ -230,7 +231,6 @@ class BaseAgent:
             # Base suitability score
             score = 0.7
 
-            # Check required capabilities
             if "required_capabilities" in task:
                 missing = set(task["required_capabilities"]) - set(self.config.required_capabilities)
                 if missing:
@@ -297,100 +297,6 @@ class BaseAgent:
         except Exception as e:
             self.logger.error(f"Failed to stop agent: {str(e)}")
             raise
-
-    # async def execute_task(self, task: Union[Dict, Task]) -> Optional[TaskResult]:
-    #     """Execute a task with memory integration"""
-    #     if isinstance(task, dict):
-    #         task = Task(**task)
-    #     if not self.llm:
-    #         raise ValueError("LLM configuration required for task execution")
-    #
-    #     start_time = datetime.now()
-    #
-    #     try:
-    #         async with self._task_lock:
-    #             self.status = AgentStatus.BUSY
-    #             self.current_task = task
-    #
-    #             # Store task start in memory
-    #             if self.memory:
-    #                 await self.memory.store_semantic(
-    #                     text=f"Starting task: {task.description}",
-    #                     metadata={
-    #                         "type": "task_execution",
-    #                         "phase": "start",
-    #                         "task_id": task.id,
-    #                         "agent_id": self.id
-    #                     },
-    #                     tags={"task_execution", "task_start"}
-    #                 )
-    #
-    #             # Format and execute task
-    #             formatted_task = self._format_task(task)
-    #             execution_plan = await self._plan_execution(formatted_task)
-    #             result = await self._execute_plan(execution_plan)
-    #
-    #             execution_time = (datetime.now() - start_time).total_seconds()
-    #
-    #             # Create task result
-    #             task_result = TaskResult(
-    #                 success=True,
-    #                 output=result,
-    #                 execution_time=execution_time,
-    #                 metadata={
-    #                     "agent_id": self.id,
-    #                     "role": self.config.role,
-    #                     "plan": execution_plan
-    #                 }
-    #             )
-    #
-    #             # Store task completion in memory
-    #             if self.memory:
-    #                 await self.memory.store_semantic(
-    #                     text=f"Completed task: {task.description}\nResult: {result}",
-    #                     metadata={
-    #                         "type": "task_execution",
-    #                         "phase": "complete",
-    #                         "task_id": task.id,
-    #                         "agent_id": self.id,
-    #                         "success": True,
-    #                         "execution_time": execution_time
-    #                     },
-    #                     tags={"task_execution", "task_complete", "success"}
-    #                 )
-    #
-    #             return task_result
-    #
-    #     except Exception as e:
-    #         execution_time = (datetime.now() - start_time).total_seconds()
-    #         self.logger.error(f"Task execution failed: {str(e)}")
-    #
-    #         # Store task failure in memory
-    #         if self.memory:
-    #             await self.memory.store_semantic(
-    #                 text=f"Failed task: {task.description}\nError: {str(e)}",
-    #                 metadata={
-    #                     "type": "task_execution",
-    #                     "phase": "complete",
-    #                     "task_id": task.id,
-    #                     "agent_id": self.id,
-    #                     "success": False,
-    #                     "error": str(e),
-    #                     "execution_time": execution_time
-    #                 },
-    #                 tags={"task_execution", "task_complete", "failure"}
-    #             )
-    #
-    #         return TaskResult(
-    #             success=False,
-    #             output=None,
-    #             error=str(e),
-    #             execution_time=execution_time
-    #         )
-    #
-    #     finally:
-    #         self.status = AgentStatus.IDLE
-    #         self.current_task = None
 
     def _setup_logger(self) -> logging.Logger:
         """Setup agent logging"""
