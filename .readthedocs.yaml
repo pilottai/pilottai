@@ -5,7 +5,6 @@ build:
   tools:
     python: "3.10"
 
-
 # Build documentation with Mkdocs
 mkdocs:
    configuration: mkdocs.yml
