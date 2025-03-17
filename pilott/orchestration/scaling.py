@@ -1,14 +1,14 @@
-from typing import Dict, List, Optional, Set
-from datetime import datetime, timedelta
 import asyncio
 import logging
+import weakref
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Set
 
 import psutil
 from aiohttp._websocket.reader_c import deque
 from pydantic import BaseModel, ConfigDict, Field
-import weakref
 
-from pilott.core.agent import BaseAgent
+from pilott.core.base_agent import BaseAgent
 from pilott.core.task import Task
 from pilott.enums.health_e import HealthStatus
 

@@ -1,14 +1,14 @@
+import gzip
+import json
 import logging
 import logging.handlers
-from typing import Any, Optional, Dict
-from pathlib import Path
-from datetime import datetime
-import json
 import os
-import gzip
 import shutil
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Optional
 
-from pilott.core import LogConfig
+from pilott.core.config import LogConfig
 
 
 class CustomRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):

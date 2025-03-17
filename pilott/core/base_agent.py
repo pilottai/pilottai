@@ -1,16 +1,16 @@
-from typing import Dict, List, Optional, Union
 import asyncio
 import logging
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import Dict, List, Optional, Union
 
 from pilott.core.config import AgentConfig, LLMConfig
-from pilott.core.task import Task, TaskResult
-from pilott.enums.status_e import AgentStatus
 from pilott.core.memory import Memory
+from pilott.core.task import Task, TaskResult
 from pilott.engine.llm import LLMHandler
-from pilott.tools.tool import Tool
+from pilott.enums.agent_e import AgentStatus
 from pilott.source.source import DataManager
+from pilott.tools.tool import Tool
 
 
 class BaseAgent:

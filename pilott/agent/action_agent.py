@@ -1,4 +1,4 @@
-from pilott.core.agent import BaseAgent
+from pilott.core.base_agent import BaseAgent
 
 class ActionAgent(BaseAgent):
     pass
