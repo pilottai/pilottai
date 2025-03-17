@@ -1,5 +1,5 @@
 from pilott import Pilott
-from pilott.core import AgentConfig, LLMConfig, AgentRole
+from pilott.core import LLMConfig
 from pilott.tools import Tool
 
 async def main():

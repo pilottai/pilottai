@@ -1,16 +1,17 @@
-from typing import Dict, List, Optional, Any, Union
-from pydantic import BaseModel
 import asyncio
 import logging
+from typing import Dict, List, Optional, Any, Union
+
+from pydantic import BaseModel
 
 from pilott.agent import ActionAgent, MasterAgent, SuperAgent
-from pilott.core.agent import BaseAgent
-from pilott.core.task import Task, TaskResult
-from pilott.core.memory import Memory
+from pilott.core.base_agent import BaseAgent
 from pilott.core.config import AgentConfig, LLMConfig
-from pilott.tools.tool import Tool
+from pilott.core.memory import Memory
+from pilott.core.task import Task, TaskResult
 from pilott.enums.process_e import ProcessType
 from pilott.enums.task_e import TaskPriority
+from pilott.tools.tool import Tool
 
 
 class ServeConfig(BaseModel):
@@ -50,7 +51,7 @@ class Pilott:
         self._running_tasks: Dict[str, asyncio.Task] = {}
         self._completed_tasks: Dict[str, TaskResult] = {}
 
-        # Agent Management
+        # Agent Config
         self.master_agent: Optional[MasterAgent] = None
         self.super_agents: List[SuperAgent] = []
         self.action_agents: List[ActionAgent] = []

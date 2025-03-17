@@ -1,13 +1,14 @@
-from typing import Dict, List, Tuple, Optional, Set, Any
 import asyncio
-from datetime import datetime, timedelta
 import logging
+import weakref
+from datetime import datetime, timedelta
+from typing import Dict, List, Tuple, Optional, Set, Any
 
 import psutil
 from pydantic import BaseModel, Field
-import weakref
 
-from pilott.core import BaseAgent, AgentStatus
+from pilott.core.base_agent import BaseAgent
+from pilott.enums.agent_e import AgentStatus
 
 
 class LoadMetrics(BaseModel):
@@ -348,7 +349,7 @@ class LoadBalancer:
             ]),
             "last_balance_time": self._last_balance_time.isoformat(),
             "metrics_history": {
-                agent_id: [m.dict() for m in history]
+                agent_id: [m.model_dump() for m in history]
                 for agent_id, history in self._metrics_history.items()
             }
         }

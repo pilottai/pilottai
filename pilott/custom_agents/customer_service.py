@@ -1,6 +1,7 @@
-from pilott import Pilott
-from pilott.core import AgentConfig, LLMConfig, AgentRole
-from pilott.tools import Tool
+from pilott.core.config import LLMConfig
+from pilott.pilott import Pilott
+from pilott.tools.tool import Tool
+
 
 async def main():
     # Initialize PilottAI Serve

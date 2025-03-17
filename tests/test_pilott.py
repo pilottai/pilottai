@@ -1,14 +1,14 @@
-import pytest
 import asyncio
 from unittest.mock import Mock, AsyncMock
 
+import pytest
+import pytest_asyncio
+
 from pilott import Pilott
 from pilott.core import BaseAgent, LLMConfig
-from pilott.core.task import Task, TaskResult
+from pilott.core.task import TaskResult
 from pilott.enums.process_e import ProcessType
 from pilott.enums.task_e import TaskPriority
-
-import pytest_asyncio
 
 
 @pytest.fixture

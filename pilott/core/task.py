@@ -1,9 +1,10 @@
-from typing import Dict, Optional, Any, List
-from pydantic import BaseModel, Field
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import Dict, Optional, Any, List
 
-from pilott.core.agent import BaseAgent
+from pydantic import BaseModel, Field
+
+from pilott.core.base_agent import BaseAgent
 from pilott.enums.task_e import TaskStatus, TaskPriority
 
 
