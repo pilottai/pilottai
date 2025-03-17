@@ -1,14 +1,14 @@
+from unittest.mock import Mock, AsyncMock
+
 import pytest
 import pytest_asyncio
-from unittest.mock import Mock, AsyncMock
-from datetime import datetime
-import asyncio
 
-from pilott.core.agent import BaseAgent
+from pilott.core.base_agent import BaseAgent
 from pilott.core.config import AgentConfig, LLMConfig
 from pilott.core.task import Task, TaskResult
+from pilott.enums.agent_e import AgentStatus
 from pilott.tools.tool import Tool
-from pilott.enums.status_e import AgentStatus
+
 
 @pytest.fixture
 def agent_config():

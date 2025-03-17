@@ -1,11 +1,13 @@
-from typing import Dict, Optional, List
-from datetime import datetime, timedelta
 import asyncio
-import psutil
 import logging
-from pydantic import BaseModel, Field
-from collections import deque
 import weakref
+from collections import deque
+from datetime import datetime, timedelta
+from typing import Dict, Optional
+
+import psutil
+from pydantic import BaseModel, Field
+
 
 class ScalingMetrics(BaseModel):
     timestamp: datetime

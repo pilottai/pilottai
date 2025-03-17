@@ -1,4 +1,4 @@
 from pilott.core.base_agent import BaseAgent
 
-class MasterAgent(BaseAgent):
+class Agent(BaseAgent):
     pass

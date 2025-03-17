@@ -1,9 +1,11 @@
-from typing import Dict, Tuple, Optional, Any, List
-from datetime import datetime, timedelta
-from collections import defaultdict
 import asyncio
 import logging
+from collections import defaultdict
+from datetime import datetime, timedelta
+from typing import Dict, Tuple, Optional, Any, List
+
 from pydantic import BaseModel, Field
+
 
 class DelegationMetrics(BaseModel):
     success_count: int = 0

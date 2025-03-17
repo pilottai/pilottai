@@ -1,13 +1,13 @@
-from typing import Dict, Type, Optional, List
-from pilott.core.agent import BaseAgent
-from pilott.enums.role_e import AgentRole
-from pilott.core.config import AgentConfig
-
-
-import logging
-from contextlib import contextmanager
 import asyncio
+import logging
 import threading
+from contextlib import contextmanager
+from typing import Dict, Type, Optional, List
+
+from pilott.core.base_agent import BaseAgent
+from pilott.core.config import AgentConfig
+from pilott.enums.role_e import AgentRole
+
 
 class AgentFactory:
     """Factory for creating different types of agents"""

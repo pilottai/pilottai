@@ -1,10 +1,12 @@
-import shutil
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
-from pilott.enums.role_e import AgentRole
-from pathlib import Path
-from cryptography.fernet import Fernet
 import json
+import shutil
+from pathlib import Path
+from typing import Optional, List, Dict, Any
+
+from cryptography.fernet import Fernet
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
+
+from pilott.enums.role_e import AgentRole
 
 
 class SecureConfig:
