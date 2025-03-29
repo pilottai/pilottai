@@ -9,7 +9,7 @@ from pilott.core.memory import Memory
 from pilott.core.task import Task, TaskResult
 from pilott.engine.llm import LLMHandler
 from pilott.enums.agent_e import AgentStatus
-from pilott.source.source import DataManager
+from pilott.knowledge.knowledge import Knowledge
 from pilott.tools.tool import Tool
 
 
@@ -29,7 +29,7 @@ class BaseAgent:
         # Core configuration
         self.config = config
         self.id = str(uuid.uuid4())
-        self.source = Optional[DataManager()]
+        self.source = Optional[Knowledge()]
         self.tasks = Optional[Union[List[Task], Dict[str, Task]]]
 
         # State management

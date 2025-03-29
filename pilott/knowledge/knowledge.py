@@ -7,6 +7,8 @@ from typing import Dict, List, Optional, Any
 
 from pydantic import BaseModel, Field
 
+from pilott.knowledge.source.base_input import BaseInputSource
+
 
 class CacheEntry(BaseModel):
     value: Any
@@ -15,21 +17,9 @@ class CacheEntry(BaseModel):
     access_count: int = 0
     last_access: datetime = Field(default_factory=datetime.now)
 
-class KnowledgeSource(BaseModel):
-    name: str
-    type: str
-    connection: Dict[str, Any]
-    last_access: datetime = Field(default_factory=datetime.now)
-    access_count: int = 0
-    error_count: int = 0
-    is_connected: bool = False
-    max_retries: int = 3
-    retry_delay: int = 5
-    timeout: int = 30
-
-class DataManager:
+class Knowledge:
     def __init__(self, cache_size: int = 1000, cache_ttl: int = 3600):
-        self.sources: Dict[str, KnowledgeSource] = {}
+        self.sources: Dict[str, BaseInputSource] = {}
         self.cache: OrderedDict = OrderedDict()
         self.last_updated: Dict[str, datetime] = {}
         self.source_locks: Dict[str, asyncio.Lock] = {}
@@ -240,7 +230,7 @@ class DataManager:
                 ]
                 for k in expired_keys:
                     del self.cache[k]
-                # Check source health
+                # Check knowledge health
                 for source_name, source in self.sources.items():
                     if source.error_count > source.max_retries:
                         source.is_connected = False
