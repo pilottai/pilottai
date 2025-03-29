@@ -1,0 +1,64 @@
+name: Pull Request
+description: Submit a pull request
+title: "[Feature/Bug/Docs]: "
+labels: ["needs-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this pull request!
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Please provide a summary of the changes
+      placeholder: What does this PR do?
+    validations:
+      required: true
+
+  - type: input
+    id: issue
+    attributes:
+      label: Related Issue
+      description: Link to the related issue
+      placeholder: "Fixes #123 or Related to #456"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: change-type
+    attributes:
+      label: Type of Change
+      description: What kind of change does this PR introduce?
+      multiple: true
+      options:
+        - Bug fix (non-breaking change)
+        - New feature (non-breaking change)
+        - Breaking change
+        - Documentation update
+        - Performance improvement
+        - Code cleanup or refactor
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: testing
+    attributes:
+      label: Testing
+      description: Testing performed
+      options:
+        - label: Unit tests added/modified
+        - label: Integration tests performed
+        - label: Manual testing scenarios completed
+        - label: All tests pass
+
+  - type: checkboxes
+    id: quality
+    attributes:
+      label: Quality Checklist
+      description: Please confirm the following
+      options:
+        - label: Code follows the project's coding standards
+        - label: Documentation has been updated (if necessary)
+        - label: Code passes all linters

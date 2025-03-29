@@ -117,15 +117,15 @@ if __name__ == "__main__":
 
 PilottAI includes ready-to-use specialized agents:
 
-- 🎫 [Customer Service Agent](pilott/custom_agents/customer_service.md): Ticket and support management
-- 📄 [Document Processing Agent](pilott/custom_agents/document_processing.md): Document analysis and extraction
-- 📧 [Email Agent](pilott/custom_agents/email_agent.md): Email handling and template management
-- 🧠 [Learning Agent](pilott/custom_agents/learning_agent.md): Knowledge acquisition and pattern recognition
-- 📢 [Marketing Expert Agent](pilott/custom_agents/marketing_expert.md): Campaign management and content creation
-- 📊 [Research Analyst Agent](pilott/custom_agents/research_analyst.md): Data analysis and research synthesis
-- 💼 [Sales Representative Agent](pilott/custom_agents/sales_rep.md): Lead management and proposals
-- 🌐 [Social Media Agent](pilott/custom_agents/social_media_agent.md): Content scheduling and engagement
-- 🔍 [Web Search Agent](pilott/custom_agents/web_search.md): Search operations and analysis
+- 🎫 [Customer Service Agent](pilott/examples/customer_service.md): Ticket and support management
+- 📄 [Document Processing Agent](pilott/examples/document_processing.md): Document analysis and extraction
+- 📧 [Email Agent](pilott/examples/email_agent.md): Email handling and template management
+- 🧠 [Learning Agent](pilott/examples/learning_agent.md): Knowledge acquisition and pattern recognition
+- 📢 [Marketing Expert Agent](pilott/examples/marketing_expert.md): Campaign management and content creation
+- 📊 [Research Analyst Agent](pilott/examples/research_analyst.md): Data analysis and research synthesis
+- 💼 [Sales Representative Agent](pilott/examples/sales_rep.md): Lead management and proposals
+- 🌐 [Social Media Agent](pilott/examples/social_media_agent.md): Content scheduling and engagement
+- 🔍 [Web Search Agent](pilott/examples/web_search.md): Search operations and analysis
 
 ## Documentation
 
