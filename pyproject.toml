@@ -21,6 +21,13 @@ psutil = "^6.1.1"
 litellm = "^1.59.8"
 langchain-openai = "^0.3.2"
 cryptography = "^44.0.1"
+numpy = "^2.2.4"
+pandas = "^2.2.3"
+python-docx = "^1.1.2"
+beautifulsoup4 = "^4.13.3"
+markdown = "^3.7"
+pillow = "^11.1.0"
+speechrecognition = "^3.14.2"
 
 [tool.poetry.group.dev.dependencies]
 mkdocstrings = "^0.25.1"
