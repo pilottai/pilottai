@@ -4,7 +4,7 @@ from typing import Dict, Optional, Any, List
 
 from pydantic import BaseModel, Field
 
-from pilott.core.base_agent import BaseAgent
+
 from pilott.enums.task_e import TaskStatus, TaskPriority
 
 
@@ -40,7 +40,7 @@ class Task(BaseModel):
     priority: TaskPriority = Field(default=TaskPriority.MEDIUM)
 
     # Settings
-    agent: Optional[BaseAgent] = None
+    # agent: Optional[BaseAgent] = None
     agent_id: Optional[str] = None
     context: Dict[str, Any] = Field(default_factory=dict)
     tools: List[str] = Field(default_factory=list)
