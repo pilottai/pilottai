@@ -5,6 +5,7 @@ import re
 from bs4 import BeautifulSoup
 import markdown
 import yaml
+import json
 from xml.etree import ElementTree as ET
 
 from pilott.knowledge.source.base_input import BaseInputSource

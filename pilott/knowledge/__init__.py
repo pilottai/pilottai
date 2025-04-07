@@ -1,1 +1,2 @@
-from pilott.knowledge.knowledge import Knowledge
+
+from pilott.knowledge.knowledge import DataManager

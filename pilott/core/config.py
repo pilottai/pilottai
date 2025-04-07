@@ -1,12 +1,13 @@
 import json
 import shutil
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 from cryptography.fernet import Fernet
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
 from pilott.enums.role_e import AgentRole
+from pilott.tools.tool import Tool
 
 
 class SecureConfig:
@@ -121,7 +122,7 @@ class AgentConfig(BaseModel):
     role_type: AgentRole = AgentRole.WORKER
     backstory: Optional[str] = None
     knowledge_sources: List[str] = Field(default_factory=list)
-    tools: List[str] = Field(default_factory=list)
+    tools: Union[List[Tool], List[str]] = Field(default_factory=list)
     required_capabilities: List[str] = Field(default_factory=list)
     max_iterations: int = 20
     max_rpm: Optional[int] = None
