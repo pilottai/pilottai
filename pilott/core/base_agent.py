@@ -6,11 +6,11 @@ import uuid
 
 from pilott.core.config import AgentConfig, LLMConfig
 from pilott.core.task import Task, TaskResult
-from pilott.enums.status_e import AgentStatus
+from pilott.enums.agent_e import AgentStatus
 from pilott.core.memory import Memory
 from pilott.engine.llm import LLMHandler
 from pilott.tools.tool import Tool
-from pilott.source.source import DataManager
+from pilott.knowledge.knowledge import DataManager
 
 
 class BaseAgent:

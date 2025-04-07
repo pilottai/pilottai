@@ -13,4 +13,6 @@ __all__ = [
     'Memory',
     'AgentFactory',
     'TaskRouter',
+    'Task',
+    'TaskResult'
 ]
