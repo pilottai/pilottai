@@ -7,6 +7,7 @@ import pytesseract
 import numpy as np
 import cv2.cv2 as cv2
 
+
 from pilott.knowledge.source.base_input import BaseInputSource
 
 

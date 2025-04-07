@@ -13,6 +13,7 @@ from pilott.tools.tool import Tool
 from pilott.knowledge.knowledge import DataManager
 
 
+
 class BaseAgent:
     """
     Base agent class for PilottAI framework.
