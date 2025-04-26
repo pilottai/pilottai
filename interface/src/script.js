@@ -4,7 +4,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         const target = document.querySelector(this.getAttribute('href'));
         if (target) {
             e.preventDefault();
-            target.scrollIntoElement({
+            target.scrollIntoView({  // Fixed: Changed scrollIntoElement to scrollIntoView
                 behavior: 'smooth'
             });
         }
@@ -14,27 +14,33 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // Navbar scroll effect
 window.addEventListener('scroll', function() {
     const nav = document.querySelector('nav');
-    if (window.scrollY > 50) {
-        nav.style.background = 'rgba(15, 15, 26, 0.95)';
-    } else {
-        nav.style.background = 'transparent';
+    if (nav) {  // Added check to prevent error if nav doesn't exist
+        if (window.scrollY > 50) {
+            nav.style.background = 'rgba(15, 15, 26, 0.95)';
+        } else {
+            nav.style.background = 'transparent';
+        }
     }
 });
 
-// Mobile menu toggle
+// Mobile menu toggle - Removed duplicate declaration
 const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
 if (mobileMenuToggle) {
     mobileMenuToggle.addEventListener('click', function() {
         const navLinks = document.querySelector('.nav-links');
-        navLinks.classList.toggle('active');
+        if (navLinks) {
+            navLinks.classList.toggle('active');
 
-        const icon = this.querySelector('i');
-        if (icon.classList.contains('fa-bars')) {
-            icon.classList.remove('fa-bars');
-            icon.classList.add('fa-times');
-        } else {
-            icon.classList.add('fa-bars');
-            icon.classList.remove('fa-times');
+            const icon = this.querySelector('i');
+            if (icon) {
+                if (icon.classList.contains('fa-bars')) {
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                } else {
+                    icon.classList.add('fa-bars');
+                    icon.classList.remove('fa-times');
+                }
+            }
         }
     });
 }
@@ -91,7 +97,7 @@ document.querySelectorAll('.tab-button').forEach(button => {
 // Copy button functionality
 document.querySelectorAll('.copy-button').forEach(button => {
     button.addEventListener('click', () => {
-        const codeBlock = button.closest('.code-demo-container').querySelector('.code-panel.active code');
+        const codeBlock = button.closest('.code-demo-container')?.querySelector('.code-panel.active code');
         if (codeBlock) {
             navigator.clipboard.writeText(codeBlock.textContent.trim())
                 .then(() => {
@@ -156,11 +162,16 @@ if (swapBtn) {
 // Interactive wave animation for background
 const initWaveAnimation = () => {
     const container = document.getElementById('canvas-container');
-    if (!container || !window.THREE) return;
+
+    // Check if THREE is available before proceeding
+    if (!container || typeof THREE === 'undefined') {
+        console.warn('THREE.js not loaded or canvas container not found. Skipping wave animation.');
+        return;
+    }
 
     const SEPARATION = 100, AMOUNTX = 40, AMOUNTY = 40;
     let camera, scene, renderer;
-    let particles, particle, count = 0;
+    let particles, count = 0;
     let mouseX = 0, mouseY = 0;
     let windowHalfX = window.innerWidth / 2;
     let windowHalfY = window.innerHeight / 2;
@@ -171,25 +182,26 @@ const initWaveAnimation = () => {
 
         scene = new THREE.Scene();
 
-        particles = [];
+        particles = new Array(AMOUNTX * AMOUNTY);
 
         const PI2 = Math.PI * 2;
         const material = new THREE.SpriteMaterial({
             color: 0xffffff,
             program: function(context) {
-            context.beginPath();
-            context.arc(0, 0, 0.4, 0, PI2, true);
-            context.fill();
-        }
+                context.beginPath();
+                context.arc(0, 0, 0.4, 0, PI2, true);
+                context.fill();
+            }
         });
 
         let i = 0;
         for (let ix = 0; ix < AMOUNTX; ix++) {
             for (let iy = 0; iy < AMOUNTY; iy++) {
-                particle = particles[i++] = new THREE.Sprite(material);
-                particle.position.x = ix * SEPARATION - ((AMOUNTX * SEPARATION) / 2);
-                particle.position.z = iy * SEPARATION - ((AMOUNTY * SEPARATION) / 2);
-                scene.add(particle);
+                particles[i] = new THREE.Sprite(material);
+                particles[i].position.x = ix * SEPARATION - ((AMOUNTX * SEPARATION) / 2);
+                particles[i].position.z = iy * SEPARATION - ((AMOUNTY * SEPARATION) / 2);
+                scene.add(particles[i]);
+                i++;
             }
         }
 
@@ -229,7 +241,7 @@ const initWaveAnimation = () => {
         let i = 0;
         for (let ix = 0; ix < AMOUNTX; ix++) {
             for (let iy = 0; iy < AMOUNTY; iy++) {
-                particle = particles[i++];
+                const particle = particles[i++];
                 particle.position.y = (Math.sin((ix + count) * 0.3) * 50) + (Math.sin((iy + count) * 0.5) * 50);
                 particle.scale.x = particle.scale.y = (Math.sin((ix + count) * 0.3) + 1) * 2 + (Math.sin((iy + count) * 0.5) + 1) * 2;
             }
@@ -250,29 +262,33 @@ const animateNumbers = () => {
             if (entry.isIntersecting) {
                 const statElements = entry.target.querySelectorAll('.count');
                 statElements.forEach(stat => {
-                    const targetValue = stat.getAttribute('data-target') || stat.textContent;
-                    const duration = 2000; // ms
-                    let startTimestamp = null;
-                    const startValue = 0;
+                    // Only animate if it hasn't been animated before
+                    if (stat.dataset.animated !== 'true') {
+                        const targetValue = stat.getAttribute('data-target') || stat.textContent;
+                        const duration = 2000; // ms
+                        let startTimestamp = null;
+                        const startValue = 0;
 
-                    // Check if the target is a number or has special chars
-                    const isNumeric = !isNaN(parseInt(targetValue));
+                        // Check if the target is a number or has special chars
+                        const isNumeric = !isNaN(parseInt(targetValue));
 
-                    if (isNumeric) {
-                        const step = (timestamp) => {
-                            if (!startTimestamp) startTimestamp = timestamp;
-                            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                            const value = Math.floor(progress * (parseInt(targetValue) - startValue) + startValue);
-                            stat.textContent = value;
+                        if (isNumeric) {
+                            const step = (timestamp) => {
+                                if (!startTimestamp) startTimestamp = timestamp;
+                                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                                const value = Math.floor(progress * (parseInt(targetValue) - startValue) + startValue);
+                                stat.textContent = value;
 
-                            if (progress < 1) {
-                                window.requestAnimationFrame(step);
-                            } else {
-                                stat.textContent = targetValue;
-                            }
-                        };
+                                if (progress < 1) {
+                                    window.requestAnimationFrame(step);
+                                } else {
+                                    stat.textContent = targetValue;
+                                    stat.dataset.animated = 'true';
+                                }
+                            };
 
-                        window.requestAnimationFrame(step);
+                            window.requestAnimationFrame(step);
+                        }
                     }
                 });
             }
@@ -286,19 +302,15 @@ const animateNumbers = () => {
     }
 };
 
-// Initialize everything when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    initWaveAnimation();
-    animateNumbers();
-});
-
-
-// Add this to your script.js file
-
-// Fetch GitHub stars count
-async function fetchGitHubStars() {
+// Fetch GitHub stars count - Updated to use configurable repository
+async function fetchGitHubStars(repository = 'anuj0456/pilottai') {
     try {
-        const response = await fetch('https://api.github.com/repos/anuj0456/pilottai');
+        const response = await fetch(`https://api.github.com/repos/${repository}`);
+
+        if (!response.ok) {
+            throw new Error(`GitHub API returned ${response.status}`);
+        }
+
         const data = await response.json();
 
         if (data.stargazers_count !== undefined) {
@@ -324,9 +336,86 @@ async function fetchGitHubStars() {
     }
 }
 
-// Call this function when the page loads
+// Pricing tab functionality
+document.querySelectorAll('.pricing-tab-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        // Remove active class from all buttons and sections
+        document.querySelectorAll('.pricing-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.pricing-section').forEach(section => section.classList.remove('active'));
+
+        // Add active class to clicked button
+        button.classList.add('active');
+
+        // Show corresponding section
+        const tabId = button.getAttribute('data-tab');
+        const pricingSection = document.getElementById(`${tabId}-pricing`);
+        if (pricingSection) {
+            pricingSection.classList.add('active');
+        }
+    });
+});
+
+// Toggle between monthly and yearly billing
+const toggleSwitch = document.querySelector('.toggle-switch');
+if (toggleSwitch) {
+    const billingOptions = document.querySelectorAll('.billing-option');
+    const toggleSlider = document.querySelector('.toggle-slider');
+
+    toggleSwitch.addEventListener('click', () => {
+        billingOptions.forEach(option => option.classList.toggle('active'));
+        if (toggleSlider) {
+            toggleSlider.classList.toggle('monthly');
+            toggleSlider.classList.toggle('yearly');
+
+            // Toggle price display
+            if (toggleSlider.classList.contains('yearly')) {
+                document.querySelectorAll('.monthly-price').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('.yearly-price').forEach(el => el.style.display = 'block');
+            } else {
+                document.querySelectorAll('.monthly-price').forEach(el => el.style.display = 'block');
+                document.querySelectorAll('.yearly-price').forEach(el => el.style.display = 'none');
+            }
+        }
+    });
+}
+
+// Add responsive styles for mobile nav
+if (!document.head.querySelector('style[data-responsive="true"]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-responsive', 'true');
+    style.textContent = `
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 80px;
+                left: 0;
+                width: 100%;
+                background: rgba(15, 15, 26, 0.95);
+                flex-direction: column;
+                padding: 20px;
+                gap: 15px;
+                backdrop-filter: blur(10px);
+                z-index: 100;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu-toggle {
+                display: block !important;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    fetchGitHubStars();
+    initWaveAnimation();
+    animateNumbers();
+    fetchGitHubStars('anuj0456/pilottai'); // Use your actual repository name
 });
 
 
