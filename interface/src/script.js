@@ -328,3 +328,109 @@ async function fetchGitHubStars() {
 document.addEventListener('DOMContentLoaded', function() {
     fetchGitHubStars();
 });
+
+
+// Pricing tab functionality
+document.querySelectorAll('.pricing-tab-btn').forEach(button => {
+    button.addEventListener('click', () => {
+        // Remove active class from all buttons and sections
+        document.querySelectorAll('.pricing-tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.pricing-section').forEach(section => section.classList.remove('active'));
+
+        // Add active class to clicked button
+        button.classList.add('active');
+
+        // Show corresponding section
+        const tabId = button.getAttribute('data-tab');
+        document.getElementById(`${tabId}-pricing`).classList.add('active');
+    });
+});
+
+// Toggle between monthly and yearly billing
+const toggleSwitch = document.querySelector('.toggle-switch');
+const billingOptions = document.querySelectorAll('.billing-option');
+const toggleSlider = document.querySelector('.toggle-slider');
+
+toggleSwitch.addEventListener('click', () => {
+    billingOptions.forEach(option => option.classList.toggle('active'));
+    toggleSlider.classList.toggle('monthly');
+    toggleSlider.classList.toggle('yearly');
+
+    // Toggle price display
+    if (toggleSlider.classList.contains('yearly')) {
+        document.querySelectorAll('.monthly-price').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.yearly-price').forEach(el => el.style.display = 'block');
+    } else {
+        document.querySelectorAll('.monthly-price').forEach(el => el.style.display = 'block');
+        document.querySelectorAll('.yearly-price').forEach(el => el.style.display = 'none');
+    }
+});
+
+// Mobile menu functionality
+const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+if (mobileMenuToggle) {
+    mobileMenuToggle.addEventListener('click', function() {
+        const navLinks = document.querySelector('.nav-links');
+        navLinks.classList.toggle('active');
+
+        const icon = this.querySelector('i');
+        if (icon.classList.contains('fa-bars')) {
+            icon.classList.remove('fa-bars');
+            icon.classList.add('fa-times');
+        } else {
+            icon.classList.add('fa-bars');
+            icon.classList.remove('fa-times');
+        }
+    });
+}
+
+// Scroll to top functionality
+const scrollBtn = document.querySelector('.scrolltop');
+if (scrollBtn) {
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            scrollBtn.classList.add('show');
+        } else {
+            scrollBtn.classList.remove('show');
+        }
+    });
+
+    scrollBtn.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+}
+
+// Add responsive styles for mobile nav
+if (!document.head.querySelector('style[data-responsive="true"]')) {
+    const style = document.createElement('style');
+    style.setAttribute('data-responsive', 'true');
+    style.textContent = `
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 80px;
+                left: 0;
+                width: 100%;
+                background: rgba(15, 15, 26, 0.95);
+                flex-direction: column;
+                padding: 20px;
+                gap: 15px;
+                backdrop-filter: blur(10px);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .mobile-menu-toggle {
+                display: block !important;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
