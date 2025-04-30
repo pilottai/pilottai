@@ -22,16 +22,31 @@ class BaseAgent:
 
     def __init__(
             self,
-            config: AgentConfig,
-            llm_config: Optional[LLMConfig] = None,
+            role: str,
+            goal: str,
+            description: str,
+            tasks: Union[str, Task, List[str], List[Task]],
             tools: Optional[List[Tool]] = None,
-            memory_enabled: bool = True
+            source: Optional[DataManager] = None,
+            config: Optional[AgentConfig] = None,
+            llm_config: Optional[LLMConfig] = None,
+            output_format = None,
+            output_sample = None,
+            memory_enabled: bool = True,
+            reasoning: bool = False,
+            feedback: bool = False
     ):
+        # Basic Configuration
+        # Required fields
+        self.role = role
+        self.goal = goal
+        self.description = description
+        self.tasks = tasks
+
         # Core configuration
         self.config = config
         self.id = str(uuid.uuid4())
-        self.source = Optional[DataManager()]
-        self.tasks = Optional[Union[List[Task], Dict[str, Task]]]
+        self.source = source
 
         # State management
         self.status = AgentStatus.IDLE
@@ -39,9 +54,17 @@ class BaseAgent:
         self._task_lock = asyncio.Lock()
 
         # Components
-        self.tools = {tool.name: tool for tool in (tools or [])}
+        self.tools = tools
         self.memory = Memory() if memory_enabled else None
         self.llm = LLMHandler(llm_config) if llm_config else None
+
+        # Output management
+        self.output_format = output_format
+        self.output_sample = output_sample
+        self.reasoning = reasoning
+
+        # HITL
+        self.feedback = feedback
 
         # Setup logging
         self.logger = self._setup_logger()
@@ -115,7 +138,7 @@ class BaseAgent:
         try:
             # Extract plan from response
             plan = self._parse_json_response(response["content"])
-            return plan
+            return {"steps": plan}
         except Exception:
             # Fallback to simple execution
             return {
@@ -209,22 +232,22 @@ class BaseAgent:
 
         return task_text
 
-    def _parse_json_response(self, response: str) -> Dict:
+    def _parse_json_response(self, response: str) -> str:
         """Parse JSON response from LLM"""
         try:
             # First try to extract JSON from markdown code blocks
-            if "```json" in response:
-                json_str = response.split("```json")[1].split("```")[0]
-            elif "```" in response:
-                json_str = response.split("```")[1].split("```")[0]
-            else:
-                json_str = response
+            # if "```json" in response:
+            #     json_str = response.split("```json")[1].split("```")[0]
+            # elif "```" in response:
+            #     json_str = response.split("```")[1].split("```")[0]
+            # else:
+            json_str = response
 
-            return eval(json_str)  # Using eval for more forgiving parsing
+            return json_str  # Using eval for more forgiving parsing
 
         except Exception as e:
             self.logger.error(f"Failed to parse JSON response: {str(e)}")
-            return {}
+            return ""
 
     async def evaluate_task_suitability(self, task: Dict) -> float:
         """Evaluate how suitable this agent is for a task"""

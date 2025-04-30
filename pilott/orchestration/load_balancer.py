@@ -5,30 +5,12 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional, Set, Any
 
 import psutil
-from pydantic import BaseModel, Field
 
 from pilott.core.base_agent import BaseAgent
 from pilott.enums.agent_e import AgentStatus
 
-
-class LoadMetrics(BaseModel):
-    cpu_usage: float = 0.0
-    memory_usage: float = 0.0
-    queue_size: int = 0
-    active_tasks: int = 0
-    total_tasks: int = 0
-    error_rate: float = 0.0
-    timestamp: datetime = Field(default_factory=datetime.now)
-
-class LoadBalancerConfig(BaseModel):
-    check_interval: int = Field(ge=1, default=30)
-    overload_threshold: float = Field(ge=0.0, le=1.0, default=0.8)
-    underload_threshold: float = Field(ge=0.0, le=1.0, default=0.2)
-    max_tasks_per_agent: int = Field(ge=1, default=10)
-    balance_batch_size: int = Field(ge=1, default=3)
-    min_load_difference: float = Field(ge=0.0, le=1.0, default=0.3)
-    metrics_retention_period: int = Field(ge=0, default=3600)
-    task_move_timeout: int = Field(ge=1, default=30)
+from pilott.config.model import LoadMetrics
+from pilott.config.config import LoadBalancerConfig
 
 class LoadBalancer:
     def __init__(self, orchestrator, config: Optional[Dict] = None):

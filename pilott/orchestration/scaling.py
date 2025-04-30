@@ -6,51 +6,12 @@ from typing import Dict, List, Optional, Set
 
 import psutil
 from aiohttp._websocket.reader_c import deque
-from pydantic import BaseModel, ConfigDict, Field
 
 from pilott.core.base_agent import BaseAgent
 from pilott.core.task import Task
 from pilott.enums.health_e import HealthStatus
-
-
-class ScalingMetrics(BaseModel):
-    timestamp: datetime
-    load: float = Field(ge=0.0, le=1.0)
-    num_agents: int = Field(ge=0)
-    cpu_usage: float = Field(ge=0.0, le=1.0)
-    memory_usage: float = Field(ge=0.0, le=1.0)
-    queue_size: int = Field(ge=0)
-
-class ScalingConfig(BaseModel):
-    scale_up_threshold: float = Field(ge=0.0, le=1.0, default=0.8)
-    scale_down_threshold: float = Field(ge=0.0, le=1.0, default=0.3)
-    min_agents: int = Field(ge=1, default=2)
-    max_agents: int = Field(ge=1, default=10)
-    cooldown_period: int = Field(ge=0, default=300)
-    check_interval: int = Field(ge=1, default=60)
-    scale_up_increment: int = Field(ge=1, default=1)
-    scale_down_increment: int = Field(ge=1, default=1)
-    metrics_retention_period: int = Field(ge=0, default=3600)
-
-class AgentHealth(BaseModel):
-    status: HealthStatus
-    last_heartbeat: datetime
-    resource_usage: float
-    error_count: int
-    recovery_attempts: int
-    stuck_tasks: List[str]
-    last_error: Optional[str] = None
-
-class FaultToleranceConfig(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    health_check_interval: int = Field(ge=1, default=30)
-    max_recovery_attempts: int = Field(ge=1, default=3)
-    recovery_cooldown: int = Field(ge=0, default=300)
-    heartbeat_timeout: int = Field(ge=1, default=60)
-    resource_threshold: float = Field(ge=0.0, le=1.0, default=0.9)
-    task_timeout: int = Field(ge=0, default=1800)
-    error_threshold: int = Field(ge=0, default=5)
-    metrics_retention: int = Field(ge=0, default=3600)
+from pilott.config.model import ScalingMetrics, AgentHealth
+from pilott.config.config import FaultToleranceConfig, ScalingConfig
 
 
 class FaultTolerance:

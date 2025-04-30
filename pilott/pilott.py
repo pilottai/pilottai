@@ -2,27 +2,14 @@ import asyncio
 import logging
 from typing import Dict, List, Optional, Any, Union
 
-from pydantic import BaseModel
-
 from pilott.agent import ActionAgent, MasterAgent, SuperAgent
 from pilott.core.base_agent import BaseAgent
-from pilott.core.config import AgentConfig, LLMConfig
+from pilott.config.config import AgentConfig, LLMConfig, ServeConfig
 from pilott.core.memory import Memory
 from pilott.core.task import Task, TaskResult
-from pilott.enums.process_e import ProcessType
 from pilott.enums.task_e import TaskPriority
 from pilott.tools.tool import Tool
-
-
-class ServeConfig(BaseModel):
-    """Configuration for Serve orchestrator"""
-    name: str = "Pilott"
-    process_type: ProcessType = ProcessType.SEQUENTIAL
-    memory_enabled: bool = True
-    verbose: bool = False
-    max_concurrent_tasks: int = 5
-    task_timeout: int = 300
-    max_queue_size: int = 1000
+from pilott.enums.process_e import ProcessType
 
 
 class Pilott:
@@ -92,8 +79,6 @@ class Pilott:
                 role=role,
                 goal=goal,
                 description=f"Agent for {role}",
-                backstory=backstory,
-                tools=tools or [],
                 verbose=verbose
             )
 
@@ -159,7 +144,7 @@ class Pilott:
             self.logger.error(f"Failed to create task: {str(e)}")
             raise
 
-    async def execute(self, tasks: List[dict[str, Any]]) -> List[TaskResult] | None:
+    async def execute(self, tasks: List[Task]) -> List[TaskResult] | None:
         """
         Execute a list of tasks.
 
@@ -185,6 +170,7 @@ class Pilott:
                 return await self._execute_sequential(processed_tasks)
             elif self.config.process_type == ProcessType.HIERARCHICAL:
                 return await self._execute_hierarchical(processed_tasks)
+            return await self._execute_sequential(processed_tasks)
         except Exception as e:
             self.logger.error(f"Task execution failed: {str(e)}")
             raise
@@ -299,9 +285,7 @@ class Pilott:
 
     async def _get_agent_for_task(self, task: Task) -> Optional[BaseAgent]:
         """Get appropriate agent for task"""
-        if task.agent and task.agent in self.agents:
-            return task.agent
-        elif task.agent_id and task.agent_id in self.agents:
+        if task.agent_id and task.agent_id in self.agents:
             return self.agents[task.agent_id]
 
         # Find best agent based on task requirements

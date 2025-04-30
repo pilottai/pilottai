@@ -3,17 +3,10 @@ import logging
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Any, Tuple, List
 
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import Field, ConfigDict
 
+from pilott.config.config import RouterConfig
 from pilott.enums.task_e import TaskPriority
-
-
-class RouterConfig(BaseModel):
-    load_check_interval: int = Field(ge=1, default=5)
-    max_queue_size: int = Field(gt=0, default=100)
-    routing_timeout: int = Field(gt=0, default=30)
-    max_retry_attempts: int = Field(ge=0, default=3)
-    load_threshold: float = Field(ge=0.0, le=1.0, default=0.8)
 
 class TaskRouter:
     """Routes tasks to appropriate agents based on various criteria"""
@@ -169,6 +162,11 @@ class TaskDelegator:
         except Exception as e:
             self.agent.logger.error(f"Error finding best agent: {str(e)}")
             return None
+
+    async def _should_delegate(self, task: Dict) -> bool:
+        if task["delegate"] and task["delegate"] == True:
+            return True
+        return False
 
     def record_delegation(self, agent_id: str, task: Dict, result: Dict):
         """Record delegation with history limit"""

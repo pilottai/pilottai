@@ -1,9 +1,7 @@
 import uuid
 from datetime import datetime
-from typing import Dict, Optional, Any, List
-
+from typing import Dict, Optional, Any
 from pydantic import BaseModel, Field
-
 
 from pilott.enums.task_e import TaskStatus, TaskPriority
 
@@ -40,12 +38,7 @@ class Task(BaseModel):
     priority: TaskPriority = Field(default=TaskPriority.MEDIUM)
 
     # Settings
-    # agent: Optional[BaseAgent] = None
-    agent_id: Optional[str] = None
     context: Dict[str, Any] = Field(default_factory=dict)
-    tools: List[str] = Field(default_factory=list)
-    max_retries: int = Field(default=3)
-    retry_count: int = Field(default=0)
     deadline: Optional[datetime] = None
 
     # Timing
