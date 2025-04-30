@@ -1,4 +1,4 @@
-from pilott.core.config import LLMConfig
+from pilott.config.config import LLMConfig
 from pilott.pilott import Pilott
 from pilott.tools.tool import Tool
 

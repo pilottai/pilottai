@@ -1,5 +1,5 @@
 from pilott import Pilott
-from pilott.core import LLMConfig
+from pilott.config.config import LLMConfig
 from pilott.tools import Tool
 
 async def main():

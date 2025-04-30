@@ -4,20 +4,7 @@ from collections import deque
 from datetime import datetime
 from typing import Dict, List, Optional, Any, Set
 
-from pydantic import BaseModel, Field
-
-
-class MemoryEntry(BaseModel):
-    """Enhanced memory entry with task awareness"""
-    text: str
-    entry_type: str  # 'task', 'context', 'result', etc.
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    timestamp: datetime = Field(default_factory=datetime.now)
-    tags: Set[str] = Field(default_factory=set)
-    priority: int = Field(ge=0, default=1)
-    task_id: Optional[str] = None
-    agent_id: Optional[str] = None
-
+from pilott.config.model import MemoryEntry
 
 class Memory:
     """

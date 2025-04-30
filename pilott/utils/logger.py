@@ -8,7 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Optional
 
-from pilott.core.config import LogConfig
+from pilott.config.config import LogConfig
 
 
 class CustomRotatingFileHandler(logging.handlers.TimedRotatingFileHandler):
