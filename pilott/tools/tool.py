@@ -4,20 +4,8 @@ import traceback
 from datetime import datetime
 from typing import Any, List, Dict, Optional, Set
 
-from pydantic import BaseModel, Field
-
+from pilott.config.model import ToolMetrics
 from pilott.enums.tool_e import ToolStatus
-
-
-class ToolMetrics(BaseModel):
-    usage_count: int = 0
-    success_count: int = 0
-    error_count: int = 0
-    total_execution_time: float = 0
-    avg_execution_time: float = 0
-    last_execution: Optional[datetime] = None
-    last_error: Optional[str] = None
-    error_types: Dict[str, int] = Field(default_factory=dict)
 
 
 class Tool:

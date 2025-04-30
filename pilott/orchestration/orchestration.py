@@ -6,29 +6,9 @@ from datetime import datetime, timedelta
 from typing import Dict, Optional
 
 import psutil
-from pydantic import BaseModel, Field
 
-
-class ScalingMetrics(BaseModel):
-    timestamp: datetime
-    load: float
-    num_agents: int
-    cpu_usage: float
-    memory_usage: float
-    queue_size: int
-
-
-class ScalingConfig(BaseModel):
-    scale_up_threshold: float = Field(ge=0.0, le=1.0, default=0.8)
-    scale_down_threshold: float = Field(ge=0.0, le=1.0, default=0.3)
-    min_agents: int = Field(ge=1, default=2)
-    max_agents: int = Field(ge=1, default=10)
-    cooldown_period: int = Field(ge=0, default=300)
-    check_interval: int = Field(ge=1, default=60)
-    scale_up_increment: int = Field(ge=1, default=1)
-    scale_down_increment: int = Field(ge=1, default=1)
-    metrics_retention_period: int = Field(ge=0, default=3600)
-
+from pilott.config.model import ScalingMetrics
+from pilott.config.config import ScalingConfig
 
 class DynamicScaling:
     def __init__(self, orchestrator, config: Optional[Dict] = None):

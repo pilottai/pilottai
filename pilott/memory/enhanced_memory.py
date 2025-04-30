@@ -4,22 +4,7 @@ from collections import deque
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Set
 
-from pydantic import BaseModel, Field, ConfigDict
-
-
-class MemoryItem(BaseModel):
-    """Enhanced memory item model"""
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    text: str
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    timestamp: datetime = Field(default_factory=datetime.now)
-    tags: Set[str] = Field(default_factory=set)
-    priority: int = Field(ge=0, default=0)
-    expires_at: Optional[datetime] = None
-    version: int = 1
-
-    def is_expired(self) -> bool:
-        return self.expires_at and datetime.now() > self.expires_at
+from pilott.config.model import MemoryItem
 
 
 class EnhancedMemory:

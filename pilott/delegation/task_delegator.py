@@ -4,17 +4,8 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, Tuple, Optional, Any, List
 
-from pydantic import BaseModel, Field
+from pilott.config.model import DelegationMetrics
 
-
-class DelegationMetrics(BaseModel):
-    success_count: int = 0
-    failure_count: int = 0
-    total_execution_time: float = 0
-    avg_execution_time: float = 0
-    last_success: Optional[datetime] = None
-    last_failure: Optional[datetime] = None
-    error_types: Dict[str, int] = Field(default_factory=dict)
 
 class TaskDelegator:
     def __init__(self, agent):

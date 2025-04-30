@@ -1,13 +1,25 @@
 import json
 import shutil
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Union
+from typing import Optional, List, Dict, Any, Set
+from datetime import datetime
 
 from cryptography.fernet import Fernet
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
 from pilott.enums.role_e import AgentRole
-from pilott.tools.tool import Tool
+from pilott.enums.process_e import ProcessType
+
+
+class ServeConfig(BaseModel):
+    """Configuration for Serve orchestrator"""
+    name: str = "Pilott"
+    process_type: ProcessType = ProcessType.SEQUENTIAL
+    memory_enabled: bool = True
+    verbose: bool = False
+    max_concurrent_tasks: int = 5
+    task_timeout: int = 300
+    max_queue_size: int = 1000
 
 
 class SecureConfig:
@@ -112,24 +124,14 @@ class AgentConfig(BaseModel):
         use_enum_values=True
     )
 
-    # Basic Configuration
-    # Required fields
-    role: str
-    goal: str
-    description: str
-
     # Optional fields with defaults
     role_type: AgentRole = AgentRole.WORKER
-    backstory: Optional[str] = None
     knowledge_sources: List[str] = Field(default_factory=list)
-    tools: Union[List[Tool], List[str]] = Field(default_factory=list)
-    required_capabilities: List[str] = Field(default_factory=list)
     max_iterations: int = 20
     max_rpm: Optional[int] = None
     max_execution_time: Optional[int] = None
     retry_limit: int = 2
     code_execution_mode: str = "safe"
-    memory_enabled: bool = True
     verbose: bool = False
     can_delegate: bool = False
     use_cache: bool = True
@@ -247,3 +249,46 @@ class AgentConfig(BaseModel):
             if backup_path and backup_path.exists():
                 shutil.copy2(backup_path, path)
             raise ValueError(f"Failed to save config: {str(e)}")
+
+
+class RouterConfig(BaseModel):
+    load_check_interval: int = Field(ge=1, default=5)
+    max_queue_size: int = Field(gt=0, default=100)
+    routing_timeout: int = Field(gt=0, default=30)
+    max_retry_attempts: int = Field(ge=0, default=3)
+    load_threshold: float = Field(ge=0.0, le=1.0, default=0.8)
+
+
+class LoadBalancerConfig(BaseModel):
+    check_interval: int = Field(ge=1, default=30)
+    overload_threshold: float = Field(ge=0.0, le=1.0, default=0.8)
+    underload_threshold: float = Field(ge=0.0, le=1.0, default=0.2)
+    max_tasks_per_agent: int = Field(ge=1, default=10)
+    balance_batch_size: int = Field(ge=1, default=3)
+    min_load_difference: float = Field(ge=0.0, le=1.0, default=0.3)
+    metrics_retention_period: int = Field(ge=0, default=3600)
+    task_move_timeout: int = Field(ge=1, default=30)
+
+
+class ScalingConfig(BaseModel):
+    scale_up_threshold: float = Field(ge=0.0, le=1.0, default=0.8)
+    scale_down_threshold: float = Field(ge=0.0, le=1.0, default=0.3)
+    min_agents: int = Field(ge=1, default=2)
+    max_agents: int = Field(ge=1, default=10)
+    cooldown_period: int = Field(ge=0, default=300)
+    check_interval: int = Field(ge=1, default=60)
+    scale_up_increment: int = Field(ge=1, default=1)
+    scale_down_increment: int = Field(ge=1, default=1)
+    metrics_retention_period: int = Field(ge=0, default=3600)
+
+
+class FaultToleranceConfig(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    health_check_interval: int = Field(ge=1, default=30)
+    max_recovery_attempts: int = Field(ge=1, default=3)
+    recovery_cooldown: int = Field(ge=0, default=300)
+    heartbeat_timeout: int = Field(ge=1, default=60)
+    resource_threshold: float = Field(ge=0.0, le=1.0, default=0.9)
+    task_timeout: int = Field(ge=0, default=1800)
+    error_threshold: int = Field(ge=0, default=5)
+    metrics_retention: int = Field(ge=0, default=3600)

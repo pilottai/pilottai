@@ -6,24 +6,7 @@ import json
 from collections import OrderedDict
 import logging
 
-class CacheEntry(BaseModel):
-    value: Any
-    timestamp: datetime
-    ttl: int
-    access_count: int = 0
-    last_access: datetime = Field(default_factory=datetime.now)
-
-class KnowledgeSource(BaseModel):
-    name: str
-    type: str
-    connection: Dict[str, Any]
-    last_access: datetime = Field(default_factory=datetime.now)
-    access_count: int = 0
-    error_count: int = 0
-    is_connected: bool = False
-    max_retries: int = 3
-    retry_delay: int = 5
-    timeout: int = 30
+from pilott.config.model import KnowledgeSource, CacheEntry
 
 class DataManager:
     def __init__(self, cache_size: int = 1000, cache_ttl: int = 3600):
