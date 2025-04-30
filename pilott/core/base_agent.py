@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 import uuid
 
-from pilott.core.config import AgentConfig, LLMConfig
+from pilott.config.config import AgentConfig, LLMConfig
 from pilott.core.task import Task, TaskResult
 from pilott.enums.agent_e import AgentStatus
 from pilott.core.memory import Memory
