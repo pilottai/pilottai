@@ -13,3 +13,8 @@ class TaskStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+
+class TaskAssignmentType(str, Enum):
+    LLM = "llm"
+    SUITABILITY = "suitability"
+    ROUND_ROBIN = "round_robin"

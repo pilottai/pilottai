@@ -2,12 +2,13 @@ import asyncio
 import logging
 from typing import Dict, List, Optional, Any, Union
 
-from pilott.agent import ActionAgent, MasterAgent, SuperAgent
-from pilott.core.base_agent import BaseAgent
-from pilott.config.config import AgentConfig, LLMConfig, ServeConfig
+from pilott.agent import Agent, ActionAgent, MasterAgent, SuperAgent
+from pilott.config.config import LLMConfig, ServeConfig
 from pilott.core.memory import Memory
 from pilott.core.task import Task, TaskResult
-from pilott.enums.task_e import TaskPriority
+from pilott.engine.llm import LLMHandler
+from pilott.enums.task_e import TaskAssignmentType
+from pilott.utils.utils import AgentUtils
 from pilott.tools.tool import Tool
 from pilott.enums.process_e import ProcessType
 
@@ -22,134 +23,54 @@ class Pilott:
             self,
             name: str = "PilottAI",
             config: Optional[Dict] = None,
-            llm_config: Optional[Union[Dict, LLMConfig]] = None
-    ):
+            llm_config: Optional[Union[Dict, LLMConfig]] = None,
+            agents: List[Agent] = None,
+            tools: Optional[List[Tool]] = None,
+            tasks: Optional[Union[str, Task, List[str], List[Task]]] = None,
+            task_assignment_type: Optional[Union[str, TaskAssignmentType]] = TaskAssignmentType.LLM,
+            master_agent: Optional[MasterAgent] = None,
+            super_agents: List[SuperAgent] = None,
+            action_agents: List[ActionAgent] = None,
+      ):
         # Initialize configuration
         self.config = ServeConfig(**{"name": name, **(config or {})})
-        self.llm_config = llm_config
 
         # Core components
-        self.agents: Dict[str, BaseAgent] = {}
-        self.tasks: Dict[str, Task] = {}
-        self.memory = Memory() if self.config.memory_enabled else None
+        self.agents = agents
+        self.llm = LLMHandler(llm_config)
+        self.tools = tools
+        self.tasks = tasks
 
         # Task management
-        self._task_queue = asyncio.Queue(maxsize=self.config.max_queue_size)
-        self._running_tasks: Dict[str, asyncio.Task] = {}
-        self._completed_tasks: Dict[str, TaskResult] = {}
+        self.task_assignment_type = task_assignment_type
+        # self._task_queue = asyncio.Queue(maxsize=self.config.max_queue_size)
+        # self._running_tasks: Dict[str, asyncio.Task] = {}
+        # self._completed_tasks: Dict[str, TaskResult] = {}
 
-        # Agent Config
-        self.master_agent: Optional[MasterAgent] = None
-        self.super_agents: List[SuperAgent] = []
-        self.action_agents: List[ActionAgent] = []
+        # Agent management
+        self.master_agent = master_agent
+        self.super_agents = super_agents
+        self.action_agents = action_agents
+        self.agentUtility = AgentUtils() if self.tasks else None
 
         # State management
         self._started = False
         self._shutting_down = False
         self._execution_lock = asyncio.Lock()
 
+        # Memory management
+        self.memory = Memory() if self.config.memory_enabled else None
+
         # Setup logging
         self.logger = self._setup_logger()
 
-    async def add_agent(
-            self,
-            role: str,
-            goal: str,
-            backstory: Optional[str] = None,
-            tools: Optional[List[Tool]] = None,
-            llm_config: Optional[Union[Dict, LLMConfig]] = None,
-            verbose: bool = False
-    ) -> BaseAgent:
+    async def serve(self, tasks: List[Task], agents: List[Agent]) -> List[TaskResult] | None:
         """
-        Add a new agent to the system.
+        Execute a list of agents.
 
         Args:
-            role: The role/type of the agent
-            goal: The agent's primary goal/objective
-            backstory: Optional background story for the agent
-            tools: List of tool names the agent can use
-            llm_config: Optional specific LLM config for this agent
-            verbose: Enable detailed logging for this agent
-
-        Returns:
-            BaseAgent: The created agent instance
-        """
-        try:
-            config = AgentConfig(
-                role=role,
-                goal=goal,
-                description=f"Agent for {role}",
-                verbose=verbose
-            )
-
-            agent = BaseAgent(
-                config=config,
-                llm_config=llm_config or self.llm_config
-            )
-
-            self.agents[role] = agent
-            self.logger.info(f"Added agent: {role}")
-
-            # Start agent if system is running
-            if self._started:
-                await agent.start()
-
-            return agent
-
-        except Exception as e:
-            self.logger.error(f"Failed to add agent {role}: {str(e)}")
-            raise
-
-    async def create_task(
-            self,
-            description: str,
-            agent_role: Optional[str] = None,
-            priority: Union[TaskPriority, str] = TaskPriority.MEDIUM,
-            context: Optional[Dict] = None
-    ) -> Task:
-        """
-        Create a new task.
-
-        Args:
-            description: Task description
-            agent_role: Optional specific agent role to handle the task
-            priority: Task priority (TaskPriority enum or string)
-            context: Optional context dictionary
-
-        Returns:
-            Task: Created task instance
-        """
-        try:
-            # Convert string priority to enum if needed
-            if isinstance(priority, str):
-                try:
-                    priority = TaskPriority(priority.lower())
-                except ValueError:
-                    raise ValueError(
-                        f"Invalid priority '{priority}'. Must be one of: "
-                        f"{', '.join(p.value for p in TaskPriority)}"
-                    )
-
-            task = Task(
-                description=description,
-                priority=priority,
-                context=context or {},
-                agent_id=agent_role
-            )
-
-            self.tasks[task.id] = task
-            return task
-
-        except Exception as e:
-            self.logger.error(f"Failed to create task: {str(e)}")
-            raise
-
-    async def execute(self, tasks: List[Task]) -> List[TaskResult] | None:
-        """
-        Execute a list of tasks.
-
-        Args:
-            tasks: List of tasks to execute
+            tasks: List of open tasks to associate with agents
+            agents: List of agents to execute
 
         Returns:
             List[TaskResult]: Results of task execution
@@ -158,71 +79,45 @@ class Pilott:
             await self.start()
 
         try:
-            processed_tasks = []
-            for task in tasks:
-                if isinstance(task, dict):
-                    task = Task(**task)
-                processed_tasks.append(task)
+            agent_execution = []
+            if self.agentUtility is None:
+                self.agentUtility = AgentUtils()
 
-            if self.config.process_type == ProcessType.PARALLEL:
-                return await self._execute_parallel(processed_tasks)
-            elif self.config.process_type == ProcessType.SEQUENTIAL:
-                return await self._execute_sequential(processed_tasks)
+            for task in tasks:
+                agent_by_task = self._get_agent_by_task(task, agents)
+                agent_execution.append(agent_by_task)
+            agent_execution.append(agents)
+
+            if self.config.process_type == ProcessType.SEQUENTIAL:
+                return await self._execute_sequential(agent_execution)
+            elif self.config.process_type == ProcessType.PARALLEL:
+                return await self._execute_parallel(agent_execution)
             elif self.config.process_type == ProcessType.HIERARCHICAL:
-                return await self._execute_hierarchical(processed_tasks)
-            return await self._execute_sequential(processed_tasks)
+                return await self._execute_hierarchical(agent_execution)
+            return await self._execute_sequential(agent_execution)
         except Exception as e:
             self.logger.error(f"Task execution failed: {str(e)}")
             raise
 
-    async def start(self):
-        """Start the Serve orchestrator"""
-        if self._started:
-            return
+    async def _get_agent_by_task(self, task: Task, agents: List[Agent]):
+        """Assign agent to each independent task"""
+        agent, score = self.agentUtility.assign_task(task, agents, llm_handler=self.llm, assignment_strategy=self.task_assignment_type)
+        agent.tasks.append(task)
+        return agent
 
-        try:
-            # Start all agents
-            for agent in self.agents.values():
-                await agent.start()
+    async def _execute_parallel(self, tasks: List[Task]) -> List[TaskResult]:
+        """Execute tasks in parallel"""
+        return await asyncio.gather(
+            *[self._execute_single_task(task) for task in tasks],
+            return_exceptions=True
+        )
 
-            self._started = True
-            self.logger.info("PilottAI Serve started")
-
-        except Exception as e:
-            self._started = False
-            self.logger.error(f"Failed to start Serve: {str(e)}")
-            raise
-
-    async def stop(self):
-        """Stop the Serve orchestrator"""
-        if not self._started:
-            return
-
-        try:
-            self._shutting_down = True
-
-            # Stop all running tasks
-            for task in self._running_tasks.values():
-                task.cancel()
-
-            # Stop all agents
-            for agent in self.agents.values():
-                await agent.stop()
-
-            self._started = False
-            self._shutting_down = False
-            self.logger.info("PilottAI Serve stopped")
-
-        except Exception as e:
-            self.logger.error(f"Failed to stop Serve: {str(e)}")
-            raise
-
-    async def _execute_sequential(self, tasks: List[Task]) -> List[TaskResult]:
+    async def _execute_sequential(self, agents: List[Agent]) -> List[TaskResult]:
         """Execute tasks sequentially"""
         results = []
-        for task in tasks:
+        for agent in agents:
             try:
-                result = await self._execute_single_task(task)
+                result = await self._execute_single_task(agent.tasks)
                 results.append(result)
             except Exception as e:
                 self.logger.error(f"Task execution failed: {str(e)}")
@@ -233,13 +128,6 @@ class Pilott:
                     execution_time=0.0
                 ))
         return results
-
-    async def _execute_parallel(self, tasks: List[Task]) -> List[TaskResult]:
-        """Execute tasks in parallel"""
-        return await asyncio.gather(
-            *[self._execute_single_task(task) for task in tasks],
-            return_exceptions=True
-        )
 
     async def _execute_hierarchical(self, tasks: List[Task]) -> List[TaskResult]:
         pass
@@ -283,7 +171,49 @@ class Pilott:
             await task.mark_completed(error_result)
             return error_result
 
-    async def _get_agent_for_task(self, task: Task) -> Optional[BaseAgent]:
+    async def start(self):
+        """Start the Serve orchestrator"""
+        if self._started:
+            return
+
+        try:
+            # Start all agents
+            for agent in self.agents:
+                await agent.start()
+
+            self._started = True
+            self.logger.info("PilottAI Serve started")
+
+        except Exception as e:
+            self._started = False
+            self.logger.error(f"Failed to start Serve: {str(e)}")
+            raise
+
+    async def stop(self):
+        """Stop the Serve orchestrator"""
+        if not self._started:
+            return
+
+        try:
+            self._shutting_down = True
+
+            # Stop all running tasks
+            for task in self._running_tasks.values():
+                task.cancel()
+
+            # Stop all agents
+            for agent in self.agents.values():
+                await agent.stop()
+
+            self._started = False
+            self._shutting_down = False
+            self.logger.info("PilottAI Serve stopped")
+
+        except Exception as e:
+            self.logger.error(f"Failed to stop Serve: {str(e)}")
+            raise
+
+    async def _get_agent_for_task(self, task: Task) -> Optional[Agent]:
         """Get appropriate agent for task"""
         if task.agent_id and task.agent_id in self.agents:
             return self.agents[task.agent_id]
@@ -301,7 +231,7 @@ class Pilott:
 
         return best_agent
 
-    async def delegate(self, agents: List[BaseAgent], parallel: bool = False) -> List[TaskResult]:
+    async def delegate(self, agents: List[Agent], parallel: bool = False) -> List[TaskResult]:
         if not self._started:
             await self.start()
 
@@ -314,7 +244,7 @@ class Pilott:
             self.logger.error(f"Agent-based execution failed: {str(e)}")
             raise
 
-    async def _execute_agents_sequential(self, agents: List[BaseAgent]) -> List[TaskResult]:
+    async def _execute_agents_sequential(self, agents: List[Agent]) -> List[TaskResult]:
         """Execute tasks through agents sequentially."""
         all_results = []
 
@@ -339,7 +269,7 @@ class Pilott:
 
         return all_results
 
-    async def _execute_agents_parallel(self, agents: List[BaseAgent]) -> List[TaskResult]:
+    async def _execute_agents_parallel(self, agents: List[Agent]) -> List[TaskResult]:
         """Execute tasks through agents in parallel."""
         all_results = []
 
