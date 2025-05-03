@@ -11,6 +11,7 @@ from pilott.core.memory import Memory
 from pilott.engine.llm import LLMHandler
 from pilott.tools.tool import Tool
 from pilott.knowledge.knowledge import DataManager
+from pilott.utils.task_utils import TaskUtility
 
 
 
@@ -25,7 +26,7 @@ class BaseAgent:
             role: str,
             goal: str,
             description: str,
-            tasks: Union[str, Task, List[str], List[Task]],
+            tasks: Union[Task, str, List[str], List[Task]],
             tools: Optional[List[Tool]] = None,
             source: Optional[DataManager] = None,
             config: Optional[AgentConfig] = None,
@@ -38,13 +39,14 @@ class BaseAgent:
     ):
         # Basic Configuration
         # Required fields
+        self.id = str(uuid.uuid4())
         self.role = role
         self.goal = goal
         self.description = description
-        self.tasks = tasks
+        self.tasks = self._verify_tasks(tasks)
 
         # Core configuration
-        self.config = config
+        self.config = config if config else AgentConfig()
         self.id = str(uuid.uuid4())
         self.source = source
 
@@ -69,11 +71,34 @@ class BaseAgent:
         # Setup logging
         self.logger = self._setup_logger()
 
-    async def execute_task(self, task: Union[Dict, Task]) -> Optional[TaskResult]:
-        """Execute a task with proper handling and monitoring."""
-        if isinstance(task, dict):
-            task = Task(**task)
+    def _verify_tasks(self, tasks):
+        tasks_obj = None
+        if isinstance(tasks, str):
+            tasks_obj = TaskUtility.to_task(tasks)
+        elif isinstance(tasks, list):
+            tasks_obj = TaskUtility.to_task_list(tasks)
+        return tasks_obj
 
+    async def execute_tasks(self) -> List[TaskResult]:
+        """Execute all tasks assigned to this agent"""
+        results = []
+        for task in self.tasks:
+            try:
+                result = await self.execute_task(task)
+                results.append(result)
+            except Exception as e:
+                self.logger.error(f"Failed to execute task {task.id if hasattr(task, 'id') else 'unknown'}: {str(e)}")
+                results.append(TaskResult(
+                    success=False,
+                    output=None,
+                    error=str(e),
+                    execution_time=0.0,
+                    metadata={"agent_id": self.id}
+                ))
+        return results
+
+    async def execute_task(self, task: Task) -> Optional[TaskResult]:
+        """Execute a task with proper handling and monitoring."""
         if not self.llm:
             raise ValueError("LLM configuration required for task execution")
 
@@ -101,7 +126,7 @@ class BaseAgent:
                     execution_time=execution_time,
                     metadata={
                         "agent_id": self.id,
-                        "role": self.config.role,
+                        "role": self.role,
                         "plan": execution_plan
                     }
                 )
@@ -129,7 +154,7 @@ class BaseAgent:
             },
             {
                 "role": "user",
-                "content": f"Plan execution for task: {task}\n\nAvailable tools: {list(self.tools.keys())}"
+                "content": f"Plan execution for task: {task}\n\nAvailable tools: {list(tool.keys() for tool in self.tools)}"
             }
         ]
 
@@ -151,15 +176,26 @@ class BaseAgent:
     async def _execute_plan(self, plan: Dict) -> str:
         """Execute the planned steps"""
         results = []
+        steps = plan.get("steps", [])
+        if isinstance(steps, list):
+            for step in steps:
+                step_result = await self._execute_step(step)
+                results.append(step_result)
 
-        for step in plan.get("steps", []):
-            step_result = await self._execute_step(step)
+                # Store step in memory if enabled
+                if self.memory:
+                    await self.memory.store_semantic(
+                        text=f"Step: {step}\nResult: {step_result}",
+                        metadata={"type": "execution_step"}
+                    )
+        elif isinstance(steps, str):
+            step_result = await self._execute_step(steps)
             results.append(step_result)
 
             # Store step in memory if enabled
             if self.memory:
                 await self.memory.store_semantic(
-                    text=f"Step: {step}\nResult: {step_result}",
+                    text=f"Step: {steps}\nResult: {step_result}",
                     metadata={"type": "execution_step"}
                 )
 
@@ -167,33 +203,26 @@ class BaseAgent:
         summary = await self._summarize_results(results)
         return summary
 
-    async def _execute_step(self, step: Dict) -> str:
+    async def _execute_step(self, step: str) -> str:
         """Execute a single step of the plan"""
-        action = step.get("action")
-
-        if action == "direct_execution":
+        # action = step.get("action")
+        #
+        # if action == "direct_execution":
             # Direct LLM execution
-            messages = [
-                {
-                    "role": "system",
-                    "content": self._get_system_prompt()
-                },
-                {
-                    "role": "user",
-                    "content": step.get("input")
-                }
-            ]
-            response = await self.llm.generate_response(messages)
-            return response["content"]
-
-        elif action in self.tools:
-            # Tool execution
-            tool = self.tools[action]
-            result = await tool.execute(**step.get("parameters", {}))
-            return str(result)
-
-        else:
-            raise ValueError(f"Unknown action: {action}")
+        messages = [
+            {
+                "role": "system",
+                "content": self._get_system_prompt()
+            },
+            {
+                "role": "user",
+                "content": step
+            }
+        ]
+        response = await self.llm.generate_response(messages)
+        return response["content"]
+        # else:
+        #     raise ValueError(f"Unknown action: {action}")
 
     async def _summarize_results(self, results: List[str]) -> str:
         """Summarize execution results using LLM"""
@@ -214,9 +243,9 @@ class BaseAgent:
     def _get_system_prompt(self) -> str:
         """Get the system prompt for this agent"""
         return f"""You are an AI agent with:
-        Role: {self.config.role}
-        Goal: {self.config.goal}
-        Backstory: {self.config.backstory or 'No specific backstory.'}
+        Role: {self.role}
+        Goal: {self.goal}
+        Description: {self.description or 'No specific description.'}
 
         Make decisions and take actions based on your role and goal."""
 
@@ -283,7 +312,7 @@ class BaseAgent:
             # Store agent start in memory if enabled
             if self.memory:
                 await self.memory.store_semantic(
-                    text=f"Agent {self.config.role} started",
+                    text=f"Agent {self.role} started",
                     metadata={
                         "type": "status_change",
                         "status": "started",
@@ -307,7 +336,7 @@ class BaseAgent:
             # Store agent stop in memory if enabled
             if self.memory:
                 await self.memory.store_semantic(
-                    text=f"Agent {self.config.role} stopped",
+                    text=f"Agent {self.role} stopped",
                     metadata={
                         "type": "status_change",
                         "status": "stopped",
@@ -324,7 +353,7 @@ class BaseAgent:
 
     def _setup_logger(self) -> logging.Logger:
         """Setup agent logging"""
-        logger = logging.getLogger(f"Agent_{self.config.role}_{self.id}")
+        logger = logging.getLogger(f"Agent_{self.role}_{self.id}")
 
         if not logger.handlers:
             handler = logging.StreamHandler()

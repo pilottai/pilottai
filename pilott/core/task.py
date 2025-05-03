@@ -4,27 +4,7 @@ from typing import Dict, Optional, Any
 from pydantic import BaseModel, Field
 
 from pilott.enums.task_e import TaskStatus, TaskPriority
-
-
-class TaskResult(BaseModel):
-    """Result of task execution"""
-    success: bool
-    output: Any
-    error: Optional[str] = None
-    execution_time: float
-    metadata: Dict[str, Any] = Field(default_factory=dict)
-    completion_time: datetime = Field(default_factory=datetime.now)
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert result to dictionary"""
-        return {
-            "success": self.success,
-            "output": self.output,
-            "error": self.error,
-            "execution_time": self.execution_time,
-            "metadata": self.metadata,
-            "completion_time": self.completion_time.isoformat()
-        }
+from pilott.config.model import TaskResult
 
 
 class Task(BaseModel):
@@ -33,6 +13,7 @@ class Task(BaseModel):
     """
     # Core attributes
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    agent_id: str = None
     description: str
     status: TaskStatus = Field(default=TaskStatus.PENDING)
     priority: TaskPriority = Field(default=TaskPriority.MEDIUM)
@@ -52,23 +33,24 @@ class Task(BaseModel):
     class Config:
         arbitrary_types_allowed = True
 
-    async def mark_started(self) -> None:
-        """Mark task as started"""
+    async def mark_started(self, agent_id: Optional[str] = None) -> None:
+        """Mark task as started with the specified agent"""
         if self.status != TaskStatus.PENDING:
             raise ValueError(f"Cannot start task in {self.status} status")
 
         self.status = TaskStatus.IN_PROGRESS
+        self.agent_id = agent_id
         self.started_at = datetime.now()
 
     async def mark_completed(self, result: TaskResult) -> None:
-        """Mark task as completed"""
+        """Mark task as completed with the given result"""
         self.completed_at = datetime.now()
         self.result = result
 
         if result.success:
             self.status = TaskStatus.COMPLETED
         else:
-            if self.can_retry:
+            if hasattr(self, 'can_retry') and self.can_retry:
                 self.retry_count += 1
                 self.status = TaskStatus.PENDING
             else:

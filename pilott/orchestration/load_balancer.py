@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple, Optional, Set, Any
 
 import psutil
 
-from pilott.core.base_agent import BaseAgent
+from pilott.agent.agent import Agent
 from pilott.enums.agent_e import AgentStatus
 
 from pilott.config.model import LoadMetrics
@@ -345,14 +345,14 @@ class LoadBalancer:
             )
             self.logger.addHandler(handler)
 
-    async def _get_available_agents(self) -> List[BaseAgent]:
+    async def _get_available_agents(self) -> List[Agent]:
         return [
             agent for agent in self.orchestrator.child_agents.values()
             if agent.status != AgentStatus.STOPPED
         ]
 
 
-    async def _calculate_agent_load(self, agent: BaseAgent) -> float:
+    async def _calculate_agent_load(self, agent: Agent) -> float:
         """Calculate comprehensive load for an agent"""
         try:
             metrics = await agent.get_metrics()
