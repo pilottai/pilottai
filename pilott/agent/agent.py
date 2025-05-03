@@ -44,10 +44,8 @@ class Agent(BaseAgent):
             reasoning=reasoning,
             feedback=feedback
         )
-        # Custom initialization code here
-        self.specializations = ["research", "analysis", "planning"]
 
-    async def execute_task(self, task: Union[Dict, Task]) -> Optional[TaskResult]:
+    async def execute_task(self, task: Task) -> Optional[TaskResult]:
         """
         Override execute_task with custom implementation
         """
@@ -74,7 +72,7 @@ class Agent(BaseAgent):
             {
                 "role": "user",
                 "content": f"Plan detailed execution for task: {task}\n\n"
-                           f"Available tools: {list(self.tools.keys() if self.tools else [])}\n"
+                           f"Available tools: {list(tool.keys() for tool in self.tools)}\n"
                            f"Consider the most efficient approach."
             }
         ]

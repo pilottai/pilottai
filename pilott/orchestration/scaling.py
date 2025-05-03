@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Set
 import psutil
 from aiohttp._websocket.reader_c import deque
 
-from pilott.core.base_agent import BaseAgent
+from pilott.agent.agent import Agent
 from pilott.core.task import Task
 from pilott.enums.health_e import HealthStatus
 from pilott.config.model import ScalingMetrics, AgentHealth
@@ -344,7 +344,7 @@ class FaultTolerance:
             'monitored_agents': len(self._monitored_agents)
         }
 
-    async def _check_resource_usage(self, agent: BaseAgent) -> bool:
+    async def _check_resource_usage(self, agent: Agent) -> bool:
         """Check if agent's resource usage is within limits"""
         try:
             metrics = await agent.get_metrics()
@@ -357,7 +357,7 @@ class FaultTolerance:
             self.logger.error(f"Resource check failed for {agent.id}: {str(e)}")
             return False
 
-    async def _check_task_progress(self, agent: BaseAgent) -> bool:
+    async def _check_task_progress(self, agent: Agent) -> bool:
         """Check if agent is making progress on tasks"""
         try:
             stuck_tasks = [task for task in agent.tasks.values()
@@ -370,7 +370,7 @@ class FaultTolerance:
             self.logger.error(f"Task progress check failed for {agent.id}: {str(e)}")
             return False
 
-    def _get_recoverable_tasks(self, agent: BaseAgent) -> List[Task]:
+    def _get_recoverable_tasks(self, agent: Agent) -> List[Task]:
         """Get tasks that can be recovered"""
         return [
             task for task in agent.tasks.values()

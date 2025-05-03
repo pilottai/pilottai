@@ -1,6 +1,5 @@
-from pilott.tools.tool import Tool, ToolError
+from pilott.tools.tool import Tool
 
 __all__ = [
     'Tool',
-    'ToolError',
 ]

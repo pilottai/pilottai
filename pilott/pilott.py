@@ -8,9 +8,10 @@ from pilott.core.memory import Memory
 from pilott.core.task import Task, TaskResult
 from pilott.engine.llm import LLMHandler
 from pilott.enums.task_e import TaskAssignmentType
-from pilott.utils.utils import AgentUtils
+from pilott.utils.agent_utils import AgentUtils
 from pilott.tools.tool import Tool
 from pilott.enums.process_e import ProcessType
+from pilott.utils.task_utils import TaskUtility
 
 
 class Pilott:
@@ -39,13 +40,13 @@ class Pilott:
         self.agents = agents
         self.llm = LLMHandler(llm_config)
         self.tools = tools
-        self.tasks = tasks
+        self.tasks = self._verify_tasks(tasks)
 
         # Task management
         self.task_assignment_type = task_assignment_type
-        # self._task_queue = asyncio.Queue(maxsize=self.config.max_queue_size)
-        # self._running_tasks: Dict[str, asyncio.Task] = {}
-        # self._completed_tasks: Dict[str, TaskResult] = {}
+        self._task_queue = asyncio.Queue(maxsize=self.config.max_queue_size)
+        self._running_tasks: Dict[str, asyncio.Task] = {}
+        self._completed_tasks: Dict[str, TaskResult] = {}
 
         # Agent management
         self.master_agent = master_agent
@@ -64,13 +65,17 @@ class Pilott:
         # Setup logging
         self.logger = self._setup_logger()
 
-    async def serve(self, tasks: List[Task], agents: List[Agent]) -> List[TaskResult] | None:
+    def _verify_tasks(self, tasks):
+        tasks_obj = None
+        if isinstance(tasks, str):
+            tasks_obj = TaskUtility.to_task(tasks)
+        elif isinstance(tasks, list):
+            tasks_obj = TaskUtility.to_task_list(tasks)
+        return tasks_obj
+
+    async def serve(self) -> List[TaskResult] | None:
         """
         Execute a list of agents.
-
-        Args:
-            tasks: List of open tasks to associate with agents
-            agents: List of agents to execute
 
         Returns:
             List[TaskResult]: Results of task execution
@@ -83,10 +88,14 @@ class Pilott:
             if self.agentUtility is None:
                 self.agentUtility = AgentUtils()
 
-            for task in tasks:
-                agent_by_task = self._get_agent_by_task(task, agents)
-                agent_execution.append(agent_by_task)
-            agent_execution.append(agents)
+            if self.tasks:
+                for task in self.tasks:
+                    agent_by_task = self._get_agent_by_task(task, self.agents)
+                    agent_execution.append(agent_by_task)
+            if isinstance(self.agents, list):
+                agent_execution.extend(self.agents)
+            elif isinstance(self.agents, Agent):
+                agent_execution.append(self.agents)
 
             if self.config.process_type == ProcessType.SEQUENTIAL:
                 return await self._execute_sequential(agent_execution)
@@ -105,71 +114,126 @@ class Pilott:
         agent.tasks.append(task)
         return agent
 
-    async def _execute_parallel(self, tasks: List[Task]) -> List[TaskResult]:
-        """Execute tasks in parallel"""
-        return await asyncio.gather(
-            *[self._execute_single_task(task) for task in tasks],
-            return_exceptions=True
-        )
+    async def _execute_parallel(self, agents: List[Agent]) -> List[TaskResult]:
+        """
+        Execute all agents with their assigned tasks in parallel.
+
+        Args:
+            agents: List of agents to execute in parallel
+
+        Returns:
+            List of task results from all agents
+        """
+        # Create a list of execution coroutines for each agent
+        execution_tasks = []
+
+        for agent in agents:
+            if hasattr(agent, 'tasks') and agent.tasks:
+                execution_tasks.append(self._process_agent_tasks(agent))
+
+        if not execution_tasks:
+            return []
+
+        # Execute all agents in parallel
+        results = await asyncio.gather(*execution_tasks, return_exceptions=True)
+
+        # Flatten and process the results
+        all_results = []
+        for result in results:
+            if isinstance(result, Exception):
+                self.logger.error(f"Agent execution failed: {str(result)}")
+                # We don't know which agent failed, so we can't create specific TaskResults
+                continue
+            elif isinstance(result, list):
+                all_results.extend(result)
+            else:
+                all_results.append(result)
+
+        return all_results
 
     async def _execute_sequential(self, agents: List[Agent]) -> List[TaskResult]:
-        """Execute tasks sequentially"""
-        results = []
+        """
+        Execute all agents with their assigned tasks sequentially.
+
+        Args:
+            agents: List of agents to execute sequentially
+
+        Returns:
+            List of task results from all agents
+        """
+        all_results = []
+
+        # Process each agent in sequence
         for agent in agents:
             try:
-                result = await self._execute_single_task(agent.tasks)
+                results = await self._process_agent_tasks(agent)
+                if isinstance(results, list):
+                    all_results.extend(results)
+                else:
+                    all_results.append(results)
+            except Exception as e:
+                self.logger.error(f"Agent {agent.id} execution failed: {str(e)}")
+                # Create a failure result for each task
+                for task in agent.tasks:
+                    task_id = task.id if hasattr(task, 'id') else "unknown"
+                    all_results.append(TaskResult(
+                        success=False,
+                        output=None,
+                        error=f"Agent {agent.id} execution error: {str(e)}",
+                        execution_time=0.0,
+                        metadata={"agent_id": agent.id, "task_id": task_id}
+                    ))
+
+        return all_results
+
+    async def _process_agent_tasks(self, agent: Agent) -> List[TaskResult]:
+        """
+        Helper method to process all tasks for a given agent.
+
+        Args:
+            agent: The agent whose tasks will be processed
+
+        Returns:
+            List of task results
+        """
+        results = []
+
+        for task in agent.tasks:
+            try:
+                # Start task execution
+                await task.mark_started(agent_id=agent.id)
+
+                # Execute the task through the agent
+                result = await agent.execute_task(task)
+
+                # Complete the task with the result
+                await task.mark_completed(result)
+
                 results.append(result)
             except Exception as e:
-                self.logger.error(f"Task execution failed: {str(e)}")
-                results.append(TaskResult(
+                self.logger.error(f"Task {task.id if hasattr(task, 'id') else 'unknown'} execution failed: {str(e)}")
+
+                # Create a failure result
+                error_result = TaskResult(
                     success=False,
                     output=None,
                     error=str(e),
-                    execution_time=0.0
-                ))
+                    execution_time=0.0,
+                    metadata={"agent_id": agent.id}
+                )
+
+                # Mark the task as completed with error
+                try:
+                    await task.mark_completed(error_result)
+                except Exception:
+                    pass  # Ignore errors in marking completion
+
+                results.append(error_result)
+
         return results
 
     async def _execute_hierarchical(self, tasks: List[Task]) -> List[TaskResult]:
         pass
-
-    async def _execute_single_task(self, task: Task) -> TaskResult:
-        """Execute a single task"""
-        try:
-            # Get appropriate agent
-            agent = await self._get_agent_for_task(task)
-            if not agent:
-                raise ValueError(f"No suitable agent found for task: {task.description}")
-
-            # Start task execution
-            await task.mark_started()
-
-            # Execute task with timeout
-            async with asyncio.timeout(self.config.task_timeout):
-                result = await agent.execute_task(task)
-
-            # Complete task
-            await task.mark_completed(result)
-            return result
-
-        except asyncio.TimeoutError:
-            error_result = TaskResult(
-                success=False,
-                output=None,
-                error=f"Task execution timed out after {self.config.task_timeout} seconds",
-                execution_time=self.config.task_timeout
-            )
-            await task.mark_completed(error_result)
-            return error_result
-
-        except Exception as e:
-            error_result = TaskResult(
-                success=False,
-                output=None,
-                error=str(e),
-                execution_time=0.0
-            )
-            await task.mark_completed(error_result)
-            return error_result
 
     async def start(self):
         """Start the Serve orchestrator"""
@@ -197,14 +261,6 @@ class Pilott:
         try:
             self._shutting_down = True
 
-            # Stop all running tasks
-            for task in self._running_tasks.values():
-                task.cancel()
-
-            # Stop all agents
-            for agent in self.agents.values():
-                await agent.stop()
-
             self._started = False
             self._shutting_down = False
             self.logger.info("PilottAI Serve stopped")
@@ -212,24 +268,6 @@ class Pilott:
         except Exception as e:
             self.logger.error(f"Failed to stop Serve: {str(e)}")
             raise
-
-    async def _get_agent_for_task(self, task: Task) -> Optional[Agent]:
-        """Get appropriate agent for task"""
-        if task.agent_id and task.agent_id in self.agents:
-            return self.agents[task.agent_id]
-
-        # Find best agent based on task requirements
-        best_agent = None
-        best_score = -1
-
-        for agent in self.agents.values():
-            if agent.status != "busy":
-                score = await agent.evaluate_task_suitability(task.model_dump())
-                if score > best_score:
-                    best_score = score
-                    best_agent = agent
-
-        return best_agent
 
     async def delegate(self, agents: List[Agent], parallel: bool = False) -> List[TaskResult]:
         if not self._started:
@@ -253,7 +291,7 @@ class Pilott:
             for task in agent.tasks:
                 try:
                     await task.mark_started()
-                    result = await agent.execute_task(task)
+                    result = await agent.execute_tasks()
                     await task.mark_completed(result)
                     all_results.append(result)
                 except Exception as e:
@@ -281,7 +319,7 @@ class Pilott:
             for task in tasks:
                 try:
                     await task.mark_started()
-                    result = await agent.execute_task(task)
+                    result = await agent.execute_tasks()
                     await task.mark_completed(result)
                     results.append(result)
                 except Exception as e:
@@ -330,8 +368,5 @@ class Pilott:
         return {
             "active_agents": len(self.agents),
             "total_tasks": len(self.tasks),
-            "completed_tasks": len(self._completed_tasks),
-            "running_tasks": len(self._running_tasks),
-            "queue_size": self._task_queue.qsize(),
             "is_running": self._started
         }
