@@ -99,3 +99,39 @@ class ToolMetrics(BaseModel):
     last_execution: Optional[datetime] = None
     last_error: Optional[str] = None
     error_types: Dict[str, int] = Field(default_factory=dict)
+
+class TaskResult(BaseModel):
+    """Result of task execution"""
+    success: bool
+    output: Any
+    error: Optional[str] = None
+    execution_time: float
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    completion_time: datetime = Field(default_factory=datetime.now)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert result to dictionary"""
+        return {
+            "success": self.success,
+            "output": self.output,
+            "error": self.error,
+            "execution_time": self.execution_time,
+            "metadata": self.metadata,
+            "completion_time": self.completion_time.isoformat()
+        }
+
+    class ToolError(Exception):
+        """Base class for tool errors"""
+        pass
+
+    class ToolTimeoutError(ToolError):
+        """Tool execution timeout error"""
+        pass
+
+    class ToolPermissionError(ToolError):
+        """Tool permission error"""
+        pass
+
+    class ToolValidationError(ToolError):
+        """Tool input validation error"""
+        pass

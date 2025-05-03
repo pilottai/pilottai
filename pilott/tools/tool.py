@@ -48,6 +48,18 @@ class Tool:
         self.last_execution = datetime.now()
         self.logger = self._setup_logger()
 
+    def keys(self) -> Dict[str, str]:
+        """
+        Return the name and description of the tool.
+
+        Returns:
+            Dict[str, str]: A dictionary with the tool name and description
+        """
+        return {
+            "name": self.name,
+            "description": self.description
+        }
+
     def _setup_logger(self) -> logging.Logger:
         """Setup logging"""
         logger = logging.getLogger(f"Tool_{self.name}")
@@ -155,22 +167,13 @@ class Tool:
             "enabled": self.enabled
         }
 
+    def get_tools_dict(self) -> Dict[str, Dict[str, str]]:
+        """
+        Get a dictionary of all tools with their names and descriptions.
 
-class ToolError(Exception):
-    """Base class for tool errors"""
-    pass
-
-
-class ToolTimeoutError(ToolError):
-    """Tool execution timeout error"""
-    pass
-
-
-class ToolPermissionError(ToolError):
-    """Tool permission error"""
-    pass
+        Returns:
+            Dict[str, Dict[str, str]]: A dictionary mapping tool names to their info
+        """
+        return {tool.name: tool.keys() for tool in self.tools.values()}
 
 
-class ToolValidationError(ToolError):
-    """Tool input validation error"""
-    pass
