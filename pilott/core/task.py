@@ -110,8 +110,6 @@ class Task(BaseModel):
             "priority": self.priority,
             "agent_id": self.agent_id,
             "context": self.context,
-            "tools": self.tools,
-            "retry_count": self.retry_count,
             "created_at": self.created_at.isoformat(),
             "started_at": self.started_at.isoformat() if self.started_at else None,
             "completed_at": self.completed_at.isoformat() if self.completed_at else None,
