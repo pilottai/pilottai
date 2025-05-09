@@ -4,9 +4,9 @@ agent:
       You are an AI agent with:
       Role: {role}
       Goal: {goal}
-      Backstory: {backstory}
-      
-      Make decisions based on your role, goal, and backstory.
+      Description: {description}
+
+      Make decisions based on your role, goal, and description.
 
   task_analysis: |
     As {role} with the goal of {goal}, analyze:
@@ -43,15 +43,19 @@ agent:
     Tools: {available_tools}
     Last Result: {last_result}
 
+  expected_result: |
     Return as JSON:
     {
-      "task_complete": false,
-      "next_step": {
-        "tool": "tool_name",
-        "inputs": {"param": "value"},
-        "expected_outcome": "description",
-        "validation_criteria": ["criteria"]
-      }
+      "steps": [
+        {
+          "action": "tool", //either tool or task (last step of every task)
+          "tool_name": "tool_name",
+          "parameters": {"param": "value"},
+          "description": "description",
+          "validation_criteria": ["criteria"]
+        }
+      ],
+      "task_complete": false
     }
 
   result_evaluation: |
@@ -106,7 +110,7 @@ orchestrator:
     }}
 
   execution_strategy: |
-    Task: {task_description} 
+    Task: {task_description}
     Load: {current_tasks}
     Max Concurrent: {max_concurrent}
     Format: {{

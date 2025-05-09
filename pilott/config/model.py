@@ -120,18 +120,18 @@ class TaskResult(BaseModel):
             "completion_time": self.completion_time.isoformat()
         }
 
-    class ToolError(Exception):
-        """Base class for tool errors"""
-        pass
+class ToolError(Exception):
+    """Base class for tool errors"""
+    pass
 
-    class ToolTimeoutError(ToolError):
-        """Tool execution timeout error"""
-        pass
+class ToolTimeoutError(ToolError):
+    """Tool execution timeout error"""
+    pass
 
-    class ToolPermissionError(ToolError):
-        """Tool permission error"""
-        pass
+class ToolPermissionError(ToolError):
+    """Tool permission error"""
+    pass
 
-    class ToolValidationError(ToolError):
-        """Tool input validation error"""
-        pass
+class ToolValidationError(ToolError):
+    """Tool input validation error"""
+    pass
