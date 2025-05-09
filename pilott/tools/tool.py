@@ -4,7 +4,7 @@ import traceback
 from datetime import datetime
 from typing import Any, List, Dict, Optional, Set
 
-from pilott.config.model import ToolMetrics
+from pilott.config.model import ToolMetrics, ToolError, ToolTimeoutError
 from pilott.enums.tool_e import ToolStatus
 
 
@@ -166,14 +166,3 @@ class Tool:
             "active_executions": len(self.active_executions),
             "enabled": self.enabled
         }
-
-    def get_tools_dict(self) -> Dict[str, Dict[str, str]]:
-        """
-        Get a dictionary of all tools with their names and descriptions.
-
-        Returns:
-            Dict[str, Dict[str, str]]: A dictionary mapping tool names to their info
-        """
-        return {tool.name: tool.keys() for tool in self.tools.values()}
-
-
