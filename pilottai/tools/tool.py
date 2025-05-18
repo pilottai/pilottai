@@ -4,8 +4,8 @@ import traceback
 from datetime import datetime
 from typing import Any, List, Dict, Optional, Set
 
-from pilott.config.model import ToolMetrics, ToolError, ToolTimeoutError
-from pilott.enums.tool_e import ToolStatus
+from pilottai.config.model import ToolMetrics, ToolError, ToolTimeoutError
+from pilottai.enums.tool_e import ToolStatus
 
 
 class Tool:
