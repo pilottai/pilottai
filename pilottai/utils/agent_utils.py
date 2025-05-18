@@ -81,6 +81,8 @@ class AgentUtils:
             desc += f"  Description: {agent.description}\n"
             agent_descriptions.append(desc)
 
+        agent_info = '\n'.join(agent_descriptions)
+
         # Create the prompt for task assignment
         prompt = f"""
         # Task Assignment Decision
@@ -91,7 +93,7 @@ class AgentUtils:
         Required Capabilities: {getattr(task, 'required_capabilities', 'None specified')}
 
         ## Available Agents
-        {'\n'.join(agent_descriptions)}
+        {agent_info}
 
         Based on the above information, determine which agent is best suited for this task.
         Provide your reasoning and a confidence score (0.0-1.0) for the assignment.
