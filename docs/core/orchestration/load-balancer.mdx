@@ -27,20 +27,20 @@ The Load Balancer continuously monitors agent loads and performance metrics to m
 
 ```python
 import asyncio
-from pilott import Serve
-from pilott.core import LLMConfig
+from pilottai import Serve
+from pilottai.core import LLMConfig
 
 async def load_balancing_example():
     # Initialize PilottAI
     pilott = Serve(name="LoadBalancingDemo")
-    
+
     # Configure LLM
     llm_config = LLMConfig(
         model_name="gpt-4",
         provider="openai",
         api_key="your-api-key"
     )
-    
+
     # Configure load balancer
     lb_config = {
         "check_interval": 30,           # 30 seconds between checks
@@ -50,14 +50,14 @@ async def load_balancing_example():
         "balance_batch_size": 3,        # Move up to 3 tasks at once
         "min_load_difference": 0.3      # Minimum load difference to trigger balancing
     }
-    
+
     # Start the system
     await pilott.start()
-    
+
     try:
         # Enable load balancing
         await pilott.enable_load_balancing(config=lb_config)
-        
+
         # Add worker agents
         for i in range(5):
             await pilott.add_agent(
@@ -65,10 +65,10 @@ async def load_balancing_example():
                 goal="Process tasks efficiently",
                 llm_config=llm_config
             )
-        
+
         # Create tasks with agent targeting to create imbalance
         tasks = []
-        
+
         # Assign many tasks to worker_0 to create imbalance
         for i in range(15):
             tasks.append({
@@ -77,16 +77,16 @@ async def load_balancing_example():
                 "data": f"Sample data {i}",
                 "agent": "worker_0"  # Target specific agent
             })
-        
+
         # Execute tasks (this will overload worker_0)
         results = await pilott.execute(tasks)
-        
+
         # Monitor load balancing
         for i in range(5):
             metrics = await pilott.get_load_balancing_metrics()
             print(f"Load balancing metrics: {metrics}")
             await asyncio.sleep(30)
-    
+
     finally:
         # Always stop the system properly
         await pilott.stop()
@@ -136,20 +136,20 @@ The load balancing process follows this workflow:
 flowchart TD
     A[Collect Agent Metrics] --> B[Analyze Agent Loads]
     B --> C{Overloaded Agents?}
-    
+
     C -->|Yes| D[Identify Underloaded Agents]
     C -->|No| E[Skip Balancing]
-    
+
     D --> F{Suitable Targets Found?}
     F -->|Yes| G[Identify Moveable Tasks]
     F -->|No| H[Log No Targets]
-    
+
     G --> I[Calculate Best Agent for Each Task]
     I --> J[Move Tasks]
     J --> K[Update Metrics]
     H --> K
     E --> K
-    
+
     K --> L[Wait Check Interval]
     L --> A
 ```
@@ -161,19 +161,19 @@ The Load Balancer uses a comprehensive scoring system to determine the best agen
 ```python
 async def _calculate_agent_suitability(self, agent, task, metrics):
     """Calculate comprehensive agent suitability score"""
-    
+
     # Base capability score (0.0-1.0)
     base_score = await agent.evaluate_task_suitability(task)
-    
+
     # Load penalty (lower is better)
     load_score = 1 - self._calculate_composite_load(metrics)
-    
+
     # Performance score (higher is better)
     perf_score = 1 - metrics.error_rate
-    
+
     # Resource availability (higher is better)
     resource_score = 1 - max(metrics.cpu_usage, metrics.memory_usage)
-    
+
     # Calculate weighted total score
     return (
         base_score * 0.4 +
@@ -211,7 +211,7 @@ task = {
 You can customize how agent load is calculated:
 
 ```python
-from pilott.orchestration import LoadBalancer
+from pilottai.orchestration import LoadBalancer
 
 class CustomLoadBalancer(LoadBalancer):
     def _calculate_composite_load(self, metrics):

@@ -23,18 +23,18 @@ graph TD
     B --> D[Semantic Memory]
     B --> E[Interaction Memory]
     B --> F[Pattern Memory]
-    
+
     C --> G[Task History]
     C --> H[Task Context]
     C --> I[Task Results]
-    
+
     D --> J[Knowledge Store]
     D --> K[Semantic Search]
     D --> L[Similarity Matching]
-    
+
     E --> M[Agent Interactions]
     E --> N[Conversation History]
-    
+
     F --> O[Pattern Recognition]
     F --> P[Temporal Patterns]
 ```
@@ -44,7 +44,7 @@ graph TD
 ### Initializing Memory
 
 ```python
-from pilott.core import Memory
+from pilottai.core import Memory
 
 # Create a memory instance
 memory = Memory()
@@ -127,7 +127,7 @@ recent_entries = await memory.get_recent(
 PilottAI also provides an `EnhancedMemory` class for advanced memory capabilities:
 
 ```python
-from pilott.memory import EnhancedMemory
+from pilottai.memory import EnhancedMemory
 
 # Create enhanced memory
 enhanced_memory = EnhancedMemory()
@@ -214,7 +214,7 @@ By default, memory is stored in-memory, but PilottAI supports persistence option
 
 ```python
 # Create memory with persistence
-from pilott.core import Memory
+from pilottai.core import Memory
 
 memory = Memory(
     persistence_enabled=True,
@@ -288,24 +288,24 @@ Here's a complete example of memory usage in a multi-agent system:
 
 ```python
 import asyncio
-from pilott import Serve
-from pilott.core import AgentConfig, LLMConfig
-from pilott.memory import EnhancedMemory
+from pilottai import Serve
+from pilottai.core import AgentConfig, LLMConfig
+from pilottai.memory import EnhancedMemory
 
 async def memory_example():
     # Initialize PilottAI
     pilott = Serve(name="MemoryDemo")
-    
+
     # Configure LLM
     llm_config = LLMConfig(
         model_name="gpt-4",
         provider="openai",
         api_key="your-api-key"
     )
-    
+
     # Start the system
     await pilott.start()
-    
+
     try:
         # Add agents
         researcher = await pilott.add_agent(
@@ -313,34 +313,34 @@ async def memory_example():
             goal="Gather information",
             llm_config=llm_config
         )
-        
+
         analyst = await pilott.add_agent(
             role="analyst",
             goal="Analyze information",
             llm_config=llm_config
         )
-        
+
         # Store information in researcher's memory
         await researcher.memory.store_semantic(
             text="US GDP grew by 2.5% in 2023",
             metadata={"topic": "economics", "region": "US", "year": 2023},
             tags={"economics", "gdp", "us"}
         )
-        
+
         # Execute research task
         research_result = await pilott.execute([{
             "type": "research",
             "description": "Research US economic growth",
             "agent": "researcher"
         }])
-        
+
         # Store analysis in analyst's memory
         await analyst.memory.store_semantic(
             text="Analysis shows strong correlation between GDP growth and employment rates",
             metadata={"analysis_type": "correlation", "variables": ["gdp", "employment"]},
             tags={"analysis", "economics", "correlation"}
         )
-        
+
         # Execute analysis task using context from previous research
         analysis_result = await pilott.execute([{
             "type": "analyze",
@@ -348,17 +348,17 @@ async def memory_example():
             "context": {"research_result": research_result[0].output},
             "agent": "analyst"
         }])
-        
+
         # Retrieve similar analyses from memory
         similar_analyses = await analyst.memory.search(
             query="GDP employment correlation",
             tags={"analysis"},
             limit=3
         )
-        
+
         print(f"Analysis result: {analysis_result[0].output}")
         print(f"Similar analyses: {similar_analyses}")
-    
+
     finally:
         # Always stop the system properly
         await pilott.stop()

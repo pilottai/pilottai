@@ -4,12 +4,12 @@ from unittest.mock import Mock, AsyncMock, patch
 import pytest
 import pytest_asyncio
 
-from pilott import Pilott
-from pilott.agent import Agent
-from pilott.core import BaseAgent, LLMConfig
-from pilott.core.task import Task, TaskResult
-from pilott.enums.process_e import ProcessType
-from pilott.enums.task_e import TaskPriority, TaskAssignmentType
+from pilottai import Pilott
+from pilottai.agent import Agent
+from pilottai.core import BaseAgent, LLMConfig
+from pilottai.core.task import Task, TaskResult
+from pilottai.enums.process_e import ProcessType
+from pilottai.enums.task_e import TaskPriority, TaskAssignmentType
 
 
 @pytest.fixture

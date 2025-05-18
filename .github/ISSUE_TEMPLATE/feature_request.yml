@@ -42,7 +42,7 @@ body:
       description: If possible, provide an example of how this feature might work
       render: python
       placeholder: |
-        from pilott import Serve
+        from pilottai import Serve
 
         # Example code showing how the feature might be used
 

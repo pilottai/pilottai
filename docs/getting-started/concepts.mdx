@@ -90,7 +90,7 @@ PilottAI supports different agent roles:
 Agents are configured using the `AgentConfig` class:
 
 ```python
-from pilott.core import AgentConfig, AgentRole
+from pilottai.core import AgentConfig, AgentRole
 
 config = AgentConfig(
     role="document_processor",          # Agent's role/type
@@ -133,7 +133,7 @@ stateDiagram-v2
 ### Task Creation
 
 ```python
-from pilott.core import Task, TaskPriority
+from pilottai.core import Task, TaskPriority
 
 task = Task(
     description="Extract key information from document",
@@ -185,7 +185,7 @@ PilottAI uses Large Language Models for agent intelligence. Key concepts:
 ### LLM Configuration
 
 ```python
-from pilott.core import LLMConfig
+from pilottai.core import LLMConfig
 
 llm_config = LLMConfig(
     model_name="gpt-4",
@@ -207,7 +207,7 @@ Tools extend agent capabilities by providing:
 ### Tool Creation
 
 ```python
-from pilott.tools import Tool
+from pilottai.tools import Tool
 
 email_tool = Tool(
     name="email_sender",

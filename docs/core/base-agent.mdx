@@ -46,7 +46,7 @@ class BaseAgent:
 The `BaseAgent` is configured using the `AgentConfig` class:
 
 ```python
-from pilott.core import AgentConfig, AgentRole
+from pilottai.core import AgentConfig, AgentRole
 
 config = AgentConfig(
     role="researcher",                  # Agent's role/type
@@ -130,12 +130,12 @@ sequenceDiagram
     participant L as LLM
     participant T as Tools
     participant M as Memory
-    
+
     A->>A: Format task
     A->>L: Request execution plan
     L-->>A: Return plan
     A->>M: Store plan
-    
+
     loop For each step
         A->>T: Execute tool if needed
         T-->>A: Return tool result
@@ -143,7 +143,7 @@ sequenceDiagram
         L-->>A: Return processed result
         A->>M: Store step result
     end
-    
+
     A->>L: Request summary
     L-->>A: Return summary
     A->>M: Store final result
@@ -203,13 +203,13 @@ await self.memory.store_task_result(
 To create a specialized agent, extend the `BaseAgent` class:
 
 ```python
-from pilott.core import BaseAgent, AgentConfig
+from pilottai.core import BaseAgent, AgentConfig
 
 class ResearchAgent(BaseAgent):
     def __init__(self, config: AgentConfig, **kwargs):
         super().__init__(config, **kwargs)
         self.specializations = ["research", "information_gathering"]
-        
+
     async def evaluate_task_suitability(self, task: Dict) -> float:
         # Custom suitability logic
         base_score = await super().evaluate_task_suitability(task)
@@ -223,7 +223,7 @@ class ResearchAgent(BaseAgent):
 ### Creating a Basic Agent
 
 ```python
-from pilott.core import BaseAgent, AgentConfig, LLMConfig
+from pilottai.core import BaseAgent, AgentConfig, LLMConfig
 
 # Configure LLM
 llm_config = LLMConfig(
