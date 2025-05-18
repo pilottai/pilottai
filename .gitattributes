@@ -9,7 +9,6 @@
 docs/* linguist-documentation
 *.md linguist-documentation
 *.rst linguist-documentation
-pilott/docs/* linguist-documentation
 
 # Examples
 examples/*.py linguist-detectable
@@ -28,7 +27,7 @@ examples/*.j linguist-language=Java
 *.gif binary
 
 # Core project files
-pilott/* linguist-documentation=false
+pilottai/* linguist-documentation=false
 
 # Line endings
 * text=auto eol=lf

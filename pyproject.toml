@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "pilott"
+name = "pilottai"
 version = "v0.2.2"
 description = "A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent task processing. Features dynamic scaling, fault tolerance, and advanced load balancing."
 authors = ["Anuj Gupta <anuj@pilottai.com>"]

@@ -55,7 +55,7 @@ body:
       description: Include a minimal code example that reproduces the issue
       render: python
       placeholder: |
-        from pilott import Serve
+        from pilottai import Serve
 
         # Your code here that reproduces the issue
     validations:

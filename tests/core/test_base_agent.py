@@ -2,12 +2,12 @@ import pytest
 import pytest_asyncio
 from unittest.mock import Mock, AsyncMock, patch
 
-from pilott.core.base_agent import BaseAgent
-from pilott.config.config import AgentConfig, LLMConfig
-from pilott.core.task import Task, TaskResult
-from pilott.enums.agent_e import AgentStatus
-from pilott.tools.tool import Tool
-from pilott.utils.task_utils import TaskUtility
+from pilottai.core.base_agent import BaseAgent
+from pilottai.config.config import AgentConfig, LLMConfig
+from pilottai.core.task import Task, TaskResult
+from pilottai.enums.agent_e import AgentStatus
+from pilottai.tools.tool import Tool
+from pilottai.utils.task_utils import TaskUtility
 
 
 @pytest.fixture
