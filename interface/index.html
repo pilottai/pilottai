@@ -144,8 +144,8 @@
             </div>
             <div class="code-panel active" id="quickstart-panel">
                 <pre class="code-block python"><code>
-from pilott import Serve
-from pilott.core import AgentConfig, LLMConfig
+from pilottai import Serve
+from pilottai.core import AgentConfig, LLMConfig
 
 # Configure LLM
 llm_config = LLMConfig(
@@ -206,7 +206,7 @@ analysis_result = await research_analyst.execute_task({
             <div class="code-panel" id="orchestration-panel">
                 <pre class="code-block python"><code>
 # Configure orchestration
-from pilott.orchestration import LoadBalancer, DynamicScaling
+from pilottai.orchestration import LoadBalancer, DynamicScaling
 
 # Setup load balancing
 lb_config = {
@@ -233,7 +233,7 @@ for i in range(100):
             <div class="code-panel" id="memory-panel">
                 <pre class="code-block python"><code>
 # Enhanced memory management
-from pilott.memory import EnhancedMemory
+from pilottai.memory import EnhancedMemory
 
 # Store and retrieve semantic information
 await agent.memory.store_semantic(

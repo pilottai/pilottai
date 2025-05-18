@@ -3,8 +3,8 @@ import asyncio
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from datetime import datetime, timedelta
 
-from pilott.engine.llm import LLMHandler
-from pilott.config.config import LLMConfig
+from pilottai.engine.llm import LLMHandler
+from pilottai.config.config import LLMConfig
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def llm_config():
 @pytest.fixture
 def llm_handler(llm_config):
     """Fixture for LLMHandler with mocked LiteLLM"""
-    with patch('pilott.engine.llm.litellm') as mock_litellm:
+    with patch('pilottai.engine.llm.litellm') as mock_litellm:
         handler = LLMHandler(llm_config)
         # Set up the mock to be used in tests
         handler.litellm = mock_litellm

@@ -29,20 +29,20 @@ Based on these metrics, it makes decisions to scale up (add agents) or scale dow
 
 ```python
 import asyncio
-from pilott import Serve
-from pilott.core import LLMConfig
+from pilottai import Serve
+from pilottai.core import LLMConfig
 
 async def scaling_example():
     # Initialize PilottAI
     pilott = Serve(name="ScalingDemo")
-    
+
     # Configure LLM
     llm_config = LLMConfig(
         model_name="gpt-4",
         provider="openai",
         api_key="your-api-key"
     )
-    
+
     # Configure dynamic scaling
     scaling_config = {
         "min_agents": 2,
@@ -52,14 +52,14 @@ async def scaling_example():
         "cooldown_period": 300,  # 5 minutes
         "check_interval": 60     # 1 minute
     }
-    
+
     # Start the system
     await pilott.start()
-    
+
     try:
         # Enable dynamic scaling
         await pilott.enable_dynamic_scaling(config=scaling_config)
-        
+
         # Add initial agents
         for i in range(2):
             await pilott.add_agent(
@@ -67,7 +67,7 @@ async def scaling_example():
                 goal="Process tasks efficiently",
                 llm_config=llm_config
             )
-        
+
         # Generate load to test scaling
         tasks = []
         for i in range(20):
@@ -76,16 +76,16 @@ async def scaling_example():
                 "description": f"Process task {i}",
                 "data": f"Sample data {i}"
             })
-        
+
         # Execute tasks to generate load
         results = await pilott.execute(tasks)
-        
+
         # Monitor metrics
         for i in range(5):
             metrics = await pilott.get_scaling_metrics()
             print(f"Scaling metrics: {metrics}")
             await asyncio.sleep(30)
-    
+
     finally:
         # Always stop the system properly
         await pilott.stop()
@@ -137,22 +137,22 @@ flowchart TD
     A[Collect System Metrics] --> B{System Overloaded?}
     B -->|Yes| C{Can Scale Up?}
     B -->|No| D{System Underutilized?}
-    
+
     C -->|Yes| E[Scale Up]
     C -->|No| F[Log Max Agents]
-    
+
     D -->|Yes| G{Can Scale Down?}
     D -->|No| H[Maintain Current Scale]
-    
+
     G -->|Yes| I[Scale Down]
     G -->|No| J[Log Min Agents]
-    
+
     E --> K[Update Metrics]
     F --> K
     I --> K
     J --> K
     H --> K
-    
+
     K --> L[Wait Check Interval]
     L --> A
 ```
@@ -164,21 +164,21 @@ flowchart TD
 You can customize how the system calculates load by extending the `DynamicScaling` class:
 
 ```python
-from pilott.orchestration import DynamicScaling
+from pilottai.orchestration import DynamicScaling
 
 class CustomScaling(DynamicScaling):
     async def _analyze_load_trend(self) -> float:
         # Custom load trend analysis
         if len(self.metrics_history) < 5:
             return 0.0
-        
+
         # Use custom weighting
         recent_metrics = list(self.metrics_history)[-5:]
         task_density = sum(m.queue_size for m in recent_metrics) / len(recent_metrics)
-        
+
         # Normalize by max queue size
         normalized_density = task_density / (len(self.orchestrator.child_agents) * 10)
-        
+
         # Return custom load factor
         return min(1.0, normalized_density)
 ```
@@ -193,7 +193,7 @@ class PredictiveScaling(DynamicScaling):
         super().__init__(orchestrator, config)
         self.hourly_patterns = {}
         self._load_historical_patterns()
-    
+
     def _load_historical_patterns(self):
         # Load historical load patterns by hour
         # This could come from a file or database
@@ -202,20 +202,20 @@ class PredictiveScaling(DynamicScaling):
             10: 0.8,  # 10 AM typically has 80% load
             # ... other hours
         }
-    
+
     async def _check_and_adjust_scale(self):
         # Get current hour
         current_hour = datetime.now().hour
-        
+
         # Get predicted load for this hour
         predicted_load = self.hourly_patterns.get(current_hour, 0.5)
-        
+
         # Get actual load
         current_load = await self._get_system_load()
-        
+
         # Use weighted combination of current and predicted load
         adjusted_load = (current_load * 0.7) + (predicted_load * 0.3)
-        
+
         # Use adjusted load for scaling decisions
         if adjusted_load > self.config.scale_up_threshold:
             await self._scale_up()

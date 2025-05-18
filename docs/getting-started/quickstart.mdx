@@ -8,8 +8,8 @@ Let's create a simple document processing agent that can extract and analyze tex
 
 ```python
 import asyncio
-from pilott import Serve
-from pilott.core import AgentConfig, LLMConfig, AgentRole
+from pilottai import Serve
+from pilottai.core import AgentConfig, LLMConfig, AgentRole
 
 async def main():
     # Configure LLM
@@ -21,10 +21,10 @@ async def main():
 
     # Initialize PilottAI
     pilott = Serve(name="QuickStart")
-    
+
     # Start the system
     await pilott.start()
-    
+
     try:
         # Add a document processing agent
         doc_agent = await pilott.add_agent(
@@ -33,17 +33,17 @@ async def main():
             tools=["text_extractor"],
             llm_config=llm_config
         )
-        
+
         # Create a simple task
         result = await pilott.execute([{
             "type": "process_text",
             "description": "Summarize the following text",
             "content": "PilottAI is a Python framework for building autonomous multi-agent systems with advanced orchestration capabilities. It provides enterprise-ready features for building scalable AI applications."
         }])
-        
+
         # Print the result
         print(f"Task result: {result[0].output}")
-    
+
     finally:
         # Always stop the system properly
         await pilott.stop()
@@ -58,9 +58,9 @@ Now, let's create a more complex system with multiple agents that collaborate:
 
 ```python
 import asyncio
-from pilott import Serve
-from pilott.core import AgentConfig, LLMConfig, AgentRole
-from pilott.tools import Tool
+from pilottai import Serve
+from pilottai.core import AgentConfig, LLMConfig, AgentRole
+from pilottai.tools import Tool
 
 async def main():
     # Configure LLM
@@ -72,10 +72,10 @@ async def main():
 
     # Initialize PilottAI
     pilott = Serve(name="MultiAgentSystem")
-    
+
     # Start the system
     await pilott.start()
-    
+
     try:
         # Create custom tools
         search_tool = Tool(
@@ -84,14 +84,14 @@ async def main():
             function=lambda **kwargs: f"Search results for: {kwargs.get('query')}",
             parameters={"query": "str"}
         )
-        
+
         analyze_tool = Tool(
             name="text_analyzer",
             description="Analyze text content",
             function=lambda **kwargs: f"Analysis of: {kwargs.get('content')}",
             parameters={"content": "str", "type": "str"}
         )
-        
+
         # Add a research agent
         research_agent = await pilott.add_agent(
             role="researcher",
@@ -99,7 +99,7 @@ async def main():
             tools=["web_search"],
             llm_config=llm_config
         )
-        
+
         # Add an analyst agent
         analyst_agent = await pilott.add_agent(
             role="analyst",
@@ -107,14 +107,14 @@ async def main():
             tools=["text_analyzer"],
             llm_config=llm_config
         )
-        
+
         # Execute a research task
         research_result = await pilott.execute([{
             "type": "research",
             "description": "Research information about AI orchestration",
             "agent": "researcher"
         }])
-        
+
         # Execute an analysis task using the research result
         analysis_result = await pilott.execute([{
             "type": "analyze",
@@ -122,11 +122,11 @@ async def main():
             "content": research_result[0].output,
             "agent": "analyst"
         }])
-        
+
         # Print the final result
         print(f"Research: {research_result[0].output}")
         print(f"Analysis: {analysis_result[0].output}")
-    
+
     finally:
         # Always stop the system properly
         await pilott.stop()
@@ -141,24 +141,24 @@ PilottAI excels at document processing tasks. Here's how to set up a document pr
 
 ```python
 import asyncio
-from pilott import Serve
-from pilott.core import AgentConfig, LLMConfig, AgentRole
-from pilott.tools import Tool
+from pilottai import Serve
+from pilottai.core import AgentConfig, LLMConfig, AgentRole
+from pilottai.tools import Tool
 
 async def process_document():
     # Initialize PilottAI
     pilott = Serve(name="DocumentProcessor")
-    
+
     # Configure LLM
     llm_config = LLMConfig(
         model_name="gpt-4",
         provider="openai",
         api_key="your-api-key"  # Replace with your actual API key
     )
-    
+
     # Start the system
     await pilott.start()
-    
+
     try:
         # Add a document processing agent
         doc_processor = await pilott.add_agent(
@@ -167,7 +167,7 @@ async def process_document():
             tools=["text_extractor", "content_analyzer"],
             llm_config=llm_config
         )
-        
+
         # Process a document
         result = await pilott.execute([{
             "type": "process_document",
@@ -175,10 +175,10 @@ async def process_document():
             "file_path": "document.pdf",
             "extract_metadata": True
         }])
-        
+
         # Print the result
         print(f"Document processing result: {result[0].output}")
-    
+
     finally:
         # Always stop the system properly
         await pilott.stop()
@@ -193,21 +193,21 @@ PilottAI provides advanced orchestration capabilities for scaling your agent sys
 
 ```python
 import asyncio
-from pilott import Serve
-from pilott.core import AgentConfig, LLMConfig
-from pilott.orchestration import DynamicScaling, LoadBalancer
+from pilottai import Serve
+from pilottai.core import AgentConfig, LLMConfig
+from pilottai.orchestration import DynamicScaling, LoadBalancer
 
 async def main():
     # Initialize PilottAI with orchestration features
     pilott = Serve(name="OrchestrationDemo")
-    
+
     # Configure LLM
     llm_config = LLMConfig(
         model_name="gpt-4",
         provider="openai",
         api_key="your-api-key"  # Replace with your actual API key
     )
-    
+
     # Configure dynamic scaling
     scaling_config = {
         "min_agents": 2,
@@ -215,23 +215,23 @@ async def main():
         "scale_up_threshold": 0.8,
         "scale_down_threshold": 0.3
     }
-    
+
     # Configure load balancer
     lb_config = {
         "check_interval": 30,
         "overload_threshold": 0.7
     }
-    
+
     # Start the system
     await pilott.start()
-    
+
     try:
         # Enable dynamic scaling
         await pilott.enable_dynamic_scaling(config=scaling_config)
-        
+
         # Enable load balancing
         await pilott.enable_load_balancing(config=lb_config)
-        
+
         # Add base worker agents
         for i in range(2):
             await pilott.add_agent(
@@ -239,7 +239,7 @@ async def main():
                 goal="Process tasks efficiently",
                 llm_config=llm_config
             )
-        
+
         # Generate a series of tasks to test scaling
         tasks = []
         for i in range(10):
@@ -248,14 +248,14 @@ async def main():
                 "description": f"Process task {i}",
                 "data": f"Sample data {i}"
             })
-        
+
         # Execute tasks in parallel
         results = await pilott.execute(tasks)
-        
+
         # Print system metrics after execution
         metrics = pilott.get_metrics()
         print(f"System metrics: {metrics}")
-        
+
     finally:
         # Always stop the system properly
         await pilott.stop()

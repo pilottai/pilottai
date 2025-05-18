@@ -62,13 +62,13 @@ summarizer = Tool(
 ## Quick Start
 
 ```python
-from pilott import Serve
-from pilott.core import AgentConfig, LLMConfig
+from pilottai import Serve
+from pilottai.core import AgentConfig, LLMConfig
 
 # Initialize and run
 async def main():
     pilott = Serve(name="DocumentProcessor")
-    
+
     # Add document processing agent
     doc_processor = await pilott.add_agent(
         role="document_processor",
@@ -84,7 +84,7 @@ async def main():
             "type": "pdf"
         }
     }
-    
+
     result = await pilott.execute([task])
 ```
 
@@ -184,4 +184,4 @@ Common issues and solutions:
 
 ## Code
 
-Ready to use code [document_processor.py](../../pilott/agents/document_processing.py) 
+Ready to use code [document_processor.py](../../pilott/agents/document_processing.py)

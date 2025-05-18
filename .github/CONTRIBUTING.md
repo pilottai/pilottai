@@ -95,12 +95,12 @@ git commit -m "fix: resolve memory leak in task router"
 
 2. **Test Coverage**
    ```bash
-   poetry run pytest --cov=pilott tests/
+   poetry run pytest --cov=pilottai tests/
    ```
 
 3. **Type Checking**
    ```bash
-   poetry run mypy pilott
+   poetry run mypy pilottai
    ```
 
 ### Documentation
