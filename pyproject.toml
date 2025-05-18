@@ -43,5 +43,5 @@ pytest-cov = "^4.1.0"
 [tool.poetry-dynamic-versioning]
 enable = true
 vcs = "git"
-style = "semver"  # Use semantic versioning style
+style = "pep440"  # ✅ More flexible than semver
 pattern = "^v?(?P<base>\\d+(\\.\\d+){1,4})$"
