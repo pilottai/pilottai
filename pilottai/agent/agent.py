@@ -15,7 +15,7 @@ from pilottai.engine.llm import LLMHandler
 from pilottai.tools.tool import Tool
 from pilottai.knowledge.knowledge import DataManager
 from pilottai.utils.task_utils import TaskUtility
-from pilottai.utils.common_utils import format_system_prompt
+from pilottai.utils.common_utils import format_system_prompt, get_agent_rule
 
 
 class Agent(BaseAgent):
@@ -229,9 +229,7 @@ class Agent(BaseAgent):
         try:
             # Load the step_planning template from rules.yaml
             try:
-                with open('pilottai/rules/rules.yaml', 'r') as file:
-                    rules = yaml.safe_load(file)
-                    plan_template = rules.get('agent', {}).get('step_planning', '')
+                plan_template = get_agent_rule('step_planning', 'agent', '')
             except Exception as e:
                 self.logger.warning(f"Failed to load template from rules.yaml: {str(e)}")
                 plan_template = """
@@ -268,7 +266,7 @@ class Agent(BaseAgent):
                 last_result=None  # None at the beginning
             )
 
-            formatted_template += rules.get('agent', {}).get('expected_result', '')
+            formatted_template += get_agent_rule('expected_result', 'agent', '')
 
             # Create prompt for LLM
             messages = [
@@ -553,9 +551,7 @@ class Agent(BaseAgent):
             # Try to load result_evaluation template from rules.yaml
             template = None
             try:
-                with open('pilottai/rules/rules.yaml', 'r') as file:
-                    rules = yaml.safe_load(file)
-                    template = rules.get('agent', {}).get('result_evaluation')
+                template = get_agent_rule('result_evaluation', 'agent')
             except Exception as e:
                 self.logger.warning(f"Failed to load result_evaluation template: {str(e)}")
 
@@ -605,10 +601,7 @@ class Agent(BaseAgent):
 
             # Try to load from rules.yaml if available
             try:
-                with open('pilottai/rules/rules.yaml', 'r') as file:
-                    rules = yaml.safe_load(file)
-
-                base_template = rules.get('agent', {}).get('system', {}).get('base', '')
+                base_template = get_agent_rule('system.base', 'agent', '')
 
                 if base_template:
                     return base_template.format(
