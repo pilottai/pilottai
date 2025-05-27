@@ -1,6 +1,7 @@
 import os
 import yaml
 from typing import Dict, List, Any, Optional, Union
+from pathlib import Path
 
 
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
@@ -27,9 +28,51 @@ def load_yaml_file(file_path: str) -> Dict[str, Any]:
             raise yaml.YAMLError(f"Error parsing YAML file {file_path}: {str(e)}")
 
 
+def _find_project_root() -> Optional[Path]:
+    """
+    Find the project root by looking for common project files.
+
+    Returns:
+        Path to project root or None if not found
+    """
+    current = Path.cwd()
+
+    # Look for common project indicators
+    indicators = ['pyproject.toml', 'setup.py', 'requirements.txt', '.git']
+
+    # Traverse up the directory tree
+    for parent in [current] + list(current.parents):
+        if any((parent / indicator).exists() for indicator in indicators):
+            return parent
+
+    return current  # Fallback to current directory
+
+
+def _get_package_root() -> Optional[Path]:
+    """
+    Find the package root by looking for __init__.py files.
+
+    Returns:
+        Path to the main package directory
+    """
+    project_root = _find_project_root()
+    if not project_root:
+        return None
+
+    # Look for main package directories (those with __init__.py)
+    for item in project_root.iterdir():
+        if item.is_dir() and (item / '__init__.py').exists():
+            # Check if it has a rules subdirectory
+            if (item / 'rules').exists():
+                return item
+
+    return None
+
+
 def get_rules(rules_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Load the rules.yaml file and return its contents.
+    Uses dynamic path discovery to find the rules file.
 
     Args:
         rules_path: Optional custom path to the rules file
@@ -37,30 +80,68 @@ def get_rules(rules_path: Optional[str] = None) -> Dict[str, Any]:
     Returns:
         Dict containing the rules
     """
-    default_paths = [
-        "pilott/rules/rules.yaml",  # From project root
-        "rules/rules.yaml",  # Alternative location
-        "rules.yaml"  # Fallback
-    ]
-
     if rules_path:
-        paths_to_try = [rules_path] + default_paths
-    else:
-        paths_to_try = default_paths
+        return load_yaml_file(rules_path)
 
+    # Dynamic path discovery
+    paths_to_try = []
+
+    # Add custom path if provided
+    if rules_path:
+        paths_to_try.append(rules_path)
+
+    # Try to find project and package roots
+    project_root = _find_project_root()
+    package_root = _get_package_root()
+
+    # Build potential paths
+    if package_root:
+        paths_to_try.extend([
+            str(package_root / 'rules' / 'rules.yaml'),
+            str(package_root / 'rules.yaml')
+        ])
+
+    if project_root:
+        paths_to_try.extend([
+            str(project_root / 'rules' / 'rules.yaml'),
+            str(project_root / 'rules.yaml')
+        ])
+
+    # Add fallback paths relative to current working directory
+    paths_to_try.extend([
+        "rules/rules.yaml",
+        "rules.yaml",
+        # Common package names
+        "pilottai/rules/rules.yaml",
+        "pilott/rules/rules.yaml",
+        "src/rules/rules.yaml"
+    ])
+
+    # Try each path
     for path in paths_to_try:
         try:
-            return load_yaml_file(path)
-        except FileNotFoundError:
+            if os.path.exists(path):
+                return load_yaml_file(path)
+        except (FileNotFoundError, yaml.YAMLError):
             continue
 
-    raise FileNotFoundError("Could not find rules.yaml file in any of the expected locations")
+    # If all else fails, try to find any rules.yaml file recursively
+    if project_root:
+        for rules_file in project_root.rglob("rules.yaml"):
+            try:
+                return load_yaml_file(str(rules_file))
+            except (FileNotFoundError, yaml.YAMLError):
+                continue
+
+    raise FileNotFoundError(
+        f"Could not find rules.yaml file. Searched in: {paths_to_try}"
+    )
 
 
 def get_rule_value(
-    key_path: str,
-    default: Any = None,
-    rules: Optional[Dict[str, Any]] = None
+        key_path: str,
+        default: Any = None,
+        rules: Optional[Dict[str, Any]] = None
 ) -> Any:
     """
     Get a value from the rules using a dot-notation path.
@@ -92,9 +173,9 @@ def get_rule_value(
 
 
 def get_agent_rule(
-    rule_type: str,
-    agent_type: Optional[str] = None,
-    default: Any = None
+        rule_type: str,
+        agent_type: Optional[str] = None,
+        default: Any = None
 ) -> Any:
     """
     Get a specific rule for an agent.
@@ -113,8 +194,8 @@ def get_agent_rule(
 
 
 def get_prompt_template(
-    prompt_type: str,
-    agent_type: Optional[str] = None
+        prompt_type: str,
+        agent_type: Optional[str] = None
 ) -> Optional[str]:
     """
     Get a prompt template from the rules.
@@ -130,8 +211,8 @@ def get_prompt_template(
 
 
 def format_prompt(
-    prompt_template: str,
-    variables: Dict[str, Any]
+        prompt_template: str,
+        variables: Dict[str, Any]
 ) -> str:
     """
     Format a prompt template with variables.
@@ -165,12 +246,13 @@ def get_agent_prompts(agent_type: Optional[str] = None) -> Dict[str, str]:
         Dictionary of prompt templates keyed by prompt type
     """
     agent_type = agent_type or "agent"
-    rules = get_rules()
-
-    if agent_type not in rules:
+    try:
+        rules = get_rules()
+        if agent_type not in rules:
+            return {}
+        return rules[agent_type]
+    except FileNotFoundError:
         return {}
-
-    return rules[agent_type]
 
 
 def get_all_agent_types() -> List[str]:
@@ -180,15 +262,18 @@ def get_all_agent_types() -> List[str]:
     Returns:
         List of agent type strings
     """
-    rules = get_rules()
-    return [key for key in rules.keys() if isinstance(rules[key], dict)]
+    try:
+        rules = get_rules()
+        return [key for key in rules.keys() if isinstance(rules[key], dict)]
+    except FileNotFoundError:
+        return []
 
 
 def format_system_prompt(
-    agent_role: str,
-    agent_goal: str,
-    agent_description: Optional[str] = None,
-    agent_type: Optional[str] = None
+        agent_role: str,
+        agent_goal: str,
+        agent_description: Optional[str] = None,
+        agent_type: Optional[str] = None
 ) -> str:
     """
     Format the system prompt for an agent.
@@ -202,8 +287,11 @@ def format_system_prompt(
     Returns:
         Formatted system prompt
     """
-    template = get_agent_rule("system.base", agent_type,
-                              "You are an AI agent with:\nRole: {role}\nGoal: {goal}\nDescription: {description}")
+    template = get_agent_rule(
+        "system.base",
+        agent_type,
+        "You are an AI agent with:\nRole: {role}\nGoal: {goal}\nDescription: {description}"
+    )
 
     return format_prompt(template, {
         "role": agent_role,
@@ -213,9 +301,9 @@ def format_system_prompt(
 
 
 def get_tool_rules(
-    tool_name: str,
-    rule_key: Optional[str] = None,
-    default: Any = None
+        tool_name: str,
+        rule_key: Optional[str] = None,
+        default: Any = None
 ) -> Any:
     """
     Get rules for a specific tool.
@@ -228,12 +316,15 @@ def get_tool_rules(
     Returns:
         Tool rules or specific rule value
     """
-    rules = get_rules()
-    if "tools" not in rules or tool_name not in rules["tools"]:
+    try:
+        rules = get_rules()
+        if "tools" not in rules or tool_name not in rules["tools"]:
+            return default
+
+        tool_rules = rules["tools"][tool_name]
+
+        if rule_key:
+            return tool_rules.get(rule_key, default)
+        return tool_rules
+    except FileNotFoundError:
         return default
-
-    tool_rules = rules["tools"][tool_name]
-
-    if rule_key:
-        return tool_rules.get(rule_key, default)
-    return tool_rules

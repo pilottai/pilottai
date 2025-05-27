@@ -3,7 +3,6 @@ import asyncio
 import logging
 from datetime import datetime
 import uuid
-import yaml
 import json
 
 from pilottai.core.base_agent import BaseAgent
@@ -142,11 +141,11 @@ class Agent(BaseAgent):
                 self.logger.info(f"Executing task: {formatted_task}")
 
                 # Generate execution plan
-                execution_plan = await self._plan_execution(formatted_task)
+                execution_plan = await self._create_plan(formatted_task)
                 self.logger.info(f"Execution plan created with {len(execution_plan.get('steps', []))} steps")
 
                 # Execute the plan
-                result = await self._create_plan(execution_plan)
+                result = await self._execute_plan(execution_plan)
 
                 # Calculate execution time
                 execution_time = (datetime.now() - start_time).total_seconds()
@@ -224,7 +223,7 @@ class Agent(BaseAgent):
 
         return task_text
 
-    async def _plan_execution(self, task: str) -> Dict:
+    async def _create_plan(self, task: str) -> Dict:
         """Create execution plan using LLM and templates from rules.yaml"""
         try:
             # Load the step_planning template from rules.yaml
@@ -384,7 +383,7 @@ class Agent(BaseAgent):
             self.logger.warning(f"Failed to extract JSON from response: {str(e)}")
             return {}
 
-    async def _create_plan(self, plan: Dict) -> str:
+    async def _execute_plan(self, plan: Dict) -> str:
         """Execute the planned steps with proper type checking and error handling"""
         results = []
         step_results = {}  # Store results by step for context
