@@ -93,7 +93,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    async def _plan_execution(self, task: str) -> Dict:
+    async def _create_plan(self, task: str) -> Dict:
         """Create execution plan using LLM and templates from rules.yaml"""
         pass
 
@@ -103,7 +103,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    async def _create_plan(self, plan: Dict) -> str:
+    async def _execute_plan(self, plan: Dict) -> str:
         """Execute the planned steps with proper type checking and error handling"""
         pass
 
