@@ -422,6 +422,16 @@ class Agent(BaseAgent):
             self.logger.warning(f"Too many steps ({len(steps)}), limiting to 50")
             steps = steps[:50]
 
+        has_task = any("task" in step.get("action", "").lower() for step in steps)
+
+        # If not, append the default block
+        if not has_task:
+            steps.append({
+                "action": "task",
+                "description": "description",
+                "validation_criteria": ["criteria"]
+            })
+
         # Execute each step with proper validation
         for i, step in enumerate(steps):
             try:

@@ -44,13 +44,19 @@ agent:
     Last Result: {last_result}
 
   expected_result: |
-    Return as JSON:
+    Generate a JSON output in the following format. The "steps" array must include at least one `"action": "tool"` step and at least one `"action": "task"` step. Do not skip the task step.
+
     {
       "steps": [
         {
-          "action": "tool", //either tool or task (last step of every task)
+          "action": "tool",
           "tool_name": "tool_name",
           "parameters": {"param": "value"},
+          "description": "description",
+          "validation_criteria": ["criteria"]
+        },
+        {
+          "action": "task",
           "description": "description",
           "validation_criteria": ["criteria"]
         }
