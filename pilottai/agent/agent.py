@@ -476,6 +476,7 @@ class Agent(BaseAgent):
 
         # Summarize results with context
         summary = await self._summarize_results(results, step_results)
+        plan["task_complete"] = True
         return summary
 
     async def _execute_step(self, step: Dict, context: Dict) -> str:
