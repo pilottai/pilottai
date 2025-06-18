@@ -26,7 +26,7 @@ class Agent(BaseAgent):
         role: str,
         goal: str,
         description: str,
-        tasks: Union[str, Task, List[str], List[Task]],
+        tasks: Optional[Union[str, Task, List[str], List[Task]]] = None,
         tools: Optional[List[Tool]] = None,
         source: Optional[DataManager] = None,
         config: Optional[AgentConfig] = None,
@@ -92,7 +92,9 @@ class Agent(BaseAgent):
     def _verify_tasks(self, tasks):
         tasks_obj = None
         if isinstance(tasks, str):
-            tasks_obj = TaskUtility.to_task(tasks)
+            tasks_obj = [TaskUtility.to_task(tasks)]
+        elif isinstance(tasks, Task):
+            tasks_obj = [TaskUtility.to_task(tasks)]
         elif isinstance(tasks, list):
             tasks_obj = TaskUtility.to_task_list(tasks)
         return tasks_obj
