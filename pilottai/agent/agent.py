@@ -26,7 +26,7 @@ class Agent(BaseAgent):
         role: str,
         goal: str,
         description: str,
-        tasks: Optional[Union[str, Task, List[str], List[Task]]] = None,
+        tasks: Union[str, Task, List[str], List[Task]],
         tools: Optional[List[Tool]] = None,
         source: Optional[DataManager] = None,
         config: Optional[AgentConfig] = None,
