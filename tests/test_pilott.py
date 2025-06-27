@@ -10,6 +10,7 @@ from pilottai.core import BaseAgent, LLMConfig
 from pilottai.core.task import Task, TaskResult
 from pilottai.enums.process_e import ProcessType
 from pilottai.enums.task_e import TaskPriority, TaskAssignmentType
+from pilottai.utils.task_utils import TaskUtility
 
 
 @pytest.fixture
@@ -86,6 +87,34 @@ async def pilott():
         yield pilott_instance
     finally:
         await pilott_instance.stop()
+
+
+@pytest.fixture
+def task_description():
+    """Fixture to create a string input task"""
+    return "This is a task"
+
+
+@pytest.fixture
+def task_fixture():
+    """Fixture to create a task object"""
+    return Task(id="t1", description="Sample task")
+
+
+@pytest.fixture
+def string_task_list():
+    """Fixture to create a list of string input tasks"""
+    return ["Write docs", "Refactor code", "Push to GitHub"]
+
+
+@pytest.fixture
+def task_object_list():
+    """Fixture to create a list of input task objects"""
+    return [
+        Task(id="a1", description="First"),
+        Task(id="a2", description="Second"),
+        Task(id="a3", description="Third")
+    ]
 
 
 class TestPilott:
@@ -259,3 +288,36 @@ class TestPilott:
         assert "total_tasks" in metrics
         assert metrics["total_tasks"] == 0
         assert "is_running" in metrics
+
+
+    def test_to_task_with_string_input(self, task_description):
+        """Test to_task using string input"""
+        result = TaskUtility.to_task(task_description)
+        assert isinstance(result, Task)
+        assert result.description == task_description
+        assert isinstance(result.id, str)
+        assert result.status.name == "PENDING"
+
+
+    def test_to_task_with_task_object(self, task_fixture):
+        """Test to_task using task object input"""
+        result = TaskUtility.to_task(task_fixture)
+        assert result == task_fixture
+
+
+    def test_to_task_list_with_list_of_strings(self, string_task_list):
+        """Test to_task_list using list of strings input"""
+        result = TaskUtility.to_task_list(string_task_list)
+        assert isinstance(result, list)
+        assert len(result) == len(string_task_list)
+        for task, expected_desc in zip(result, string_task_list):
+            assert isinstance(task, Task)
+            assert task.description == expected_desc
+
+
+    def test_to_task_list_with_list_of_tasks(self, task_object_list):
+        """Test to_task_list using list of task objects input"""
+        result = TaskUtility.to_task_list(task_object_list)
+        assert len(result) == len(task_object_list)
+        for t1, t2 in zip(result, task_object_list):
+            assert t1 == t2

@@ -65,6 +65,13 @@ class Pilott:
         # Setup logging
         self.logger = self._setup_logger()
 
+        all_agents = self.agents + ([self.master_agent] if self.master_agent else [])
+        if len(self) == 0 and not any(len(agent) > 0 for agent in all_agents):
+            raise ValueError("At least a single task must be provided in either Pilott or at least one Agent.")
+
+    def __len__(self):
+        return len(self.tasks) if self.tasks else 0
+
     def _verify_tasks(self, tasks):
         tasks_obj = None
         if isinstance(tasks, str):

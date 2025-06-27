@@ -26,7 +26,7 @@ class Agent(BaseAgent):
         role: str,
         goal: str,
         description: str,
-        tasks: Union[str, Task, List[str], List[Task]],
+        tasks: Optional[Union[str, Task, List[str], List[Task]]] = None,
         tools: Optional[List[Tool]] = None,
         source: Optional[DataManager] = None,
         config: Optional[AgentConfig] = None,
@@ -88,6 +88,9 @@ class Agent(BaseAgent):
 
         # Setup logging
         self.logger = self._setup_logger()
+
+    def __len__(self):
+        return len(self.tasks) if self.tasks else 0
 
     def _verify_tasks(self, tasks):
         tasks_obj = None
