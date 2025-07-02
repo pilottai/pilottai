@@ -26,7 +26,7 @@ class Agent(BaseAgent):
         role: str,
         goal: str,
         description: str,
-        tasks: Union[str, Task, List[str], List[Task]],
+        tasks: Optional[Union[str, Task, List[str], List[Task]]] = None,
         tools: Optional[List[Tool]] = None,
         source: Optional[DataManager] = None,
         config: Optional[AgentConfig] = None,
@@ -89,6 +89,9 @@ class Agent(BaseAgent):
         # Setup logging
         self.logger = self._setup_logger()
 
+    def __len__(self):
+        return len(self.tasks) if self.tasks else 0
+    
     def _verify_tasks(self, tasks):
         tasks_obj = None
         try:
@@ -253,7 +256,7 @@ class Agent(BaseAgent):
 
             # Format available tools for template
             available_tools = []
-            for tool in self.tools:
+            for tool in self.tools or []:
                 available_tools.append({
                     "name": tool.name,
                     "description": tool.description,
@@ -501,7 +504,7 @@ class Agent(BaseAgent):
 
                 # Find the requested tool
                 tool = None
-                for t in self.tools:
+                for t in self.tools or []:
                     if t.name == tool_name:
                         tool = t
                         break
@@ -593,7 +596,6 @@ class Agent(BaseAgent):
             return response["content"]
 
         except Exception as e:
-            self.logger.error(f"Error generating final result: {str(e)}")
             # Fallback to returning the last result if available
             if results:
                 return f"Final result: {results[-1]}"
