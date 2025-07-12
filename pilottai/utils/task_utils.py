@@ -25,17 +25,17 @@ class TaskUtility:
             ValueError: If the input cannot be converted to a Task
         """
         if isinstance(task_input, Task):
-            return task_input
+            return [task_input]
 
         elif isinstance(task_input, str):
-            return Task(description=task_input)
+            return [Task(description=task_input)]
 
         elif isinstance(task_input, dict):
             # Ensure the dictionary has at least a description
             if "description" not in task_input:
                 raise ValueError("Task dictionary must contain a 'description' field")
 
-            return Task(**task_input)
+            return [Task(**task_input)]
 
         else:
             raise ValueError(
