@@ -1,9 +1,9 @@
-from typing import Dict, List, Optional, Union
+import uuid
+import json
 import asyncio
 import logging
 from datetime import datetime
-import uuid
-import json
+from typing import Dict, List, Optional, Union
 
 from pilottai.core.base_agent import BaseAgent
 from pilottai.config.config import AgentConfig, LLMConfig
@@ -13,8 +13,9 @@ from pilottai.core.memory import Memory
 from pilottai.engine.llm import LLMHandler
 from pilottai.tools.tool import Tool
 from pilottai.knowledge.knowledge import DataManager
+from pilottai.utils.excpetions.agent import AgentExecutionError
 from pilottai.utils.task_utils import TaskUtility
-from pilottai.utils.common_utils import format_system_prompt, get_agent_rule
+from pilottai.utils.common_utils import format_system_prompt, get_agent_rule, extract_json_from_response
 
 
 class Agent(BaseAgent):
@@ -35,7 +36,8 @@ class Agent(BaseAgent):
         output_sample=None,
         memory_enabled: bool = True,
         reasoning: bool = True,
-        feedback: bool = False
+        feedback: bool = False,
+        depends_on=None
     ):
         super().__init__(
             role=role,
@@ -50,7 +52,8 @@ class Agent(BaseAgent):
             output_sample=output_sample,
             memory_enabled=memory_enabled,
             reasoning=reasoning,
-            feedback=feedback
+            feedback=feedback,
+            depends_on=depends_on
         )
 
         # Basic Configuration
@@ -70,6 +73,7 @@ class Agent(BaseAgent):
         self.status = AgentStatus.IDLE
         self.current_task: Optional[Task] = None
         self._task_lock = asyncio.Lock()
+        self.depends_on = depends_on or []
 
         # Components
         self.tools = tools
@@ -77,6 +81,7 @@ class Agent(BaseAgent):
         self.llm = LLMHandler(llm_config) if llm_config else None
 
         # Output management
+        self._output = None
         self.output_format = output_format
         self.output_sample = output_sample
         self.reasoning = reasoning
@@ -89,13 +94,20 @@ class Agent(BaseAgent):
         # Setup logging
         self.logger = self._setup_logger()
 
+    @property
+    def output(self):
+        if self._output is None:
+            raise RuntimeError(f"Agent '{self.role}' has not been executed yet.")
+        return self._output
+
     def _verify_tasks(self, tasks):
-        tasks_obj = None
         try:
-            if isinstance(tasks, str) or isinstance(tasks, Task):
+            if isinstance(tasks, str):
                 tasks_obj = [TaskUtility.to_task(tasks)]
-            elif isinstance(tasks, list):
+            elif all(isinstance(t, (str, Task)) for t in tasks):
                 tasks_obj = TaskUtility.to_task_list(tasks)
+            else:
+                tasks_obj = tasks
         except:
             raise ValueError(f"Cannot convert {type(tasks)} to Task. Must be a string, dictionary, or Task object.")
         return tasks_obj
@@ -149,6 +161,8 @@ class Agent(BaseAgent):
 
                 # Execute the plan
                 result = await self._execute_plan(execution_plan)
+                if result is None:
+                    raise AgentExecutionError
 
                 # Calculate execution time
                 execution_time = (datetime.now() - start_time).total_seconds()
@@ -349,7 +363,7 @@ class Agent(BaseAgent):
 
             return plan
 
-        except Exception as e:
+        except AgentExecutionError:
             self.logger.error(f"Error creating execution plan: {str(e)}")
             # Fallback to simple execution
             return {
@@ -552,45 +566,50 @@ class Agent(BaseAgent):
         response = await self.llm.generate_response(messages)
         return response["content"]
 
-    async def _summarize_results(self, results: List[str], step_results: Dict[str, str]) -> str:
+    async def _summarize_results(self, results: List[str], step_results: Dict[str, str]) -> None | dict | str:
         """Generate the final result based on task description and execution steps"""
         try:
-            # Compile execution results
-            execution_context = "\n\n".join([f"Step {i + 1}: {result}" for i, result in enumerate(results)])
+            retry_count = self.config.retry_limit
+            for _ in range(retry_count):
+                # Compile execution results
+                execution_context = "\n\n".join([f"Step {i + 1}: {result}" for i, result in enumerate(results)])
 
-            # Get the original task description
-            task_description = self.current_task.description if self.current_task else "Unknown task"
+                # Get the original task description
+                task_description = self.current_task.description if self.current_task else "Unknown task"
 
-            # Try to load result_evaluation template from rules.yaml
-            template = None
-            try:
-                template = get_agent_rule('result_evaluation', 'agent')
-            except Exception as e:
-                self.logger.warning(f"Failed to load result_evaluation template: {str(e)}")
+                # Try to load result_evaluation template from rules.yaml
+                template = None
+                try:
+                    template = get_agent_rule('result_evaluation', 'agent')
+                except Exception as e:
+                    self.logger.warning(f"Failed to load result_evaluation template: {str(e)}")
 
-            # Format the template with the task description and results
-            prompt = template.format(
-                task_description=task_description,
-                result=execution_context
-            )
+                # Format the template with the task description and results
+                prompt = template.format(
+                    task_description=task_description,
+                    result=execution_context
+                )
 
-            # Create messages for LLM
-            messages = [
-                {
-                    "role": "system",
-                    "content": self._get_system_prompt(True)
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ]
+                # Create messages for LLM
+                messages = [
+                    {
+                        "role": "system",
+                        "content": self._get_system_prompt(True)
+                    },
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
 
-            # Get final result from LLM
-            response = await self.llm.generate_response(messages)
+                # Get final result from LLM
+                response = await self.llm.generate_response(messages)
 
-            # Return the final result
-            return response["content"]
+                # Return the final result
+                result = extract_json_from_response(response["content"])
+                if result.get("success"):
+                    return result.get("task_result")
+                return None
 
         except Exception as e:
             self.logger.error(f"Error generating final result: {str(e)}")

@@ -35,7 +35,8 @@ class BaseAgent(ABC):
             output_sample = None,
             memory_enabled: bool = True,
             reasoning: bool = False,
-            feedback: bool = False
+            feedback: bool = False,
+            depends_on=None
     ):
         # Basic Configuration
         # Required fields
@@ -54,6 +55,7 @@ class BaseAgent(ABC):
         self.status = AgentStatus.IDLE
         self.current_task: Optional[Task] = None
         self._task_lock = asyncio.Lock()
+        self.depends_on = depends_on or []
 
         # Components
         self.tools = tools

@@ -108,12 +108,15 @@ class Tool:
         last_error = None
         for attempt in range(self.max_retries):
             try:
-                async with asyncio.timeout(self.timeout):
-                    if asyncio.iscoroutinefunction(self.function):
-                        result = await self.function(**kwargs)
-                    else:
-                        result = await asyncio.to_thread(self.function, **kwargs)
-                    return result
+                if asyncio.iscoroutinefunction(self.function):
+                    result = await asyncio.wait_for(
+                        self.function(**kwargs), timeout=self.timeout
+                    )
+                else:
+                    result = await asyncio.wait_for(
+                        asyncio.to_thread(self.function, **kwargs), timeout=self.timeout
+                    )
+                return result
             except asyncio.TimeoutError:
                 last_error = ToolTimeoutError(f"Timeout on attempt {attempt + 1}")
                 self.logger.warning(f"Execution timeout, attempt {attempt + 1}")
@@ -121,7 +124,8 @@ class Tool:
                 last_error = e
                 self.logger.error(
                     f"Execution failed, attempt {attempt + 1}: {str(e)}\n"
-                    f"{traceback.format_exc()}")
+                    f"{traceback.format_exc()}"
+                )
 
             if attempt < self.max_retries - 1:
                 await asyncio.sleep(self.retry_delay * (attempt + 1))
