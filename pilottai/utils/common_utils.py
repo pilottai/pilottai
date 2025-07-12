@@ -1,6 +1,8 @@
 import os
+import re
+import json
 import yaml
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Any, Optional
 from pathlib import Path
 
 
@@ -328,3 +330,22 @@ def get_tool_rules(
         return tool_rules
     except FileNotFoundError:
         return default
+
+
+def extract_json_from_response(response: str) -> dict:
+    try:
+        # Step 1: Try to extract content between triple backticks
+        match = re.search(r"```(?:json)?\s*(\{.*?})\s*```", response, re.DOTALL)
+        if match:
+            json_str = match.group(1)
+        else:
+            # Fallback: Assume the entire content is JSON
+            json_str = response.strip()
+
+        # Step 2: Parse the JSON
+        return json.loads(json_str)
+
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Failed to decode JSON: {e}")
+    except Exception as e:
+        raise ValueError(f"Unexpected error during JSON extraction: {e}")

@@ -13,7 +13,7 @@ agent:
     {task_description}
 
     Return as JSON:
-    {
+    {{
       "alignment": "How this aligns with role/goal",
       "challenges": ["challenges"],
       "required_tools": ["tools"],
@@ -22,20 +22,20 @@ agent:
       "success_criteria": ["measurable_outcomes"],
       "estimated_complexity": "1-10",
       "estimated_time": "minutes"
-    }
+    }}
 
   tool_selection: |
     Available tools: {tools}
     Task: {task_description}
 
     Return as JSON:
-    {
+    {{
       "selected_tools": ["tools"],
       "tool_justification": {"tool": "reason"},
       "execution_sequence": ["order"],
       "fallback_tools": ["alternates"],
       "risk_assessment": {"tool": "risks"}
-    }
+    }}
 
   step_planning: |
     Task: {task_description}
@@ -46,38 +46,40 @@ agent:
   expected_result: |
     Generate a JSON output in the following format. The "steps" array must include at least one `"action": "tool"` step and at least one `"action": "task"` step. Do not skip the task step.
 
-    {
+    {{
       "steps": [
-        {
+        {{
           "action": "tool",
           "tool_name": "tool_name",
           "parameters": {"param": "value"},
           "description": "description",
           "validation_criteria": ["criteria"]
-        },
-        {
+        }},
+        {{
           "action": "task",
           "description": "description",
           "validation_criteria": ["criteria"]
-        }
+        }}
       ],
       "task_complete": false
-    }
+    }}
 
   result_evaluation: |
     Task: {task_description}
     Result: {result}
 
     Return as JSON:
-    {
+    {{
       "success": true/false,
       "quality_score": "1-10",
       "matches_requirements": true/false,
       "goal_alignment": "1-10",
+      "task_result": ["task_result"],
+      "evaluation_result": ["evaluation_result"],
       "improvements": ["suggestions"],
       "next_actions": ["actions"],
       "reasoning": "detailed evaluation"
-    }
+    }}
 
 orchestrator:
   task_analysis: |
