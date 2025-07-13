@@ -1,11 +1,14 @@
+import sys
 import asyncio
 import logging
 from typing import Dict, List, Optional, Any, Union
 
 from pilottai.agent import Agent, ActionAgent, MasterAgent, SuperAgent
-from pilottai.config.config import LLMConfig, ServeConfig
-from pilottai.core.memory import Memory
-from pilottai.core.task import Task, TaskResult
+from pilottai.config.config import Config
+from pilottai.core.base_config import LLMConfig, ServeConfig
+from pilottai.memory.memory import Memory
+from pilottai.config.model import TaskResult
+from pilottai.task.task import Task
 from pilottai.engine.llm import LLMHandler
 from pilottai.enums.task_e import TaskAssignmentType
 from pilottai.utils.agent_utils import AgentUtils
@@ -23,7 +26,7 @@ class Pilott:
     def __init__(
             self,
             name: str = "PilottAI",
-            config: Optional[Dict] = None,
+            serve_config: Optional[ServeConfig] = None,
             llm_config: Optional[Union[Dict, LLMConfig]] = None,
             agents: List[Agent] = None,
             tools: Optional[List[Tool]] = None,
@@ -34,7 +37,7 @@ class Pilott:
             action_agents: List[ActionAgent] = None,
       ):
         # Initialize configuration
-        self.config = ServeConfig(**{"name": name, **(config or {})})
+        self.config = Config(name = name, serve_config=serve_config, llm_config=llm_config)
 
         # Core components
         self.agents = agents
@@ -44,7 +47,7 @@ class Pilott:
 
         # Task management
         self.task_assignment_type = task_assignment_type
-        self._task_queue = asyncio.Queue(maxsize=self.config.max_queue_size)
+        self._task_queue = asyncio.Queue(maxsize=self.config.serve_config.max_queue_size)
         self._running_tasks: Dict[str, asyncio.Task] = {}
         self._completed_tasks: Dict[str, TaskResult] = {}
 
@@ -60,7 +63,7 @@ class Pilott:
         self._execution_lock = asyncio.Lock()
 
         # Memory management
-        self.memory = Memory() if self.config.memory_enabled else None
+        self.memory = Memory() if self.config.serve_config.memory_enabled else None
 
         # Setup logging
         self.logger = self._setup_logger()
@@ -68,7 +71,7 @@ class Pilott:
     def _verify_tasks(self, tasks):
         tasks_obj = None
         if isinstance(tasks, str):
-            tasks_obj = TaskUtility.to_task(tasks)
+            tasks_obj = TaskUtility.to_task_list(tasks)
         elif isinstance(tasks, list):
             tasks_obj = TaskUtility.to_task_list(tasks)
         return tasks_obj
@@ -97,11 +100,11 @@ class Pilott:
             elif isinstance(self.agents, Agent):
                 agent_execution.append(self.agents)
 
-            if self.config.process_type == ProcessType.SEQUENTIAL:
+            if self.config.serve_config.process_type == ProcessType.SEQUENTIAL:
                 return await self._execute_sequential(agent_execution)
-            elif self.config.process_type == ProcessType.PARALLEL:
+            elif self.config.serve_config.process_type == ProcessType.PARALLEL:
                 return await self._execute_parallel(agent_execution)
-            elif self.config.process_type == ProcessType.HIERARCHICAL:
+            elif self.config.serve_config.process_type == ProcessType.HIERARCHICAL:
                 return await self._execute_hierarchical(agent_execution)
             return await self._execute_sequential(agent_execution)
         except Exception as e:
@@ -116,7 +119,7 @@ class Pilott:
 
     async def _execute_parallel(self, agents: List[Agent]) -> List[TaskResult]:
         """
-        Execute all agents with their assigned tasks in parallel.
+        Execute all agents with their assigned task in parallel.
 
         Args:
             agents: List of agents to execute in parallel
@@ -128,7 +131,7 @@ class Pilott:
         execution_tasks = []
 
         for agent in agents:
-            if hasattr(agent, 'tasks') and agent.tasks:
+            if hasattr(agent, 'task') and agent.tasks:
                 execution_tasks.append(self._process_agent_tasks(agent))
 
         if not execution_tasks:
@@ -153,7 +156,7 @@ class Pilott:
 
     async def _execute_sequential(self, agents: List[Agent]) -> List[TaskResult]:
         """
-        Execute all agents with their assigned tasks sequentially.
+        Execute all agents with their assigned task sequentially.
 
         Args:
             agents: List of agents to execute sequentially
@@ -188,10 +191,10 @@ class Pilott:
 
     async def _process_agent_tasks(self, agent: Agent) -> List[TaskResult]:
         """
-        Helper method to process all tasks for a given agent.
+        Helper method to process all task for a given agent.
 
         Args:
-            agent: The agent whose tasks will be processed
+            agent: The agent whose task will be processed
 
         Returns:
             List of task results
@@ -283,7 +286,7 @@ class Pilott:
             raise
 
     async def _execute_agents_sequential(self, agents: List[Agent]) -> List[TaskResult]:
-        """Execute tasks through agents sequentially."""
+        """Execute task through agents sequentially."""
         all_results = []
 
         for agent in agents:
@@ -308,13 +311,13 @@ class Pilott:
         return all_results
 
     async def _execute_agents_parallel(self, agents: List[Agent]) -> List[TaskResult]:
-        """Execute tasks through agents in parallel."""
+        """Execute task through agents in parallel."""
         all_results = []
 
         async def process_agent_tasks(agent_id, tasks):
             agent = self.agents[agent_id]
             results = []
-            self.logger.info(f"Agent {agent_id} processing {len(tasks)} tasks")
+            self.logger.info(f"Agent {agent_id} processing {len(tasks)} task")
 
             for task in tasks:
                 try:
@@ -335,14 +338,27 @@ class Pilott:
 
             return results
 
-        async with asyncio.TaskGroup() as group:
-            futures = [
-                group.create_task(process_agent_tasks(agent.id, agent.tasks))
+        if sys.version_info >= (3, 11):
+            async with asyncio.TaskGroup() as group:
+                futures = [
+                    group.create_task(process_agent_tasks(agent.id, agent.tasks))
+                    for agent in agents
+                ]
+            for future in futures:
+                all_results.extend(future.result())
+
+            # Python < 3.11 — fallback to asyncio.gather
+        else:
+            tasks = [
+                process_agent_tasks(agent.id, agent.tasks)
                 for agent in agents
             ]
-
-        for future in futures:
-            all_results.extend(future.result())
+            results = await asyncio.gather(*tasks, return_exceptions=True)
+            for result in results:
+                if isinstance(result, list):
+                    all_results.extend(result)
+                else:
+                    all_results.append(result)
 
         return all_results
 
@@ -356,7 +372,7 @@ class Pilott:
             )
             handler.setFormatter(formatter)
             logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG if self.config.verbose else logging.INFO)
+        logger.setLevel(logging.DEBUG if self.config.serve_config.verbose else logging.INFO)
         return logger
 
     async def get_task_result(self, task_id: str) -> Optional[TaskResult]:

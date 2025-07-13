@@ -4,13 +4,13 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 
-from pilottai.config.config import AgentConfig, LLMConfig
-from pilottai.core.task import Task, TaskResult
+from pilottai.core.base_config import AgentConfig, LLMConfig
+from pilottai.config.model import TaskResult
+from pilottai.task.task import Task
 from pilottai.enums.agent_e import AgentStatus
-from pilottai.core.memory import Memory
+from pilottai.memory.memory import Memory
 from pilottai.engine.llm import LLMHandler
 from pilottai.tools.tool import Tool
-from pilottai.knowledge.knowledge import DataManager
 from pilottai.utils.common_utils import format_system_prompt
 
 
@@ -28,7 +28,6 @@ class BaseAgent(ABC):
             description: str,
             tasks: Union[Task, str, List[str], List[Task]],
             tools: Optional[List[Tool]] = None,
-            source: Optional[DataManager] = None,
             config: Optional[AgentConfig] = None,
             llm_config: Optional[LLMConfig] = None,
             output_format = None,
@@ -49,7 +48,6 @@ class BaseAgent(ABC):
         # Core configuration
         self.config = config if config else AgentConfig()
         self.id = str(uuid.uuid4())
-        self.source = source
 
         # State management
         self.status = AgentStatus.IDLE
@@ -81,7 +79,7 @@ class BaseAgent(ABC):
 
     @abstractmethod
     async def execute_tasks(self) -> List[TaskResult]:
-        """Execute all tasks assigned to this agent"""
+        """Execute all task assigned to this agent"""
         pass
 
     @abstractmethod

@@ -1,5 +1,5 @@
 from pilottai import Pilott
-from pilottai.config.config import LLMConfig
+from pilottai.core.base_config import LLMConfig
 from pilottai.tools import Tool
 
 async def main():

@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Any, Union
 import litellm
 from litellm import ModelResponse
 
-from pilottai.config.config import LLMConfig
+from pilottai.core.base_config import LLMConfig
 
 
 class LLMHandler:

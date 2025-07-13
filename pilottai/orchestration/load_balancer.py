@@ -10,7 +10,7 @@ from pilottai.agent.agent import Agent
 from pilottai.enums.agent_e import AgentStatus
 
 from pilottai.config.model import LoadMetrics
-from pilottai.config.config import LoadBalancerConfig
+from pilottai.core.base_config import LoadBalancerConfig
 
 class LoadBalancer:
     def __init__(self, orchestrator, config: Optional[Dict] = None):
@@ -195,10 +195,10 @@ class LoadBalancer:
 
                 if moves_made > 0:
                     self._last_balance_time = datetime.now()
-                    self.logger.info(f"Moved {moves_made} tasks from agent {over_agent_id}")
+                    self.logger.info(f"Moved {moves_made} task from agent {over_agent_id}")
 
             except Exception as e:
-                self.logger.error(f"Error redistributing tasks for agent {over_agent_id}: {str(e)}")
+                self.logger.error(f"Error redistributing task for agent {over_agent_id}: {str(e)}")
 
     async def _move_task(self, task: Dict, from_agent_id: str, to_agent_id: str):
         lock_acquired = False
@@ -238,7 +238,7 @@ class LoadBalancer:
             agent = self.orchestrator.child_agents[agent_id]
             return [task for task in agent.tasks.values() if self._is_task_moveable(task)]
         except Exception as e:
-            self.logger.error(f"Error getting moveable tasks: {str(e)}")
+            self.logger.error(f"Error getting moveable task: {str(e)}")
             return []
 
     def _is_task_moveable(self, task: Dict) -> bool:
@@ -279,7 +279,7 @@ class LoadBalancer:
             agent: Any,
             metrics: LoadMetrics
     ) -> bool:
-        """Check if agent can accept new tasks"""
+        """Check if agent can accept new task"""
         return (
                 agent.status != 'stopped' and
                 metrics.queue_size < self.config.max_tasks_per_agent and

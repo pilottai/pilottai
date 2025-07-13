@@ -8,7 +8,7 @@ from typing import Dict, Optional
 import psutil
 
 from pilottai.config.model import ScalingMetrics
-from pilottai.config.config import ScalingConfig
+from pilottai.core.base_config import ScalingConfig
 
 class DynamicScaling:
     def __init__(self, orchestrator, config: Optional[Dict] = None):
@@ -202,7 +202,7 @@ class DynamicScaling:
     async def _safely_remove_agent(self, agent):
         """Safely remove an agent with proper cleanup"""
         try:
-            # Wait for agent to finish current tasks
+            # Wait for agent to finish current task
             await agent.wait_for_tasks()
             # Stop agent
             await agent.stop()
@@ -289,7 +289,7 @@ class DynamicScaling:
 
             # Task load
             total_tasks = sum(metrics['total_tasks'] for metrics in agent_metrics)
-            max_tasks = num_agents * 10  # Assuming 10 tasks per agent is optimal
+            max_tasks = num_agents * 10  # Assuming 10 task per agent is optimal
             task_load = min(1.0, total_tasks / max_tasks)
 
             # Queue utilization

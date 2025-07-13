@@ -1,17 +1,18 @@
 from typing import Union, List, Any, Dict, Optional
 from datetime import datetime
 
-from pilottai.core.task import Task, TaskResult
+from pilottai.config.model import TaskResult
+from pilottai.task.task import Task
 
 
 class TaskUtility:
     """
-    Utility class for working with tasks, providing helper methods
+    Utility class for working with task, providing helper methods
     for task conversion, validation, and common operations.
     """
 
     @staticmethod
-    def to_task(task_input: Union[str, Dict, Task]) -> List[Task]:
+    def to_task(task_input: Union[str, Dict, Task]) -> Task:
         """
         Convert a string, dictionary, or Task object to a Task instance.
 
@@ -19,7 +20,7 @@ class TaskUtility:
             task_input: A string (treated as description), dictionary, or Task object
 
         Returns:
-            Task: A properly instantiated Task object
+            BaseTask: A properly instantiated Task object
 
         Raises:
             ValueError: If the input cannot be converted to a Task
@@ -47,18 +48,21 @@ class TaskUtility:
         Convert various input formats to a list of Task objects.
 
         Args:
-            task_inputs: A single task or list of tasks in various formats
+            task_inputs: A single task or list of task in various formats
 
         Returns:
-            List[Task]: A list of properly instantiated Task objects
+            List[BaseTask]: A list of properly instantiated Task objects
         """
         # Handle single items
         if isinstance(task_inputs, (str, dict, Task)):
-            return TaskUtility.to_task(task_inputs)
+            return [TaskUtility.to_task(task_inputs)]
 
         # Handle lists
         elif isinstance(task_inputs, list):
-            return [TaskUtility.to_task(item) for item in task_inputs]
+            tasks = []
+            for item in task_inputs:
+                tasks.append(TaskUtility.to_task(item))
+            return tasks
 
         else:
             raise ValueError(f"Cannot convert {type(task_inputs)} to a list of Tasks")
@@ -133,7 +137,7 @@ class TaskUtility:
         if not results:
             return TaskResult(
                 success=True,
-                output="No tasks executed",
+                output="No task executed",
                 error=None,
                 execution_time=0.0
             )

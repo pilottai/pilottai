@@ -107,7 +107,7 @@ class Memory:
             task_description: str,
             limit: int = 5
     ) -> List[Dict[str, Any]]:
-        """Find similar past tasks based on description"""
+        """Find similar past task based on description"""
         async with self._memory_lock:
             similar_tasks = []
 
@@ -209,7 +209,7 @@ class Memory:
         """Build comprehensive context for a new task"""
         context = {}
 
-        # Get similar past tasks
+        # Get similar past task
         similar_tasks = await self.get_similar_tasks(task_description)
         if similar_tasks:
             context["similar_tasks"] = similar_tasks

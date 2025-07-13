@@ -1,9 +1,8 @@
-from typing import Dict, List, Optional, Union, Tuple
+from typing import Dict, List, Union, Tuple
 import asyncio
 import logging
-from datetime import datetime
 
-from pilottai.core.task import Task
+from pilottai.task.task import Task
 from pilottai.agent.agent import Agent
 from pilottai.engine.llm import LLMHandler
 
@@ -111,7 +110,7 @@ class AgentUtils:
         # Generate response from LLM
         messages = [
             {"role": "system",
-             "content": "You are an AI task allocation expert. Your job is to match tasks to the most suitable agent based on capabilities, availability, and task requirements."},
+             "content": "You are an AI task allocation expert. Your job is to match task to the most suitable agent based on capabilities, availability, and task requirements."},
             {"role": "user", "content": prompt}
         ]
 
@@ -228,10 +227,10 @@ class AgentUtils:
         parallel: bool = True
     ) -> Dict[str, Tuple[Agent, Task]]:
         """
-        Distribute multiple tasks among available agents.
+        Distribute multiple task among available agents.
 
         Args:
-            tasks: List of tasks to distribute
+            tasks: List of task to distribute
             agents: Available agents
             llm_handler: LLM handler
             strategy: Assignment strategy
@@ -243,7 +242,7 @@ class AgentUtils:
         assignments = {}
 
         if parallel:
-            # Create tasks for parallel execution
+            # Create task for parallel execution
             assignment_tasks = []
             for task in tasks:
                 assignment_tasks.append(

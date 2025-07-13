@@ -7,7 +7,7 @@ from typing import Dict, List, Any, Optional, Set
 from pilottai.config.model import MemoryItem
 
 
-class EnhancedMemory:
+class DataController:
     def __init__(self, max_size: int = 10000, cleanup_interval: int = 3600):
         self._memory_lock = asyncio.Lock()
         self._semantic_store: deque = deque(maxlen=max_size)

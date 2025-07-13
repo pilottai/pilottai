@@ -1,4 +1,3 @@
-import asyncio
 from unittest.mock import Mock, AsyncMock, patch
 
 import pytest
@@ -6,8 +5,9 @@ import pytest_asyncio
 
 from pilottai import Pilott
 from pilottai.agent import Agent
-from pilottai.core import BaseAgent, LLMConfig
-from pilottai.core.task import Task, TaskResult
+from pilottai.core.base_config import LLMConfig
+from pilottai.config.model import TaskResult
+from pilottai.task.task import Task
 from pilottai.enums.process_e import ProcessType
 from pilottai.enums.task_e import TaskPriority, TaskAssignmentType
 
@@ -132,7 +132,7 @@ class TestPilott:
         pilott.config.process_type = ProcessType.SEQUENTIAL
         pilott.agents = mock_agents
 
-        # Create test tasks
+        # Create test task
         test_task = Task(description="Test task")
         mock_agents[0].tasks = [test_task]
 
@@ -162,7 +162,7 @@ class TestPilott:
         pilott.config.process_type = ProcessType.PARALLEL
         pilott.agents = mock_agents
 
-        # Create test tasks for all agents
+        # Create test task for all agents
         for i, agent in enumerate(mock_agents):
             task = Task(description=f"Task for agent {i}")
             agent.tasks = [task]
@@ -193,7 +193,7 @@ class TestPilott:
         pilott.agents = mock_agents
         pilott.task_assignment_type = TaskAssignmentType.SUITABILITY
 
-        # Create tasks
+        # Create task
         task = Task(description="Task 1", priority=TaskPriority.HIGH)
 
         # Setup mocked agent utility

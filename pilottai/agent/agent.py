@@ -6,13 +6,13 @@ from datetime import datetime
 from typing import Dict, List, Optional, Union
 
 from pilottai.core.base_agent import BaseAgent
-from pilottai.config.config import AgentConfig, LLMConfig
-from pilottai.core.task import Task, TaskResult
+from pilottai.core.base_config import AgentConfig, LLMConfig
+from pilottai.config.model import TaskResult
+from pilottai.task.task import Task
 from pilottai.enums.agent_e import AgentStatus
-from pilottai.core.memory import Memory
+from pilottai.memory.memory import Memory
 from pilottai.engine.llm import LLMHandler
 from pilottai.tools.tool import Tool
-from pilottai.knowledge.knowledge import DataManager
 from pilottai.utils.excpetions.agent import AgentExecutionError
 from pilottai.utils.task_utils import TaskUtility
 from pilottai.utils.common_utils import format_system_prompt, get_agent_rule, extract_json_from_response
@@ -29,7 +29,6 @@ class Agent(BaseAgent):
         description: str,
         tasks: Union[str, Task, List[str], List[Task]],
         tools: Optional[List[Tool]] = None,
-        source: Optional[DataManager] = None,
         config: Optional[AgentConfig] = None,
         llm_config: Optional[LLMConfig] = None,
         output_format=None,
@@ -45,7 +44,6 @@ class Agent(BaseAgent):
             description=description,
             tasks=tasks,
             tools=tools,
-            source=source,
             config=config,
             llm_config=llm_config,
             output_format=output_format,
@@ -67,7 +65,6 @@ class Agent(BaseAgent):
         # Core configuration
         self.config = config if config else AgentConfig()
         self.id = str(uuid.uuid4())
-        self.source = source
 
         # State management
         self.status = AgentStatus.IDLE
@@ -103,7 +100,7 @@ class Agent(BaseAgent):
     def _verify_tasks(self, tasks):
         try:
             if isinstance(tasks, str):
-                tasks_obj = [TaskUtility.to_task(tasks)]
+                tasks_obj = TaskUtility.to_task_list(tasks)
             elif all(isinstance(t, (str, Task)) for t in tasks):
                 tasks_obj = TaskUtility.to_task_list(tasks)
             else:
@@ -113,7 +110,7 @@ class Agent(BaseAgent):
         return tasks_obj
 
     async def execute_tasks(self) -> List[TaskResult]:
-        """Execute all tasks assigned to this agent"""
+        """Execute all task assigned to this agent"""
         results = []
         for task in self.tasks:
             try:
