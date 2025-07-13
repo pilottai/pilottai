@@ -1,5 +1,5 @@
 from pilottai import Pilott
-from pilottai.config.config import LLMConfig
+from pilottai.core.base_config import LLMConfig
 from pilottai.tools import Tool
 
 async def main():
@@ -43,7 +43,7 @@ async def main():
         llm_config=llm_config
     )
 
-    # Example tasks
+    # Example task
     tasks = [
         {
             "type": "create_content",
@@ -58,7 +58,7 @@ async def main():
         }
     ]
 
-    # Execute tasks
+    # Execute task
     results = await pilott.execute(tasks)
     for task, result in zip(tasks, results):
         print(f"Task type: {task['type']}")

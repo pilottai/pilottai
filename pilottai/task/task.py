@@ -1,13 +1,14 @@
 import uuid
 from datetime import datetime
 from typing import Dict, Optional, Any
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from pilottai.enums.task_e import TaskStatus, TaskPriority
 from pilottai.config.model import TaskResult
+from pilottai.core.base_task import BaseTask
 
 
-class Task(BaseModel):
+class Task(BaseTask):
     """
     Task class with improved status management.
     """

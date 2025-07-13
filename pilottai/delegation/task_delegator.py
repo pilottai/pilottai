@@ -150,7 +150,7 @@ class TaskDelegator:
             return 0.0
 
     def _get_similar_task_performance(self, agent_id: str, task: Dict) -> float:
-        """Calculate performance for similar tasks"""
+        """Calculate performance for similar task"""
         try:
             similar_tasks = [
                 entry for entry in self.delegation_history[agent_id]
@@ -239,7 +239,7 @@ class TaskDelegator:
             if not history:
                 return 0.5  # Default score for new agents
 
-            # Only consider recent history (last 100 tasks)
+            # Only consider recent history (last 100 task)
             recent_history = history[-100:]
             successes = sum(1 for result in recent_history
                           if result.get('status') == 'success')

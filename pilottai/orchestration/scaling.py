@@ -8,10 +8,10 @@ import psutil
 from aiohttp._websocket.reader_c import deque
 
 from pilottai.agent.agent import Agent
-from pilottai.core.task import Task
+from pilottai.task.task import Task
 from pilottai.enums.health_e import HealthStatus
 from pilottai.config.model import ScalingMetrics, AgentHealth
-from pilottai.config.config import FaultToleranceConfig, ScalingConfig
+from pilottai.core.base_config import FaultToleranceConfig, ScalingConfig
 
 
 class FaultTolerance:
@@ -126,7 +126,7 @@ class FaultTolerance:
                 metrics.get('memory_usage', 0)
             )
 
-            # Check stuck tasks
+            # Check stuck task
             stuck_tasks = await self._check_stuck_tasks(agent)
 
             # Get error count
@@ -198,7 +198,7 @@ class FaultTolerance:
                 if self._is_task_stuck(task):
                     stuck_tasks.append(task_id)
         except Exception as e:
-            self.logger.error(f"Error checking stuck tasks: {str(e)}")
+            self.logger.error(f"Error checking stuck task: {str(e)}")
         return stuck_tasks
 
     def _is_task_stuck(self, task: Dict) -> bool:
@@ -290,7 +290,7 @@ class FaultTolerance:
             if not new_agent:
                 raise Exception("Failed to create replacement agent")
 
-            # Move recoverable tasks
+            # Move recoverable task
             await self._transfer_tasks(agent, new_agent)
 
             # Remove old agent
@@ -308,7 +308,7 @@ class FaultTolerance:
             raise
 
     async def _transfer_tasks(self, old_agent, new_agent):
-        """Transfer recoverable tasks to new agent"""
+        """Transfer recoverable task to new agent"""
         try:
             recoverable_tasks = [
                 task for task in old_agent.tasks.values()
@@ -321,7 +321,7 @@ class FaultTolerance:
                 except Exception as e:
                     self.logger.error(f"Failed to transfer task {task['id']}: {str(e)}")
 
-            self.logger.info(f"Transferred {len(recoverable_tasks)} tasks to new agent")
+            self.logger.info(f"Transferred {len(recoverable_tasks)} task to new agent")
 
         except Exception as e:
             self.logger.error(f"Task transfer failed: {str(e)}")
@@ -358,20 +358,20 @@ class FaultTolerance:
             return False
 
     async def _check_task_progress(self, agent: Agent) -> bool:
-        """Check if agent is making progress on tasks"""
+        """Check if agent is making progress on task"""
         try:
             stuck_tasks = [task for task in agent.tasks.values()
                            if self._is_task_stuck(task)]
             progress_ok = len(stuck_tasks) == 0
             if not progress_ok:
-                self.logger.warning(f"Agent {agent.id} has {len(stuck_tasks)} stuck tasks")
+                self.logger.warning(f"Agent {agent.id} has {len(stuck_tasks)} stuck task")
             return progress_ok
         except Exception as e:
             self.logger.error(f"Task progress check failed for {agent.id}: {str(e)}")
             return False
 
     def _get_recoverable_tasks(self, agent: Agent) -> List[Task]:
-        """Get tasks that can be recovered"""
+        """Get task that can be recovered"""
         return [
             task for task in agent.tasks.values()
             if task['status'] in ['queued', 'in_progress']

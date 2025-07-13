@@ -3,7 +3,8 @@ import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
-from pilottai.core.task import Task, TaskResult
+from pilottai.config.model import TaskResult
+from pilottai.task.task import Task
 from pilottai.enums.task_e import TaskStatus, TaskPriority
 
 
