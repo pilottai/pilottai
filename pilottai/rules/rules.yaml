@@ -40,11 +40,10 @@ agent:
   step_planning: |
     Task: {task_description}
     Completed Steps: {completed_steps}
-    Tools: {available_tools}
     Last Result: {last_result}
 
   expected_result: |
-    Generate a JSON output in the following format. The "steps" array must include at least one `"action": "tool"` step and at least one `"action": "task"` step. Do not skip the task step.
+    Generate a JSON output in the following format. The "steps" array must include at least one `"action": "task"` step. Also if Tools exists then at least one `"action": "tool"` step. Do not skip the task step.
 
     {{
       "steps": [

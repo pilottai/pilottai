@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Dict, List, Optional, Union
 import asyncio
 import logging
@@ -35,7 +37,8 @@ class BaseAgent(ABC):
             memory_enabled: bool = True,
             reasoning: bool = False,
             feedback: bool = False,
-            depends_on=None
+            args: Optional[Dict] = None,
+            depends_on: Optional[Union[List[BaseAgent], BaseAgent]]=None
     ):
         # Basic Configuration
         # Required fields
@@ -44,6 +47,7 @@ class BaseAgent(ABC):
         self.goal = goal
         self.description = description
         self.tasks = self._verify_tasks(tasks)
+        self.args = args
 
         # Core configuration
         self.config = config if config else AgentConfig()
@@ -53,7 +57,7 @@ class BaseAgent(ABC):
         self.status = AgentStatus.IDLE
         self.current_task: Optional[Task] = None
         self._task_lock = asyncio.Lock()
-        self.depends_on = depends_on or []
+        self.depends_on = depends_on
 
         # Components
         self.tools = tools
@@ -83,7 +87,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    async def execute_task(self, task: Task) -> Optional[TaskResult]:
+    async def execute_task(self, task: Task, dependent_agent: Optional[Union[List[BaseAgent], BaseAgent]], args: Optional[Dict]=None) -> Optional[TaskResult]:
         """Execute a task with comprehensive planning and execution"""
         pass
 
