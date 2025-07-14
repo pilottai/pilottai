@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import re
 import uuid
 import json
 import asyncio
@@ -36,7 +39,8 @@ class Agent(BaseAgent):
         memory_enabled: bool = True,
         reasoning: bool = True,
         feedback: bool = False,
-        depends_on=None
+        args: Optional[Dict] = None,
+        depends_on: Optional[Union[List[Agent], Agent]] = None
     ):
         super().__init__(
             role=role,
@@ -51,6 +55,7 @@ class Agent(BaseAgent):
             memory_enabled=memory_enabled,
             reasoning=reasoning,
             feedback=feedback,
+            args=args,
             depends_on=depends_on
         )
 
@@ -61,6 +66,7 @@ class Agent(BaseAgent):
         self.goal = goal
         self.description = description
         self.tasks = self._verify_tasks(tasks)
+        self.args = args
 
         # Core configuration
         self.config = config if config else AgentConfig()
@@ -70,7 +76,7 @@ class Agent(BaseAgent):
         self.status = AgentStatus.IDLE
         self.current_task: Optional[Task] = None
         self._task_lock = asyncio.Lock()
-        self.depends_on = depends_on or []
+        self.depends_on = depends_on
 
         # Components
         self.tools = tools
@@ -97,6 +103,10 @@ class Agent(BaseAgent):
             raise RuntimeError(f"Agent '{self.role}' has not been executed yet.")
         return self._output
 
+    @output.setter
+    def output(self, value):
+        self._output = value
+
     def _verify_tasks(self, tasks):
         try:
             if isinstance(tasks, str):
@@ -114,7 +124,7 @@ class Agent(BaseAgent):
         results = []
         for task in self.tasks:
             try:
-                result = await self.execute_task(task)
+                result = await self.execute_task(task, dependent_agent=self.depends_on, args=self.args)
                 results.append(result)
             except Exception as e:
                 self.logger.error(f"Failed to execute task {task.id if hasattr(task, 'id') else 'unknown'}: {str(e)}")
@@ -127,10 +137,13 @@ class Agent(BaseAgent):
                 ))
         return results
 
-    async def execute_task(self, task: Task) -> Optional[TaskResult]:
+    async def execute_task(self, task: Task, dependent_agent: Optional[Union[List[Agent], Agent]]=None, args: Optional[Dict]=None) -> Optional[TaskResult]:
         """Execute a task with comprehensive planning and execution"""
         if not self.llm:
             raise ValueError("LLM configuration required for task execution")
+
+        if dependent_agent:
+            task = self._resolve_task_dependency(task, dependent_agent, args)
 
         start_time = datetime.now()
 
@@ -264,20 +277,23 @@ class Agent(BaseAgent):
 
             # Format available tools for template
             available_tools = []
-            for tool in self.tools:
-                available_tools.append({
-                    "name": tool.name,
-                    "description": tool.description,
-                    "parameters": tool.parameters
-                })
+            if self.tools:
+                for tool in self.tools:
+                    available_tools.append({
+                        "name": tool.name,
+                        "description": tool.description,
+                        "parameters": tool.parameters
+                    })
 
-            # Format the template with task and tools
             formatted_template = plan_template.format(
                 task_description=task,
-                available_tools=json.dumps(available_tools, indent=2),
-                completed_steps=[],  # Empty at the beginning
-                last_result=None  # None at the beginning
+                completed_steps=[],  # Start with no completed steps
+                last_result=None  # Start with no last result
             )
+
+            if available_tools:
+                available_tools_str = f"Tools: {json.dumps(available_tools, indent=2)}"
+                formatted_template += available_tools_str
 
             formatted_template += get_agent_rule('expected_result', 'agent', '')
 
@@ -360,7 +376,7 @@ class Agent(BaseAgent):
 
             return plan
 
-        except AgentExecutionError:
+        except AgentExecutionError as e:
             self.logger.error(f"Error creating execution plan: {str(e)}")
             # Fallback to simple execution
             return {
@@ -755,3 +771,50 @@ class Agent(BaseAgent):
 
         logger.setLevel(logging.DEBUG if self.config.verbose else logging.INFO)
         return logger
+
+    def _resolve_task_dependency(self, task, dependents=None, context: dict = None):
+        if task is None or task.description is None:
+            return task  # or raise an error if task must not be None
+
+        # Default context to empty dict if None
+        if context is None:
+            context = {}
+
+        # Step 1: Build agent name → output map
+        if dependents and isinstance(dependents, Agent):
+            agents = {dependents.role.lower().replace(" ", "_"): dependents}
+        elif dependents and isinstance(dependents, list):
+            agents = {
+                agent.role.lower().replace(" ", "_"): agent for agent in dependents
+            }
+        elif dependents is None:
+            agents = {}
+        else:
+            raise ValueError(f"Invalid type for dependents: {type(dependents)}")
+
+        # Step 2: Replace agent outputs
+        def replace_agent(match):
+            holder = match.group(1)
+            key = holder
+            value = 'output'
+            if "." in holder:
+                key, value = holder.split(".")
+            agent = agents.get(key)
+            if agent and hasattr(agent, "output"):
+                return str(agents[key].output.to_dict()[value])
+            return match.group(0)  # leave untouched
+
+        # Step 3: Replace context variables
+        def replace_context(match):
+            key = match.group(1)
+            if key in context:
+                return str(context[key])
+            return match.group(0)  # leave untouched
+
+        # First, replace agent outputs
+        description = re.sub(r"\{([a-zA-Z_][a-zA-Z0-9_]*)}", replace_agent, task.description)
+        # Then, replace user args/placeholders
+        description = re.sub(r"\{([a-zA-Z_][a-zA-Z0-9_]*)}", replace_context, description)
+
+        task.description = description
+        return task

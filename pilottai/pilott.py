@@ -207,11 +207,11 @@ class Pilott:
                 await task.mark_started(agent_id=agent.id)
 
                 # Execute the task through the agent
-                result = await agent.execute_task(task)
+                result = await agent.execute_task(task, dependent_agent=agent.depends_on, args=agent.args)
 
                 # Complete the task with the result
                 await task.mark_completed(result)
-
+                agent.output = result
                 results.append(result)
             except Exception as e:
                 self.logger.error(f"Task {task.id if hasattr(task, 'id') else 'unknown'} execution failed: {str(e)}")
@@ -294,7 +294,7 @@ class Pilott:
             for task in agent.tasks:
                 try:
                     await task.mark_started()
-                    result = await agent.execute_tasks()
+                    result = await agent.execute_task(task, agent.depends_on, args=agent.args)
                     await task.mark_completed(result)
                     all_results.append(result)
                 except Exception as e:
@@ -322,7 +322,7 @@ class Pilott:
             for task in tasks:
                 try:
                     await task.mark_started()
-                    result = await agent.execute_tasks()
+                    result = await agent.execute_task(task, agent.depends_on, args=agent.args)
                     await task.mark_completed(result)
                     results.append(result)
                 except Exception as e:
