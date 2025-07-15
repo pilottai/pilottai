@@ -1,0 +1,54 @@
+# Web Search Agent Example
+
+Simple example showing how to set up a web search agent with PilottAI framework.
+
+## Setup
+
+```bash
+pip install pilott
+```
+
+## Example Usage
+
+```python
+from pilottai import Serve
+from pilottai.core import AgentConfig, LLMConfig
+
+# Initialize
+pilott = Serve(name="WebSearchAgent")
+
+# Create agent
+search_agent = await pilott.add_agent(
+    role="web_searcher",
+    goal="Execute and analyze web searches effectively",
+    tools=["search_executor", "result_analyzer"]
+)
+
+# Execute search
+task = {
+    "type": "web_search",
+    "query": "latest AI developments 2024",
+    "search_type": "news",
+    "filters": {
+        "date_range": "last_month"
+    }
+}
+
+result = await pilott.execute([task])
+```
+
+## Tools
+
+- search_executor: Execute web searches
+- result_analyzer: Analyze search results
+
+## Features
+
+- Web searching
+- Result analysis
+- Filter management
+- Source credibility checking
+
+## Code
+
+Ready to use code [web_search.py](../../pilott/agents/web_search.py)
