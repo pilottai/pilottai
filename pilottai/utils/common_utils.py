@@ -4,6 +4,8 @@ import json
 import yaml
 from typing import Dict, List, Any, Optional
 from pathlib import Path
+from importlib.resources import files
+from pilottai import rules
 
 
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
@@ -74,10 +76,10 @@ def _get_package_root() -> Optional[Path]:
 def get_rules(rules_path: Optional[str] = None) -> Dict[str, Any]:
     """
     Load the rules.yaml file and return its contents.
-    Uses dynamic path discovery to find the rules file.
+    If no path is provided, it loads the rules.yaml bundled with the framework.
 
     Args:
-        rules_path: Optional custom path to the rules file
+        rules_path: Optional custom path to rules.yaml
 
     Returns:
         Dict containing the rules
@@ -85,59 +87,12 @@ def get_rules(rules_path: Optional[str] = None) -> Dict[str, Any]:
     if rules_path:
         return load_yaml_file(rules_path)
 
-    # Dynamic path discovery
-    paths_to_try = []
-
-    # Add custom path if provided
-    if rules_path:
-        paths_to_try.append(rules_path)
-
-    # Try to find project and package roots
-    project_root = _find_project_root()
-    package_root = _get_package_root()
-
-    # Build potential paths
-    if package_root:
-        paths_to_try.extend([
-            str(package_root / 'rules' / 'rules.yaml'),
-            str(package_root / 'rules.yaml')
-        ])
-
-    if project_root:
-        paths_to_try.extend([
-            str(project_root / 'rules' / 'rules.yaml'),
-            str(project_root / 'rules.yaml')
-        ])
-
-    # Add fallback paths relative to current working directory
-    paths_to_try.extend([
-        "rules/rules.yaml",
-        "rules.yaml",
-        # Common package names
-        "pilottai/rules/rules.yaml",
-        "pilott/rules/rules.yaml",
-        "src/rules/rules.yaml"
-    ])
-
-    # Try each path
-    for path in paths_to_try:
-        try:
-            if os.path.exists(path):
-                return load_yaml_file(path)
-        except (FileNotFoundError, yaml.YAMLError):
-            continue
-
-    # If all else fails, try to find any rules.yaml file recursively
-    if project_root:
-        for rules_file in project_root.rglob("rules.yaml"):
-            try:
-                return load_yaml_file(str(rules_file))
-            except (FileNotFoundError, yaml.YAMLError):
-                continue
-
-    raise FileNotFoundError(
-        f"Could not find rules.yaml file. Searched in: {paths_to_try}"
-    )
+    # Load rules.yaml from the framework package itself
+    try:
+        rule_file = files("pilottai.rules") / "rules.yaml"
+        return yaml.safe_load(rule_file.read_text(encoding="utf-8"))
+    except (FileNotFoundError, yaml.YAMLError) as e:
+        raise FileNotFoundError(f"Could not load internal rules.yaml: {e}")
 
 
 def get_rule_value(

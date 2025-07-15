@@ -52,7 +52,6 @@ nav:
 
 theme:
   name: material
-  custom_dir: docs/overrides
   features:
     - navigation.tabs
     - navigation.sections
@@ -100,6 +99,8 @@ plugins:
       minify_html: true
       minify_js: true
       minify_css: true
+  - autorefs:
+      link_titles: auto
 
 markdown_extensions:
   - admonition
