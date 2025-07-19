@@ -2,7 +2,7 @@ site_name: PilottAI Framework
 site_url: https://docs.pilottai.com
 site_description: A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent job processing.
 site_author: PilottAI Team
-repo_url: https://github.com/anuj0456/pilottai
+repo_url: https://github.com/pygig/pilottai
 repo_name: pilottai
 edit_uri: edit/main/docs/
 
@@ -128,7 +128,7 @@ markdown_extensions:
   - pymdownx.keys
   - pymdownx.magiclink:
       repo_url_shorthand: true
-      user: anuj0456
+      user: pygig
       repo: pilottai
   - pymdownx.mark
   - pymdownx.smartsymbols
@@ -149,7 +149,7 @@ extra:
     property: "G-KEG4R5ZZE1"
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/anuj0456/pilottai
+      link: https://github.com/pygig/pilottai
     - icon: fontawesome/brands/twitter
       link: https://twitter.com/pilott_ai
     - icon: fontawesome/brands/discord

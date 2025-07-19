@@ -303,7 +303,7 @@ const animateNumbers = () => {
 };
 
 // Fetch GitHub stars count - Updated to use configurable repository
-async function fetchGitHubStars(repository = 'anuj0456/pilottai') {
+async function fetchGitHubStars(repository = 'pygig/pilottai') {
     try {
         const response = await fetch(`https://api.github.com/repos/${repository}`);
 
@@ -415,5 +415,5 @@ if (!document.head.querySelector('style[data-responsive="true"]')) {
 document.addEventListener('DOMContentLoaded', function() {
     initWaveAnimation();
     animateNumbers();
-    fetchGitHubStars('anuj0456/pilottai'); // Use your actual repository name
+    fetchGitHubStars('pygig/pilottai'); // Use your actual repository name
 });
