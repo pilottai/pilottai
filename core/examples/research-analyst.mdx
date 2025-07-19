@@ -19,19 +19,19 @@ pilott = Serve(name="ResearchAnalyst")
 
 # Create agent
 research_agent = await pilott.add_agent(
-    role="research_analyst",
+    title="research_analyst",
     goal="Conduct thorough research and provide insights",
     tools=["data_analyzer", "research_synthesizer"]
 )
 
 # Analyze data
-task = {
+job = {
     "type": "analyze_data",
     "data_source": "market_survey_2024",
     "analysis_type": "trend_analysis"
 }
 
-result = await pilott.execute([task])
+result = await pilott.execute([job])
 ```
 
 ## Tools

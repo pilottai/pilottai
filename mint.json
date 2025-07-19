@@ -34,7 +34,7 @@
     {
       "name": "GitHub",
       "icon": "github",
-      "url": "https://github.com/anuj0456/pilottai"
+      "url": "https://github.com/pygig/pilottai"
     }
   ],
   "navigation": [
@@ -119,7 +119,7 @@
   ],
   "footerSocials": {
     "twitter": "https://twitter.com/pilott_ai",
-    "github": "https://github.com/anuj0456/pilottai",
+    "github": "https://github.com/pygig/pilottai",
     "discord": "https://discord.gg/pilottai"
   },
   "analytics": {

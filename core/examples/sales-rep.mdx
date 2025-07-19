@@ -19,13 +19,13 @@ pilott = Serve(name="SalesRepresentative")
 
 # Create agent
 sales_agent = await pilott.add_agent(
-    role="sales_representative",
+    title="sales_representative",
     goal="Manage leads and close sales effectively",
     tools=["lead_manager", "proposal_generator"]
 )
 
 # Manage lead
-task = {
+job = {
     "type": "manage_lead",
     "lead_id": "LEAD123",
     "action": "qualify",
@@ -35,7 +35,7 @@ task = {
     }
 }
 
-result = await pilott.execute([task])
+result = await pilott.execute([job])
 ```
 
 ## Tools

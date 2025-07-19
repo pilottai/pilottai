@@ -9,7 +9,7 @@
     <circle cx="100" cy="110" r="8" fill="#2563EB"/>
     <circle cx="140" cy="110" r="8" fill="#2563EB"/>
 
-    <!-- Task nodes -->
+    <!-- Job nodes -->
     <circle cx="40" cy="140" r="4" fill="#60A5FA"/>
     <circle cx="80" cy="140" r="4" fill="#60A5FA"/>
     <circle cx="120" cy="140" r="4" fill="#60A5FA"/>
@@ -20,7 +20,7 @@
     <line x1="100" y1="82" x2="100" y2="102" stroke="#3B82F6" stroke-width="2"/>
     <line x1="100" y1="82" x2="140" y2="102" stroke="#3B82F6" stroke-width="2"/>
 
-    <!-- Connection lines from workers to task -->
+    <!-- Connection lines from workers to job -->
     <line x1="60" y1="118" x2="40" y2="136" stroke="#3B82F6" stroke-width="1" opacity="0.6"/>
     <line x1="60" y1="118" x2="80" y2="136" stroke="#3B82F6" stroke-width="1" opacity="0.6"/>
     <line x1="100" y1="118" x2="80" y2="136" stroke="#3B82F6" stroke-width="1" opacity="0.6"/>
