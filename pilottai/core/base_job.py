@@ -4,20 +4,20 @@ from datetime import datetime
 from typing import Dict, Optional, Any
 from pydantic import BaseModel, Field
 
-from pilottai.enums.task_e import TaskStatus, TaskPriority
-from pilottai.config.model import TaskResult
+from pilottai.enums.job_e import JobStatus, JobPriority
+from pilottai.config.model import JobResult
 
 
-class BaseTask(BaseModel, ABC):
+class BaseJob(BaseModel, ABC):
     """
-    Abstract task class with improved status management.
+    Abstract job class with improved status management.
     """
     # Core attributes
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     agent_id: str = None
     description: str
-    status: TaskStatus = Field(default=TaskStatus.PENDING)
-    priority: TaskPriority = Field(default=TaskPriority.MEDIUM)
+    status: JobStatus = Field(default=JobStatus.PENDING)
+    priority: JobPriority = Field(default=JobPriority.MEDIUM)
 
     # Settings
     context: Dict[str, Any] = Field(default_factory=dict)
@@ -29,68 +29,68 @@ class BaseTask(BaseModel, ABC):
     completed_at: Optional[datetime] = None
 
     # Result
-    result: Optional[TaskResult] = None
+    result: Optional[JobResult] = None
 
     class Config:
         arbitrary_types_allowed = True
 
     @abstractmethod
     async def mark_started(self, agent_id: Optional[str] = None) -> None:
-        """Mark task as started with the specified agent"""
+        """Mark job as started with the specified agent"""
         pass
 
     @abstractmethod
-    async def mark_completed(self, result: TaskResult) -> None:
-        """Mark task as completed with the given result"""
+    async def mark_completed(self, result: JobResult) -> None:
+        """Mark job as completed with the given result"""
         pass
 
     @abstractmethod
-    async def mark_cancelled(self, reason: str = "Task cancelled") -> None:
-        """Mark task as cancelled"""
+    async def mark_cancelled(self, reason: str = "jon cancelled") -> None:
+        """Mark job as cancelled"""
         pass
 
     @property
     @abstractmethod
     def is_completed(self) -> bool:
-        """Check if task is completed"""
+        """Check if job is completed"""
         pass
 
     @property
     @abstractmethod
     def is_active(self) -> bool:
-        """Check if task is currently active"""
+        """Check if job is currently active"""
         pass
 
     @property
     @abstractmethod
     def can_retry(self) -> bool:
-        """Check if task can be retried"""
+        """Check if job can be retried"""
         pass
 
     @property
     @abstractmethod
     def is_expired(self) -> bool:
-        """Check if task has expired"""
+        """Check if job has expired"""
         pass
 
     @property
     @abstractmethod
     def duration(self) -> Optional[float]:
-        """Get task duration in seconds"""
+        """Get job duration in seconds"""
         pass
 
     @abstractmethod
     def to_dict(self) -> Dict[str, Any]:
-        """Convert task to dictionary"""
+        """Convert job to dictionary"""
         pass
 
     @abstractmethod
-    def copy(self, **kwargs) -> 'BaseTask':
-        """Create a copy of the task with optional updates"""
+    def copy(self, **kwargs) -> 'BaseJob':
+        """Create a copy of the job with optional updates"""
         pass
 
     @classmethod
     @abstractmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'BaseTask':
-        """Create task from dictionary"""
+    def from_dict(cls, data: Dict[str, Any]) -> 'BaseJob':
+        """Create job from dictionary"""
         pass

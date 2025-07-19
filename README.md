@@ -2,9 +2,9 @@
 
 <div align="center" style="margin-top: 20px;">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/anuj0456/pilottai/main/docs/assets/logo.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/anuj0456/pilottai/main/docs/assets/logo.svg">
-    <img alt="PilottAI Framework Logo" src="https://raw.githubusercontent.com/anuj0456/pilottai/main/docs/assets/logo.svg" width="500">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/pygig/pilottai/main/docs/assets/logo.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/pygig/pilottai/main/docs/assets/logo.svg">
+    <img alt="PilottAI Framework Logo" src="https://raw.githubusercontent.com/pygig/pilottai/main/docs/assets/logo.svg" width="500">
   </picture>
   <h3>Build Intelligent Multi-Agent Systems with Python</h3>
   <p><em>Scale your AI applications with orchestrated autonomous agents</em></p>
@@ -25,7 +25,7 @@ PilottAI is a Python framework for building autonomous multi-agent systems with 
 
 - 🤖 **Hierarchical Agent System**
   - Manager and worker agent hierarchies
-  - Intelligent task routing
+  - Intelligent job routing
   - Context-aware processing
   - Specialized agent implementations
 
@@ -38,7 +38,7 @@ PilottAI is a Python framework for building autonomous multi-agent systems with 
 
 - 🧠 **Advanced Memory**
   - Semantic storage
-  - Task history tracking
+  - Job history tracking
   - Context preservation
   - Knowledge retrieval
 
@@ -58,7 +58,7 @@ pip install pilottai
 
 ```python
 from pilottai import Pilott
-from pilottai.core import AgentConfig, AgentRole, LLMConfig
+from pilottai.core import AgentConfig, AgentType, LLMConfig
 
 # Configure LLM
 llm_config = LLMConfig(
@@ -69,8 +69,8 @@ llm_config = LLMConfig(
 
 # Setup agent configuration
 config = AgentConfig(
-  role="processor",
-  role_type=AgentRole.WORKER,
+  title="processor",
+  agent_type=AgentType.WORKER,
   goal="Process documents efficiently",
   description="Document processing worker",
   max_queue_size=100
@@ -93,7 +93,7 @@ async def main():
     )
 
     # Process document
-    result = await pilott.execute_task({
+    result = await pilott.execute_job({
       "type": "process_document",
       "file_path": "document.pdf"
     })
@@ -137,7 +137,7 @@ Visit our [documentation](https://pilottai.readthedocs.io) for:
 - 📄 **Document Processing**
   ```python
   # Process PDF documents
-  result = await pilott.execute_task({
+  result = await pilott.execute_job({
       "type": "process_pdf",
       "file_path": "document.pdf"
   })
@@ -152,10 +152,10 @@ Visit our [documentation](https://pilottai.readthedocs.io) for:
   )
   ```
 
-- 🔄 **Task Orchestration**
+- 🔄 **Job Orchestration**
   ```python
   # Orchestrate complex workflows
-  task_result = await manager_agent.execute_task({
+  job_result = await manager_agent.execute_job({
       "type": "complex_workflow",
       "steps": ["extract", "analyze", "summarize"]
   })

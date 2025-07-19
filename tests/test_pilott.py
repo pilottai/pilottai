@@ -6,10 +6,10 @@ import pytest_asyncio
 from pilottai import Pilott
 from pilottai.agent import Agent
 from pilottai.core.base_config import LLMConfig
-from pilottai.config.model import TaskResult
-from pilottai.task.task import Task
+from pilottai.config.model import JobResult
+from pilottai.job.job import Job
 from pilottai.enums.process_e import ProcessType
-from pilottai.enums.task_e import TaskPriority, TaskAssignmentType
+from pilottai.enums.job_e import JobPriority, JobAssignmentType
 
 
 @pytest.fixture
@@ -28,22 +28,22 @@ async def mock_agent():
     agent = Mock(spec=Agent)
     agent.id = "test_agent"
     agent.status = "idle"
-    agent.tasks = []
-    agent.role = "test_role"
+    agent.jobs = []
+    agent.title = "test_title"
     agent.goal = "test goal"
     agent.description = "test description"
 
     # Create success result
-    success_result = TaskResult(
+    success_result = JobResult(
         success=True,
         output="Test result",
         execution_time=0.1,
         error=None,
         metadata={}
     )
-    agent.execute_task = AsyncMock(return_value=success_result)
-    agent.execute_tasks = AsyncMock(return_value=[success_result])
-    agent.evaluate_task_suitability = AsyncMock(return_value=0.8)
+    agent.execute_job = AsyncMock(return_value=success_result)
+    agent.execute_jobs = AsyncMock(return_value=[success_result])
+    agent.evaluate_job_suitability = AsyncMock(return_value=0.8)
     agent.start = AsyncMock()
     agent.stop = AsyncMock()
     return agent
@@ -57,21 +57,21 @@ async def mock_agents(mock_agent):
         agent = Mock(spec=Agent)
         agent.id = f"agent_{i}"
         agent.status = "idle"
-        agent.tasks = []
-        agent.role = f"role_{i}"
+        agent.jobs = []
+        agent.title = f"title_{i}"
         agent.goal = f"goal_{i}"
         agent.description = f"description_{i}"
 
-        success_result = TaskResult(
+        success_result = JobResult(
             success=True,
             output=f"Result from agent_{i}",
             execution_time=0.1,
             error=None,
             metadata={}
         )
-        agent.execute_task = AsyncMock(return_value=success_result)
-        agent.execute_tasks = AsyncMock(return_value=[success_result])
-        agent.evaluate_task_suitability = AsyncMock(return_value=0.7 + (i * 0.1))
+        agent.execute_job = AsyncMock(return_value=success_result)
+        agent.execute_jobs = AsyncMock(return_value=[success_result])
+        agent.evaluate_job_suitability = AsyncMock(return_value=0.7 + (i * 0.1))
         agent.start = AsyncMock()
         agent.stop = AsyncMock()
         agents.append(agent)
@@ -102,13 +102,13 @@ class TestPilott:
         """Test initialization with custom config"""
         config = {
             "process_type": ProcessType.PARALLEL,
-            "max_concurrent_tasks": 10,
+            "max_concurrent_jobs": 10,
             "memory_enabled": False
         }
         pilott = Pilott(name="TestPilott", config=config, llm_config=llm_config)
         assert pilott.config.name == "TestPilott"
         assert pilott.config.process_type == ProcessType.PARALLEL
-        assert pilott.config.max_concurrent_tasks == 10
+        assert pilott.config.max_concurrent_jobs == 10
         assert not pilott.config.memory_enabled
         assert pilott.llm is not None
 
@@ -128,18 +128,18 @@ class TestPilott:
 
     @pytest.mark.asyncio
     async def test_serve_sequential(self, pilott, mock_agents):
-        """Test sequential task execution with serve method"""
+        """Test sequential job execution with serve method"""
         pilott.config.process_type = ProcessType.SEQUENTIAL
         pilott.agents = mock_agents
 
-        # Create test task
-        test_task = Task(description="Test task")
-        mock_agents[0].tasks = [test_task]
+        # Create test job
+        test_job = Job(description="Test job")
+        mock_agents[0].jobs = [test_job]
 
         # Mock _execute_sequential to bypass implementation details
         with patch.object(pilott, '_execute_sequential') as mock_execute:
             expected_result = [
-                TaskResult(
+                JobResult(
                     success=True,
                     output="Test result",
                     execution_time=0.1,
@@ -158,19 +158,19 @@ class TestPilott:
 
     @pytest.mark.asyncio
     async def test_serve_parallel(self, pilott, mock_agents):
-        """Test parallel task execution with serve method"""
+        """Test parallel job execution with serve method"""
         pilott.config.process_type = ProcessType.PARALLEL
         pilott.agents = mock_agents
 
-        # Create test task for all agents
+        # Create test job for all agents
         for i, agent in enumerate(mock_agents):
-            task = Task(description=f"Task for agent {i}")
-            agent.tasks = [task]
+            job = Job(description=f"Job for agent {i}")
+            agent.jobs = [job]
 
         # Mock _execute_parallel to bypass implementation details
         with patch.object(pilott, '_execute_parallel') as mock_execute:
             expected_result = [
-                TaskResult(
+                JobResult(
                     success=True,
                     output=f"Result from agent_{i}",
                     execution_time=0.1,
@@ -188,47 +188,47 @@ class TestPilott:
             assert results == expected_result
 
     @pytest.mark.asyncio
-    async def test_assign_tasks_to_agents(self, pilott, mock_agents):
-        """Test task assignment to agents"""
+    async def test_assign_jobs_to_agents(self, pilott, mock_agents):
+        """Test job assignment to agents"""
         pilott.agents = mock_agents
-        pilott.task_assignment_type = TaskAssignmentType.SUITABILITY
+        pilott.job_assignment_type = JobAssignmentType.SUITABILITY
 
-        # Create task
-        task = Task(description="Task 1", priority=TaskPriority.HIGH)
+        # Create job
+        job = Job(description="Job 1", priority=JobPriority.HIGH)
 
         # Setup mocked agent utility
         mock_agent_util = Mock()
-        mock_agent_util.assign_task = AsyncMock()
+        mock_agent_util.assign_job = AsyncMock()
         # Since we're awaiting the coroutine in the method, return a pre-awaited result
-        mock_agent_util.assign_task.return_value = (mock_agents[0], 0.9)
+        mock_agent_util.assign_job.return_value = (mock_agents[0], 0.9)
 
         pilott.agentUtility = mock_agent_util
 
-        # Patch _get_agent_by_task to return a specific agent
-        with patch.object(pilott, '_get_agent_by_task', return_value=mock_agents[0]):
+        # Patch _get_agent_by_job to return a specific agent
+        with patch.object(pilott, '_get_agent_by_job', return_value=mock_agents[0]):
             await pilott.start()
 
             # Call the method directly
-            agent = await pilott._get_agent_by_task(task, mock_agents)
+            agent = await pilott._get_agent_by_job(job, mock_agents)
 
             # Verify we got the expected agent
             assert agent == mock_agents[0]
 
     @pytest.mark.asyncio
     async def test_error_handling(self, pilott, mock_agent):
-        """Test error handling during task execution"""
+        """Test error handling during job execution"""
         pilott.agents = [mock_agent]
 
         # Configure agent to raise an exception
-        mock_agent.execute_task = AsyncMock(side_effect=ValueError("Test error"))
+        mock_agent.execute_job = AsyncMock(side_effect=ValueError("Test error"))
 
-        # Create test task
-        test_task = Task(description="Error task")
-        mock_agent.tasks = [test_task]
+        # Create test job
+        test_job = Job(description="Error job")
+        mock_agent.jobs = [test_job]
 
-        # Mock _process_agent_tasks to simulate error handling
-        with patch.object(pilott, '_process_agent_tasks') as mock_process:
-            error_result = TaskResult(
+        # Mock _process_agent_jobs to simulate error handling
+        with patch.object(pilott, '_process_agent_jobs') as mock_process:
+            error_result = JobResult(
                 success=False,
                 output=None,
                 error="Test error",
@@ -250,12 +250,12 @@ class TestPilott:
         """Test getting system metrics"""
         # Use an explicit list of agents
         pilott.agents = []
-        pilott.tasks = []
+        pilott.jobs = []
 
         metrics = pilott.get_metrics()
 
         assert "active_agents" in metrics
         assert metrics["active_agents"] == 0
-        assert "total_tasks" in metrics
-        assert metrics["total_tasks"] == 0
+        assert "total_jobs" in metrics
+        assert metrics["total_jobs"] == 0
         assert "is_running" in metrics

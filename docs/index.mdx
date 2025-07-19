@@ -1,10 +1,10 @@
 # PilottAI Framework
 
-Build scalable multi-agent systems with powerful orchestration, LLM integration, and task processing capabilities.
+Build scalable multi-agent systems with powerful orchestration, LLM integration, and job processing capabilities.
 
 <div class="cta-buttons">
 <a href="getting-started/installation/" class="md-button md-button--primary">Get Started</a>
-<a href="https://github.com/anuj0456/pilottai" class="md-button">GitHub</a>
+<a href="https://github.com/pygig/pilottai" class="md-button">GitHub</a>
 </div>
 
 ## What is PilottAI?
@@ -17,7 +17,7 @@ PilottAI is a Python framework for building autonomous multi-agent systems with 
 <h3>Hierarchical Agent System</h3>
 <ul class="feature-list">
 <li>Manager and worker agent hierarchies</li>
-<li>Intelligent task routing</li>
+<li>Intelligent job routing</li>
 <li>Context-aware processing</li>
 <li>Specialized agent implementations</li>
 </ul>
@@ -40,7 +40,7 @@ PilottAI is a Python framework for building autonomous multi-agent systems with 
 <h3>Advanced Memory</h3>
 <ul class="feature-list">
 <li>Semantic storage</li>
-<li>Task history tracking</li>
+<li>Job history tracking</li>
 <li>Context preservation</li>
 <li>Knowledge retrieval</li>
 </ul>
@@ -68,7 +68,7 @@ pip install pilottai
 
 ```python
 from pilottai import Serve
-from pilottai.core import AgentConfig, AgentRole, LLMConfig
+from pilottai.core import AgentConfig, AgentType, LLMConfig
 
 # Configure LLM
 llm_config = LLMConfig(
@@ -79,8 +79,8 @@ llm_config = LLMConfig(
 
 # Setup agent configuration
 config = AgentConfig(
-    role="processor",
-    role_type=AgentRole.WORKER,
+    title="processor",
+    agent_type=AgentType.WORKER,
     goal="Process documents efficiently",
     description="Document processing worker"
 )
@@ -101,7 +101,7 @@ async def main():
         )
 
         # Process document
-        result = await pilott.execute_task({
+        result = await pilott.execute_job({
             "type": "process_document",
             "file_path": "document.pdf"
         })
@@ -176,18 +176,18 @@ if __name__ == "__main__":
 
 ## Architecture
 
-PilottAI is built around a core orchestration system that manages agents, tasks, and memory.
+PilottAI is built around a core orchestration system that manages agents, jobs, and memory.
 
 ```mermaid
 graph TD
     A[Serve Orchestrator] --> B[Agent Management]
-    A --> C[Task Orchestration]
+    A --> C[Job Orchestration]
     A --> D[Memory System]
     A --> E[Load Balancing]
     A --> F[Fault Tolerance]
 
     B --> G[Specialized Agents]
-    C --> H[Task Queue]
+    C --> H[Job Queue]
     C --> I[Priority Management]
     D --> J[Enhanced Memory]
     E --> K[Dynamic Scaling]

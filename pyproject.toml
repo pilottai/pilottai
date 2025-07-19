@@ -1,49 +1,49 @@
 [tool.poetry]
-name = "pilottai"
-version = "v0.2.2"
-description = "A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent task processing. Features dynamic scaling, fault tolerance, and advanced load balancing."
-authors = ["Anuj Gupta <anuj@pilottai.com>"]
-readme = "README.md"
+name        = "pilottai"
+version     = "v0.2.2"
+description = "A for building scalable multi-agent systems with built-in orchestration,LLM integration, and intelligent job processing."
+authors     = ["Anuj Gupta <anuj@pilottai.com>"]
+readme      = "README.md"
 
 [tool.poetry.urls]
-Homepage = "https://pilottai.com"
+Homepage    = "https://pilottai.com"
+Docs        = "https://docs.pilottai.com"
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
-pydantic = "^2.7.1"
-pydantic-settings = "^2.2.1"
-psutil = "^6.1.1"
-litellm = "^1.59.8"
-langchain-openai = "^0.3.2"
-cryptography = "^44.0.1"
-numpy = "^2.2.4"
-pandas = "^2.2.3"
-markdown = "^3.7"
+python              = ">=3.10,<4.0"
+pydantic            = "^2.7.1"
+pydantic-settings   = "^2.2.1"
+psutil              = "^7.0.0"
+litellm             = "^1.74.6"
+cryptography        = "^45.0.5"
+numpy               = "^2.2.6"
+pandas              = "^2.2.3"
+markdown            = "^3.7"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.3.4"
-pytest-asyncio = "^0.25.2"
-pytest-cov = "^4.1.0"
-tk = "^0.1.0"
-openai = "^1.30.2"
+pytest              = "^8.3.4"
+pytest-asyncio      = "^0.25.2"
+pytest-cov          = "^4.1.0"
+tk                  = "^0.1.0"
+openai              = "^1.30.2"
 
 [tool.poetry.group.docs.dependencies]
-mkdocstrings = "^0.25.1"
-mkdocs-material = "^9.5.24"
+mkdocstrings        = "^0.25.1"
+mkdocs-material     = "^9.5.24"
 mkdocstrings-python = "^1.10.3"
-mkdocs = "^1.6.0"
-pymdown-extensions = "^10.16"
+mkdocs              = "^1.6.0"
+pymdown-extensions  = "^10.16"
 mkdocs-git-revision-date-localized-plugin = "^1.4.7"
 mkdocs-minify-plugin = "^0.8.0"
 
 [tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "pep440"
+enable  = true
+vcs     = "git"
+style   = "pep440"
 pattern = "^v?(?P<base>\\d+(\\.\\d+){1,4})$"
 
 [tool.setuptools.package-data]

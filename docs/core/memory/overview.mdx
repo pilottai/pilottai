@@ -1,15 +1,15 @@
 # Memory System
 
-The PilottAI Memory System provides robust storage and retrieval capabilities for agents, enabling context preservation, knowledge persistence, and task history tracking.
+The PilottAI Memory System provides robust storage and retrieval capabilities for agents, enabling context preservation, knowledge persistence, and job history tracking.
 
 ## Overview
 
 The Memory System is designed to:
 
-- Maintain task execution history
+- Maintain job execution history
 - Store and retrieve semantic information
 - Track agent interactions
-- Provide context for future tasks
+- Provide context for future jobs
 - Support search and similarity matching
 
 ## Memory Architecture
@@ -19,14 +19,14 @@ PilottAI implements a layered memory architecture:
 ```mermaid
 graph TD
     A[Agent Memory] --> B[Core Memory System]
-    B --> C[Task Memory]
+    B --> C[Job Memory]
     B --> D[Semantic Memory]
     B --> E[Interaction Memory]
     B --> F[Pattern Memory]
 
-    C --> G[Task History]
-    C --> H[Task Context]
-    C --> I[Task Results]
+    C --> G[Job History]
+    C --> H[Job Context]
+    C --> I[Job Results]
 
     D --> J[Knowledge Store]
     D --> K[Semantic Search]
@@ -50,47 +50,47 @@ from pilottai.core import Memory
 memory = Memory()
 ```
 
-### Storing Task Information
+### Storing Job Information
 
 ```python
-# Store task start
-await memory.store_task_start(
-    task_id="task-123",
+# Store job start
+await memory.store_job_start(
+    job_id="job-123",
     description="Analyze sales data",
     agent_id="agent-456",
     context={"data_source": "sales_2023.csv"}
 )
 
-# Store task result
-await memory.store_task_result(
-    task_id="task-123",
+# Store job result
+await memory.store_job_result(
+    job_id="job-123",
     result={"insights": ["Sales increased by 20%", "Q4 was strongest"]},
     success=True,
     execution_time=2.5,
     agent_id="agent-456"
 )
 
-# Store task context
-await memory.store_task_context(
-    task_id="task-123",
+# Store job context
+await memory.store_job_context(
+    job_id="job-123",
     context={"additional_data": "competitor_analysis.csv"},
     context_type="data_source",
     agent_id="agent-456"
 )
 ```
 
-### Retrieving Task History
+### Retrieving Job History
 
 ```python
-# Get complete history for a task
-task_history = await memory.get_task_history(
-    task_id="task-123",
+# Get complete history for a job
+job_history = await memory.get_job_history(
+    job_id="job-123",
     include_context=True
 )
 
-# Get task result
-task_result = await memory.get_task_result(
-    task_id="task-123"
+# Get job result
+job_result = await memory.get_job_result(
+    job_id="job-123"
 )
 ```
 
@@ -150,20 +150,20 @@ results = await enhanced_memory.semantic_search(
 )
 ```
 
-## Task Memory
+## Job Memory
 
-Task memory stores the complete history of task execution:
+Job memory stores the complete history of job execution:
 
 ```python
-# Build comprehensive task context
-task_context = await memory.build_task_context(
-    task_description="Analyze Q1 2024 sales data",
+# Build comprehensive job context
+job_context = await memory.build_job_context(
+    job_description="Analyze Q1 2024 sales data",
     agent_id="agent-456"
 )
 
-# Find similar tasks
-similar_tasks = await memory.get_similar_tasks(
-    task_description="Analyze sales performance",
+# Find similar jobs
+similar_jobs = await memory.get_similar_jobs(
+    job_description="Analyze sales performance",
     limit=3
 )
 ```
@@ -189,12 +189,12 @@ Each memory entry contains:
 ```python
 class MemoryEntry(BaseModel):
     text: str
-    entry_type: str  # 'task', 'context', 'result', etc.
+    entry_type: str  # 'job', 'context', 'result', etc.
     metadata: Dict[str, Any]
     timestamp: datetime
     tags: Set[str]
     priority: int
-    task_id: Optional[str]
+    job_id: Optional[str]
     agent_id: Optional[str]
 ```
 
@@ -202,7 +202,7 @@ class MemoryEntry(BaseModel):
 
 The memory system maintains several indices for efficient retrieval:
 
-- **Task Index**: Maps task IDs to related entries
+- **Job Index**: Maps job IDs to related entries
 - **Agent Index**: Maps agent IDs to related entries
 - **Tag Index**: Maps tags to related entries
 - **Timestamp Index**: Organizes entries chronologically
@@ -256,20 +256,20 @@ await enhanced_memory.store_interaction(
     interaction_type="delegation",
     data={
         "target_agent": "agent-456",
-        "task_id": "task-789",
+        "job_id": "job-789",
         "result": "success"
     }
 )
 ```
 
-### Task Context Building
+### Job Context Building
 
-Build rich context for new tasks based on history:
+Build rich context for new jobs based on history:
 
 ```python
-# Build task context with similar tasks and agent history
-context = await memory.build_task_context(
-    task_description="Analyze customer churn for Q1 2024",
+# Build job context with similar jobs and agent history
+context = await memory.build_job_context(
+    job_description="Analyze customer churn for Q1 2024",
     agent_id="agent-123"
 )
 ```
@@ -309,13 +309,13 @@ async def memory_example():
     try:
         # Add agents
         researcher = await pilott.add_agent(
-            role="researcher",
+            title="researcher",
             goal="Gather information",
             llm_config=llm_config
         )
 
         analyst = await pilott.add_agent(
-            role="analyst",
+            title="analyst",
             goal="Analyze information",
             llm_config=llm_config
         )
@@ -327,7 +327,7 @@ async def memory_example():
             tags={"economics", "gdp", "us"}
         )
 
-        # Execute research task
+        # Execute research job
         research_result = await pilott.execute([{
             "type": "research",
             "description": "Research US economic growth",
@@ -341,7 +341,7 @@ async def memory_example():
             tags={"analysis", "economics", "correlation"}
         )
 
-        # Execute analysis task using context from previous research
+        # Execute analysis job using context from previous research
         analysis_result = await pilott.execute([{
             "type": "analyze",
             "description": "Analyze impact of GDP growth on employment",

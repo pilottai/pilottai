@@ -19,13 +19,13 @@ pilott = Serve(name="WebSearchAgent")
 
 # Create agent
 search_agent = await pilott.add_agent(
-    role="web_searcher",
+    title="web_searcher",
     goal="Execute and analyze web searches effectively",
     tools=["search_executor", "result_analyzer"]
 )
 
 # Execute search
-task = {
+job = {
     "type": "web_search",
     "query": "latest AI developments 2024",
     "search_type": "news",
@@ -34,7 +34,7 @@ task = {
     }
 }
 
-result = await pilott.execute([task])
+result = await pilott.execute([job])
 ```
 
 ## Tools

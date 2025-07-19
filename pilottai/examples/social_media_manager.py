@@ -39,14 +39,14 @@ async def main():
 
     # Create social media agent
     social_agent = await pilott.add_agent(
-        role="social_media_manager",
+        title="social_media_manager",
         goal="Manage social media presence and engagement",
         tools=[content_scheduler, engagement_analyzer],
         llm_config=llm_config
     )
 
-    # Example task
-    tasks = [
+    # Example job
+    jobs = [
         {
             "type": "schedule_content",
             "platform": "twitter",
@@ -61,10 +61,10 @@ async def main():
         }
     ]
 
-    # Execute task
-    results = await pilott.execute(tasks)
-    for task, result in zip(tasks, results):
-        print(f"Task type: {task['type']}")
+    # Execute job
+    results = await pilott.serve(jobs)
+    for job, result in zip(jobs, results):
+        print(f"Job type: {job['type']}")
         print(f"Result: {result.output}\n")
 
 if __name__ == "__main__":

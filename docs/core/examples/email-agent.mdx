@@ -19,19 +19,19 @@ pilott = Serve(name="EmailAgent")
 
 # Create agent
 email_agent = await pilott.add_agent(
-    role="email_manager",
+    title="email_manager",
     goal="Handle email communications",
     tools=["email_sender", "email_analyzer"]
 )
 
 # Send email
-task = {
+job = {
     "type": "send_email",
     "template": "welcome",
     "recipient": "user@example.com"
 }
 
-result = await pilott.execute([task])
+result = await pilott.execute([job])
 ```
 
 ## Tools

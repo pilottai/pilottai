@@ -37,14 +37,14 @@ async def main():
 
     # Create learning agent
     await pilott.add_agent(
-        role="learner",
+        title="learner",
         goal="Acquire and organize knowledge effectively",
         tools=[knowledge_base, pattern_recognizer],
         llm_config=llm_config
     )
 
-    # Example task
-    tasks = [
+    # Example job
+    jobs = [
         {
             "type": "learn_topic",
             "content": "Introduction to Machine Learning",
@@ -57,10 +57,10 @@ async def main():
         }
     ]
 
-    # Execute task
-    results = await pilott.execute(tasks)
-    for task, result in zip(tasks, results):
-        print(f"Task type: {task['type']}")
+    # Execute job
+    results = await pilott.serve(jobs)
+    for job, result in zip(jobs, results):
+        print(f"Job type: {job['type']}")
         print(f"Result: {result.output}\n")
 
 if __name__ == "__main__":

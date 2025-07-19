@@ -37,14 +37,14 @@ async def main():
 
     # Create research analyst agent
     research_agent = await pilott.add_agent(
-        role="research_analyst",
+        title="research_analyst",
         goal="Conduct thorough research and provide insights",
         tools=[data_analyzer, research_synthesizer],
         llm_config=llm_config
     )
 
-    # Example task
-    tasks = [
+    # Example job
+    jobs = [
         {
             "type": "analyze_data",
             "data_source": "market_survey_2024",
@@ -58,10 +58,10 @@ async def main():
         }
     ]
 
-    # Execute task
-    results = await pilott.execute(tasks)
-    for task, result in zip(tasks, results):
-        print(f"Task type: {task['type']}")
+    # Execute job
+    results = await pilott.serve(jobs)
+    for job, result in zip(jobs, results):
+        print(f"Job type: {job['type']}")
         print(f"Result: {result.output}\n")
 
 if __name__ == "__main__":

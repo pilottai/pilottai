@@ -138,7 +138,7 @@ def get_agent_rule(
     Get a specific rule for an agent.
 
     Args:
-        rule_type: Type of rule to get (e.g., "system.base", "task_analysis")
+        rule_type: Type of rule to get (e.g., "system.base", "job_analysis")
         agent_type: Type of agent (defaults to "agent" if None)
         default: Default value to return if the rule doesn't exist
 
@@ -158,7 +158,7 @@ def get_prompt_template(
     Get a prompt template from the rules.
 
     Args:
-        prompt_type: Type of prompt to get (e.g., "task_analysis", "system")
+        prompt_type: Type of prompt to get (e.g., "job_analysis", "system")
         agent_type: Type of agent (defaults to "agent" if None)
 
     Returns:
@@ -227,7 +227,7 @@ def get_all_agent_types() -> List[str]:
 
 
 def format_system_prompt(
-        agent_role: str,
+        agent_title: str,
         agent_goal: str,
         agent_description: Optional[str] = None,
         agent_type: Optional[str] = None
@@ -236,7 +236,7 @@ def format_system_prompt(
     Format the system prompt for an agent.
 
     Args:
-        agent_role: Role of the agent
+        agent_title: Title of the agent
         agent_goal: Goal of the agent
         agent_description: Optional description for the agent
         agent_type: Type of agent (defaults to "agent" if None)
@@ -247,11 +247,11 @@ def format_system_prompt(
     template = get_agent_rule(
         "system.base",
         agent_type,
-        "You are an AI agent with:\nRole: {role}\nGoal: {goal}\nDescription: {description}"
+        "You are an AI agent with:\nTitle: {title}\nGoal: {goal}\nDescription: {description}"
     )
 
     return format_prompt(template, {
-        "role": agent_role,
+        "title": agent_title,
         "goal": agent_goal,
         "description": agent_description or "No specific description provided."
     })

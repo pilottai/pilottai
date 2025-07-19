@@ -10,14 +10,14 @@ from typing import Dict, List, Optional, Union
 
 from pilottai.core.base_agent import BaseAgent
 from pilottai.core.base_config import AgentConfig, LLMConfig
-from pilottai.config.model import TaskResult
-from pilottai.task.task import Task
+from pilottai.config.model import JobResult
+from pilottai.job.job import Job
 from pilottai.enums.agent_e import AgentStatus
 from pilottai.memory.memory import Memory
 from pilottai.engine.llm import LLMHandler
 from pilottai.tools.tool import Tool
 from pilottai.utils.excpetions.agent import AgentExecutionError
-from pilottai.utils.task_utils import TaskUtility
+from pilottai.utils.job_utils import JobUtility
 from pilottai.utils.common_utils import format_system_prompt, get_agent_rule, extract_json_from_response
 
 
@@ -27,10 +27,10 @@ class Agent(BaseAgent):
     """
     def __init__(
         self,
-        role: str,
+        title: str,
         goal: str,
         description: str,
-        tasks: Union[str, Task, List[str], List[Task]],
+        jobs: Union[str, Job, List[str], List[Job]],
         tools: Optional[List[Tool]] = None,
         config: Optional[AgentConfig] = None,
         llm_config: Optional[LLMConfig] = None,
@@ -43,10 +43,10 @@ class Agent(BaseAgent):
         depends_on: Optional[Union[List[Agent], Agent]] = None
     ):
         super().__init__(
-            role=role,
+            title=title,
             goal=goal,
             description=description,
-            tasks=tasks,
+            jobs=jobs,
             tools=tools,
             config=config,
             llm_config=llm_config,
@@ -62,10 +62,10 @@ class Agent(BaseAgent):
         # Basic Configuration
         # Required fields
         self.id = str(uuid.uuid4())
-        self.role = role
+        self.title = title
         self.goal = goal
         self.description = description
-        self.tasks = self._verify_tasks(tasks)
+        self.jobs = self._verify_jobs(jobs)
         self.args = args
 
         # Core configuration
@@ -74,8 +74,8 @@ class Agent(BaseAgent):
 
         # State management
         self.status = AgentStatus.IDLE
-        self.current_task: Optional[Task] = None
-        self._task_lock = asyncio.Lock()
+        self.current_jon: Optional[Job] = None
+        self._job_lock = asyncio.Lock()
         self.depends_on = depends_on
 
         # Components
@@ -89,7 +89,7 @@ class Agent(BaseAgent):
         self.output_sample = output_sample
         self.reasoning = reasoning
 
-        self.system_prompt = format_system_prompt(role, goal, description)
+        self.system_prompt = format_system_prompt(title, goal, description)
 
         # HITL
         self.feedback = feedback
@@ -100,35 +100,35 @@ class Agent(BaseAgent):
     @property
     def output(self):
         if self._output is None:
-            raise RuntimeError(f"Agent '{self.role}' has not been executed yet.")
+            raise RuntimeError(f"Agent '{self.title}' has not been executed yet.")
         return self._output
 
     @output.setter
     def output(self, value):
         self._output = value
 
-    def _verify_tasks(self, tasks):
+    def _verify_jobs(self, jobs):
         try:
-            if isinstance(tasks, str):
-                tasks_obj = TaskUtility.to_task_list(tasks)
-            elif all(isinstance(t, (str, Task)) for t in tasks):
-                tasks_obj = TaskUtility.to_task_list(tasks)
+            if isinstance(jobs, str):
+                jobs_obj = JobUtility.to_job_list(jobs)
+            elif all(isinstance(t, (str, Job)) for t in jobs):
+                jobs_obj = JobUtility.to_job_list(jobs)
             else:
-                tasks_obj = tasks
+                jobs_obj = jobs
         except:
-            raise ValueError(f"Cannot convert {type(tasks)} to Task. Must be a string, dictionary, or Task object.")
-        return tasks_obj
+            raise ValueError(f"Cannot convert {type(jobs)} to Job. Must be a string, dictionary, or Job object.")
+        return jobs_obj
 
-    async def execute_tasks(self) -> List[TaskResult]:
-        """Execute all task assigned to this agent"""
+    async def execute_jobs(self) -> List[JobResult]:
+        """Execute all job assigned to this agent"""
         results = []
-        for task in self.tasks:
+        for job in self.jobs:
             try:
-                result = await self.execute_task(task, dependent_agent=self.depends_on, args=self.args)
+                result = await self.execute_job(job, dependent_agent=self.depends_on, args=self.args)
                 results.append(result)
             except Exception as e:
-                self.logger.error(f"Failed to execute task {task.id if hasattr(task, 'id') else 'unknown'}: {str(e)}")
-                results.append(TaskResult(
+                self.logger.error(f"Failed to execute job {job.id if hasattr(job, 'id') else 'unknown'}: {str(e)}")
+                results.append(JobResult(
                     success=False,
                     output=None,
                     error=str(e),
@@ -137,36 +137,36 @@ class Agent(BaseAgent):
                 ))
         return results
 
-    async def execute_task(self, task: Task, dependent_agent: Optional[Union[List[Agent], Agent]]=None, args: Optional[Dict]=None) -> Optional[TaskResult]:
-        """Execute a task with comprehensive planning and execution"""
+    async def execute_job(self, job: Job, dependent_agent: Optional[Union[List[Agent], Agent]]=None, args: Optional[Dict]=None) -> Optional[JobResult]:
+        """Execute a job with comprehensive planning and execution"""
         if not self.llm:
-            raise ValueError("LLM configuration required for task execution")
+            raise ValueError("LLM configuration required for job execution")
 
         if dependent_agent:
-            task = self._resolve_task_dependency(task, dependent_agent, args)
+            job = self._resolve_job_dependency(job, dependent_agent, args)
 
         start_time = datetime.now()
 
         try:
-            async with self._task_lock:
+            async with self._job_lock:
                 self.status = AgentStatus.BUSY
-                self.current_task = task
+                self.current_job = job
 
-                # Store task start in memory if enabled
+                # Store job start in memory if enabled
                 if self.memory:
-                    await self.memory.store_task_start(
-                        task_id=task.id,
-                        description=task.description,
+                    await self.memory.store_job_start(
+                        job_id=job.id,
+                        description=job.description,
                         agent_id=self.id,
-                        context=getattr(task, 'context', {})
+                        context=getattr(job, 'context', {})
                     )
 
-                # Format task with context
-                formatted_task = self._format_task(task)
-                self.logger.info(f"Executing task: {formatted_task}")
+                # Format job with context
+                formatted_job = self._format_job(job)
+                self.logger.info(f"Executing job: {formatted_job}")
 
                 # Generate execution plan
-                execution_plan = await self._create_plan(formatted_task)
+                execution_plan = await self._create_plan(formatted_job)
                 self.logger.info(f"Execution plan created with {len(execution_plan.get('steps', []))} steps")
 
                 # Execute the plan
@@ -177,44 +177,44 @@ class Agent(BaseAgent):
                 # Calculate execution time
                 execution_time = (datetime.now() - start_time).total_seconds()
 
-                # Store task result in memory if enabled
-                task_result = TaskResult(
+                # Store job result in memory if enabled
+                job_result = JobResult(
                     success=True,
                     output=result,
                     execution_time=execution_time,
                     metadata={
                         "agent_id": self.id,
-                        "role": self.role,
+                        "title": self.title,
                         "plan": execution_plan
                     }
                 )
 
                 if self.memory:
-                    await self.memory.store_task_result(
-                        task_id=task.id,
+                    await self.memory.store_job_result(
+                        job_id=job.id,
                         result=result,
                         success=True,
                         execution_time=execution_time,
                         agent_id=self.id
                     )
 
-                return task_result
+                return job_result
 
         except Exception as e:
             execution_time = (datetime.now() - start_time).total_seconds()
-            self.logger.error(f"Task execution failed: {str(e)}")
+            self.logger.error(f"Job execution failed: {str(e)}")
 
-            # Store failed task in memory if enabled
+            # Store failed job in memory if enabled
             if self.memory:
-                await self.memory.store_task_result(
-                    task_id=task.id if task else "unknown",
+                await self.memory.store_job_result(
+                    job_id=job.id if job else "unknown",
                     result=str(e),
                     success=False,
                     execution_time=execution_time,
                     agent_id=self.id
                 )
 
-            return TaskResult(
+            return JobResult(
                 success=False,
                 output=None,
                 error=str(e),
@@ -224,33 +224,33 @@ class Agent(BaseAgent):
 
         finally:
             self.status = AgentStatus.IDLE
-            self.current_task = None
+            self.current_job = None
 
-    def _format_task(self, task: Task) -> str:
-        """Format task with context and more robust error handling"""
-        if not task:
-            return "No task provided"
+    def _format_job(self, job: Job) -> str:
+        """Format job with context and more robust error handling"""
+        if not job:
+            return "No job provided"
 
-        task_text = task.description
+        job_text = job.description
 
-        if hasattr(task, 'context') and task.context:
+        if hasattr(job, 'context') and job.context:
             try:
                 # Try direct formatting
-                task_text = task_text.format(**task.context)
+                job_text = job_text.format(**job.context)
             except KeyError as e:
                 # Handle missing keys gracefully
                 self.logger.warning(f"Missing context key: {e}")
                 # Try to substitute only available keys
-                for key, value in task.context.items():
+                for key, value in job.context.items():
                     placeholder = "{" + key + "}"
-                    if placeholder in task_text:
-                        task_text = task_text.replace(placeholder, str(value))
+                    if placeholder in job_text:
+                        job_text = job_text.replace(placeholder, str(value))
             except Exception as e:
-                self.logger.error(f"Error formatting task: {str(e)}")
+                self.logger.error(f"Error formatting job: {str(e)}")
 
-        return task_text
+        return job_text
 
-    async def _create_plan(self, task: str) -> Dict:
+    async def _create_plan(self, job: str) -> Dict:
         """Create execution plan using LLM and templates from rules.yaml"""
         try:
             # Load the step_planning template from rules.yaml
@@ -259,7 +259,7 @@ class Agent(BaseAgent):
             except Exception as e:
                 self.logger.warning(f"Failed to load template from rules.yaml: {str(e)}")
                 plan_template = """
-                Task: {task_description}
+                Job: {job_description}
                 Available Tools: {available_tools}
 
                 Return as JSON:
@@ -286,7 +286,7 @@ class Agent(BaseAgent):
                     })
 
             formatted_template = plan_template.format(
-                task_description=task,
+                job_description=job,
                 completed_steps=[],  # Start with no completed steps
                 last_result=None  # Start with no last result
             )
@@ -323,8 +323,8 @@ class Agent(BaseAgent):
                 return {
                     "steps": [{
                         "action": "direct_execution",
-                        "input": task,
-                        "description": "Direct task execution"
+                        "input": job,
+                        "description": "Direct job execution"
                     }]
                 }
 
@@ -349,8 +349,8 @@ class Agent(BaseAgent):
                 return {
                     "steps": [{
                         "action": "direct_execution",
-                        "input": task,
-                        "description": "Direct task execution (fallback)"
+                        "input": job,
+                        "description": "Direct job execution (fallback)"
                     }]
                 }
 
@@ -369,8 +369,8 @@ class Agent(BaseAgent):
                     return {
                         "steps": [{
                             "action": "direct_execution",
-                            "input": task,
-                            "description": "Direct task execution (fallback)"
+                            "input": job,
+                            "description": "Direct job execution (fallback)"
                         }]
                     }
 
@@ -382,8 +382,8 @@ class Agent(BaseAgent):
             return {
                 "steps": [{
                     "action": "direct_execution",
-                    "input": task,
-                    "description": "Direct task execution (fallback)"
+                    "input": job,
+                    "description": "Direct job execution (fallback)"
                 }]
             }
 
@@ -423,7 +423,7 @@ class Agent(BaseAgent):
             self.logger.warning("Invalid plan format, using direct execution")
             return await self._execute_step({
                 "action": "direct_execution",
-                "input": "Invalid plan format, executing task directly",
+                "input": "Invalid plan format, executing job directly",
                 "description": "Direct execution fallback"
             }, {})
 
@@ -452,12 +452,12 @@ class Agent(BaseAgent):
             self.logger.warning(f"Too many steps ({len(steps)}), limiting to 50")
             steps = steps[:50]
 
-        has_task = any("task" in step.get("action", "").lower() for step in steps)
+        has_job = any("job" in step.get("action", "").lower() for step in steps)
 
         # If not, append the default block
-        if not has_task:
+        if not has_job:
             steps.append({
-                "action": "task",
+                "action": "job",
                 "description": "description",
                 "validation_criteria": ["criteria"]
             })
@@ -506,7 +506,7 @@ class Agent(BaseAgent):
 
         # Summarize results with context
         summary = await self._summarize_results(results, step_results)
-        plan["task_complete"] = True
+        plan["job_complete"] = True
         return summary
 
     async def _execute_step(self, step: Dict, context: Dict) -> str:
@@ -543,8 +543,8 @@ class Agent(BaseAgent):
                 except Exception as e:
                     return f"Error executing tool '{tool_name}': {str(e)}"
 
-            elif action == "task":
-                # Use LLM for task execution
+            elif action == "job":
+                # Use LLM for job execution
                 return await self._execute_direct_step(step.get("description", ""), context)
 
             else:
@@ -572,7 +572,7 @@ class Agent(BaseAgent):
             },
             {
                 "role": "user",
-                "content": f"{context_text}Task: {input_text}"
+                "content": f"{context_text}Job: {input_text}"
             }
         ]
 
@@ -580,15 +580,15 @@ class Agent(BaseAgent):
         return response["content"]
 
     async def _summarize_results(self, results: List[str], step_results: Dict[str, str]) -> None | dict | str:
-        """Generate the final result based on task description and execution steps"""
+        """Generate the final result based on job description and execution steps"""
         try:
             retry_count = self.config.retry_limit
             for _ in range(retry_count):
                 # Compile execution results
                 execution_context = "\n\n".join([f"Step {i + 1}: {result}" for i, result in enumerate(results)])
 
-                # Get the original task description
-                task_description = self.current_task.description if self.current_task else "Unknown task"
+                # Get the original job description
+                job_description = self.current_job.description if self.current_job else "Unknown job"
 
                 # Try to load result_evaluation template from rules.yaml
                 template = None
@@ -597,9 +597,9 @@ class Agent(BaseAgent):
                 except Exception as e:
                     self.logger.warning(f"Failed to load result_evaluation template: {str(e)}")
 
-                # Format the template with the task description and results
+                # Format the template with the job description and results
                 prompt = template.format(
-                    task_description=task_description,
+                    job_description=job_description,
                     result=execution_context
                 )
 
@@ -621,7 +621,7 @@ class Agent(BaseAgent):
                 # Return the final result
                 result = extract_json_from_response(response["content"])
                 if result.get("success"):
-                    return result.get("task_result")
+                    return result.get("job_result")
                 return None
 
         except Exception as e:
@@ -630,18 +630,18 @@ class Agent(BaseAgent):
             if results:
                 return f"Final result: {results[-1]}"
             else:
-                return "Failed to generate a result for the requested task."
+                return "Failed to generate a result for the requested job."
 
     def _get_system_prompt(self, is_summary: bool = False) -> str:
         """Get system prompt with fallback error handling"""
         try:
             # Create a basic system prompt
             base_prompt = f"""You are an AI agent with:
-            Role: {self.role}
+            Title: {self.title}
             Goal: {self.goal}
             Description: {self.description or 'No specific description.'}
 
-            Make decisions and take actions based on your role and goal.
+            Make decisions and take actions based on your title and goal.
             """
 
             # Try to load from rules.yaml if available
@@ -650,12 +650,12 @@ class Agent(BaseAgent):
 
                 if base_template:
                     return base_template.format(
-                        role=self.role,
+                        title=self.title,
                         goal=self.goal,
                         description=self.description
                     )
                 if is_summary:
-                    base_template += "\nYour task is to deliver the final result that fulfills the requested task, not to summarize the execution process."
+                    base_template += "\nYour job is to deliver the final result that fulfills the requested job, not to summarize the execution process."
             except Exception as e:
                 self.logger.error(f"Error loading system prompt template: {str(e)}")
 
@@ -665,7 +665,7 @@ class Agent(BaseAgent):
         except Exception as e:
             self.logger.error(f"Error creating system prompt: {str(e)}")
             # Super simple fallback
-            return f"You are an agent with role: {self.role}. Complete the task to the best of your ability."
+            return f"You are an agent with title: {self.title}. Complete the job to the best of your ability."
 
     def _parse_json_response(self, response: str) -> str:
         """Parse JSON response from LLM"""
@@ -684,20 +684,20 @@ class Agent(BaseAgent):
             self.logger.error(f"Failed to parse JSON response: {str(e)}")
             return ""
 
-    async def evaluate_task_suitability(self, task: Dict) -> float:
-        """Evaluate how suitable this agent is for a task"""
+    async def evaluate_job_suitability(self, job: Dict) -> float:
+        """Evaluate how suitable this agent is for a job"""
         try:
             # Base suitability score
             score = 0.7
 
-            if "required_capabilities" in task:
-                missing = set(task["required_capabilities"]) - set(self.config.required_capabilities)
+            if "required_capabilities" in job:
+                missing = set(job["required_capabilities"]) - set(self.config.required_capabilities)
                 if missing:
                     return 0.0
 
-            # Adjust based on task type match
-            if "type" in task and hasattr(self, "specializations"):
-                if task["type"] in self.specializations:
+            # Adjust based on job type match
+            if "type" in job and hasattr(self, "specializations"):
+                if job["type"] in self.specializations:
                     score += 0.2
 
             # Adjust based on current load
@@ -718,7 +718,7 @@ class Agent(BaseAgent):
             # Store agent start in memory if enabled
             if self.memory:
                 await self.memory.store_semantic(
-                    text=f"Agent {self.role} started",
+                    text=f"Agent {self.title} started",
                     metadata={
                         "type": "status_change",
                         "status": "started",
@@ -742,7 +742,7 @@ class Agent(BaseAgent):
             # Store agent stop in memory if enabled
             if self.memory:
                 await self.memory.store_semantic(
-                    text=f"Agent {self.role} stopped",
+                    text=f"Agent {self.title} stopped",
                     metadata={
                         "type": "status_change",
                         "status": "stopped",
@@ -759,7 +759,7 @@ class Agent(BaseAgent):
 
     def _setup_logger(self) -> logging.Logger:
         """Setup agent logging"""
-        logger = logging.getLogger(f"Agent_{self.role}_{self.id}")
+        logger = logging.getLogger(f"Agent_{self.title}_{self.id}")
 
         if not logger.handlers:
             handler = logging.StreamHandler()
@@ -772,9 +772,9 @@ class Agent(BaseAgent):
         logger.setLevel(logging.DEBUG if self.config.verbose else logging.INFO)
         return logger
 
-    def _resolve_task_dependency(self, task, dependents=None, context: dict = None):
-        if task is None or task.description is None:
-            return task  # or raise an error if task must not be None
+    def _resolve_job_dependency(self, job, dependents=None, context: dict = None):
+        if job is None or job.description is None:
+            return job  # or raise an error if job must not be None
 
         # Default context to empty dict if None
         if context is None:
@@ -782,10 +782,10 @@ class Agent(BaseAgent):
 
         # Step 1: Build agent name → output map
         if dependents and isinstance(dependents, Agent):
-            agents = {dependents.role.lower().replace(" ", "_"): dependents}
+            agents = {dependents.title.lower().replace(" ", "_"): dependents}
         elif dependents and isinstance(dependents, list):
             agents = {
-                agent.role.lower().replace(" ", "_"): agent for agent in dependents
+                agent.title.lower().replace(" ", "_"): agent for agent in dependents
             }
         elif dependents is None:
             agents = {}
@@ -812,9 +812,9 @@ class Agent(BaseAgent):
             return match.group(0)  # leave untouched
 
         # First, replace agent outputs
-        description = re.sub(r"\{([a-zA-Z_][a-zA-Z0-9_]*)}", replace_agent, task.description)
+        description = re.sub(r"\{([a-zA-Z_][a-zA-Z0-9_]*)}", replace_agent, job.description)
         # Then, replace user args/placeholders
         description = re.sub(r"\{([a-zA-Z_][a-zA-Z0-9_]*)}", replace_context, description)
 
-        task.description = description
-        return task
+        job.description = description
+        return job

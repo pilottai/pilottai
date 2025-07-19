@@ -4,11 +4,11 @@ from unittest.mock import Mock, AsyncMock, patch
 
 from pilottai.agent.agent import Agent
 from pilottai.core.base_config import LLMConfig
-from pilottai.config.model import TaskResult
-from pilottai.task.task import Task
+from pilottai.config.model import JobResult
+from pilottai.job.job import Job
 from pilottai.enums.agent_e import AgentStatus
 from pilottai.tools.tool import Tool
-from pilottai.utils.task_utils import TaskUtility
+from pilottai.utils.job_utils import JobUtility
 
 
 @pytest.fixture
@@ -25,10 +25,10 @@ def llm_config():
 async def agent(agent_config, llm_config):
     """Fixture for creating a base agent instance"""
     agent = Agent(
-        role="test_role",
+        title="test_title",
         goal="test goal",
         description="test description",
-        tasks="Test task",
+        jobs="Test job",
         config=agent_config,
         llm_config=llm_config
     )
@@ -52,23 +52,23 @@ class TestBaseAgent:
     async def test_initialization(self, agent_config, llm_config):
         """Test agent initialization with proper configurations"""
         agent = Agent(
-            role="test_role",
+            title="test_title",
             goal="test goal",
             description="test description",
-            tasks="Test task",
+            jobs="Test job",
             config=agent_config,
             llm_config=llm_config
         )
 
         # Verify basic properties
-        assert agent.role == "test_role"
+        assert agent.title == "test_title"
         assert agent.goal == "test goal"
         assert agent.description == "test description"
         assert agent.status == AgentStatus.IDLE
-        assert agent.current_task is None
-        assert isinstance(agent.tasks, list)
-        assert len(agent.tasks) == 1
-        assert agent.tasks[0].description == "Test task"
+        assert agent.current_job is None
+        assert isinstance(agent.jobs, list)
+        assert len(agent.jobs) == 1
+        assert agent.jobs[0].description == "Test job"
 
         # Verify config properties
         assert agent.config is not None
@@ -92,51 +92,51 @@ class TestBaseAgent:
         assert agent.status == AgentStatus.IDLE
 
     @pytest.mark.asyncio
-    async def test_execute_task(self, agent):
-        """Test task execution with mocked LLM"""
-        # Create a task
-        task = Task(description="Execute this test task")
+    async def test_execute_job(self, agent):
+        """Test job execution with mocked LLM"""
+        # Create a job
+        job = Job(description="Execute this test job")
 
         # Mock LLM response for execution plan and execution
         with patch.object(agent, '_plan_execution') as mock_plan:
             mock_plan.return_value = {"steps": ["Step 1"]}
 
             with patch.object(agent, '_execute_plan') as mock_execute:
-                mock_execute.return_value = "Task execution result"
+                mock_execute.return_value = "Job execution result"
 
-                # Execute task
-                result = await agent.execute_task(task)
+                # Execute job
+                result = await agent.execute_job(job)
 
                 # Verify result
-                assert isinstance(result, TaskResult)
+                assert isinstance(result, JobResult)
                 assert result.success == True
-                assert result.output == "Task execution result"
+                assert result.output == "Job execution result"
                 assert result.error is None
                 assert result.execution_time > 0
 
     @pytest.mark.asyncio
-    async def test_execute_tasks(self, agent):
-        """Test batch execution of multiple task"""
-        # Create additional task
-        agent.tasks = [
-            Task(description="Task 1"),
-            Task(description="Task 2")
+    async def test_execute_jobs(self, agent):
+        """Test batch execution of multiple job"""
+        # Create additional job
+        agent.jobs = [
+            Job(description="Job 1"),
+            Job(description="Job 2")
         ]
 
-        # Mock execute_task to track calls and return predetermined results
+        # Mock execute_job to track calls and return predetermined results
         expected_results = [
-            TaskResult(success=True, output="Result 1", execution_time=0.1, error=None, metadata={}),
-            TaskResult(success=True, output="Result 2", execution_time=0.2, error=None, metadata={})
+            JobResult(success=True, output="Result 1", execution_time=0.1, error=None, metadata={}),
+            JobResult(success=True, output="Result 2", execution_time=0.2, error=None, metadata={})
         ]
 
-        agent.execute_task = AsyncMock(side_effect=expected_results)
+        agent.execute_job = AsyncMock(side_effect=expected_results)
 
-        # Execute task
-        results = await agent.execute_tasks()
+        # Execute job
+        results = await agent.execute_jobs()
 
-        # Verify all task were executed
+        # Verify all job were executed
         assert len(results) == 2
-        assert agent.execute_task.call_count == 2
+        assert agent.execute_job.call_count == 2
 
         # Verify results
         for i, result in enumerate(results):
@@ -144,29 +144,29 @@ class TestBaseAgent:
             assert result.output == f"Result {i + 1}"
 
     @pytest.mark.asyncio
-    async def test_execute_task_with_error(self, agent):
-        """Test error handling during task execution"""
-        # Create a task
-        task = Task(description="Task that will fail")
+    async def test_execute_job_with_error(self, agent):
+        """Test error handling during job execution"""
+        # Create a job
+        job = Job(description="Job that will fail")
 
         # Mock plan_execution to raise an exception
         with patch.object(agent, '_plan_execution', side_effect=ValueError("Test error")):
-            # Execute task
-            result = await agent.execute_task(task)
+            # Execute job
+            result = await agent.execute_job(job)
 
             # Verify result indicates failure
-            assert isinstance(result, TaskResult)
+            assert isinstance(result, JobResult)
             assert result.success is False
             assert "Test error" in str(result.error)
             assert result.execution_time > 0
 
             # Verify agent state
             assert agent.status == AgentStatus.IDLE
-            assert agent.current_task is None
+            assert agent.current_job is None
 
     @pytest.mark.asyncio
-    async def test_evaluate_task_suitability(self, agent):
-        """Test agent's ability to evaluate task suitability"""
+    async def test_evaluate_job_suitability(self, agent):
+        """Test agent's ability to evaluate job suitability"""
         # Set required_capabilities in a way compatible with the implementation
         if hasattr(agent.config, 'required_capabilities'):
             # If the field exists, use it
@@ -175,51 +175,51 @@ class TestBaseAgent:
             # Otherwise mock or add it
             agent.config = Mock(required_capabilities=["text_analysis", "image_processing"])
 
-        # Create a task with matching capabilities
-        task = {
-            "description": "Test task",
+        # Create a job with matching capabilities
+        job = {
+            "description": "Test job",
             "required_capabilities": ["text_analysis"]
         }
 
         # Evaluate suitability
-        score = await agent.evaluate_task_suitability(task)
+        score = await agent.evaluate_job_suitability(job)
 
         # Verify the score is within expected range
         assert 0 <= score <= 1
 
         # Test with different capabilities that may or may not match
-        task_no_capabilities = {
-            "description": "Simple task with no specific capabilities"
+        job_no_capabilities = {
+            "description": "Simple job with no specific capabilities"
         }
-        score = await agent.evaluate_task_suitability(task_no_capabilities)
+        score = await agent.evaluate_job_suitability(job_no_capabilities)
         assert 0 <= score <= 1  # Should still return a valid score
 
     @pytest.mark.asyncio
-    async def test_format_task(self, agent):
-        """Test task formatting with context"""
-        # Create a task with context variables
-        task = Task(
+    async def test_format_job(self, agent):
+        """Test job formatting with context"""
+        # Create a job with context variables
+        job = Job(
             description="Process the {item} using {method}",
             context={"item": "document", "method": "OCR"}
         )
 
-        # Format the task
-        formatted_task = agent._format_task(task)
+        # Format the job
+        formatted_job = agent._format_job(job)
 
         # Verify formatting - adjusted expectation based on actual implementation
-        assert "Process the" in formatted_task
-        assert "document" in formatted_task
-        assert "OCR" in formatted_task
+        assert "Process the" in formatted_job
+        assert "document" in formatted_job
+        assert "OCR" in formatted_job
 
         # Test with missing context - error handling varies by implementation
-        task = Task(
+        job = Job(
             description="Process the {item} using {missing}",
             context={"item": "document"}
         )
 
         # Should not raise an exception regardless of implementation
-        formatted_task = agent._format_task(task)
-        assert isinstance(formatted_task, str)  # Basic validation
+        formatted_job = agent._format_job(job)
+        assert isinstance(formatted_job, str)  # Basic validation
 
     @pytest.mark.asyncio
     async def test_parse_json_response(self, agent):
@@ -242,12 +242,12 @@ class TestBaseAgent:
             pass
 
     @pytest.mark.asyncio
-    async def test_verify_tasks_method(self, agent):
-        """Test task verification implementation"""
-        # Test task verification
-        with patch.object(TaskUtility, 'to_task', return_value=[Task(description="Test")]) as mock_to_task:
-            result = agent._verify_tasks("Test task")
-            mock_to_task.assert_called_once()
+    async def test_verify_jobs_method(self, agent):
+        """Test job verification implementation"""
+        # Test job verification
+        with patch.object(JobUtility, 'to_job', return_value=[Job(description="Test")]) as mock_to_job:
+            result = agent._verify_jobs("Test job")
+            mock_to_job.assert_called_once()
             assert isinstance(result, list)
 
     @pytest.mark.asyncio
@@ -259,12 +259,12 @@ class TestBaseAgent:
         }
         agent.llm.generate_response = AsyncMock(return_value=plan_response)
 
-        # Add an empty task for the planning process
-        task = Task(description="Test task")
+        # Add an empty job for the planning process
+        job = Job(description="Test job")
 
         # Generate plan with error handling
         try:
-            plan = await agent.execute_task(task)
+            plan = await agent.execute_job(job)
 
             # Verify plan structure according to implementation
             assert isinstance(plan, dict)
@@ -280,5 +280,5 @@ class TestBaseAgent:
 
         # Verify prompt contains essential agent information
         assert isinstance(prompt, str)
-        assert agent.role in prompt
+        assert agent.title in prompt
         assert agent.goal in prompt

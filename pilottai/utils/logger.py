@@ -85,7 +85,7 @@ def setup_logger(
         # Create formatters
         json_formatter = JsonFormatter(
             agent_id=getattr(agent, 'id', str(id(agent))),
-            agent_role=getattr(agent, 'role', 'unknown')
+            agent_type=getattr(agent, 'title', 'unknown')
         )
 
         text_formatter = logging.Formatter(config.log_format)

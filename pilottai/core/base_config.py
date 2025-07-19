@@ -5,7 +5,7 @@ from typing import Optional, List, Dict, Any
 from cryptography.fernet import Fernet
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
-from pilottai.enums.role_e import AgentRole
+from pilottai.enums.type_e import AgentType
 from pilottai.enums.process_e import ProcessType
 
 
@@ -14,8 +14,8 @@ class ServeConfig:
     process_type: ProcessType = ProcessType.SEQUENTIAL
     memory_enabled: bool = True
     verbose: bool = False
-    max_concurrent_tasks: int = 5
-    task_timeout: int = 300
+    max_concurrent_jobs: int = 5
+    job_timeout: int = 300
     max_queue_size: int = 1000
 
 
@@ -122,7 +122,7 @@ class AgentConfig(BaseModel):
     )
 
     # Optional fields with defaults
-    role_type: AgentRole = AgentRole.WORKER
+    agent_type: AgentType = AgentType.WORKER
     knowledge_sources: List[str] = Field(default_factory=list)
     max_iterations: int = 20
     max_rpm: Optional[int] = None
@@ -135,10 +135,10 @@ class AgentConfig(BaseModel):
     can_execute_code: bool = False
     max_child_agents: int = 10
     max_queue_size: int = 100
-    max_task_complexity: int = 5
+    max_job_complexity: int = 5
     delegation_threshold: float = 0.7
-    max_concurrent_tasks: int = 5
-    task_timeout: int = 300
+    max_concurrent_jobs: int = 5
+    job_timeout: int = 300
 
     # Optional resource limits with defaults
     resource_limits: Dict[str, float] = Field(
@@ -164,8 +164,8 @@ class AgentConfig(BaseModel):
     def to_dict(self) -> Dict[str, Any]:
         """Convert to a dictionary with type handling"""
         return {
-            "role": str(self.role),
-            "role_type": str(self.role_type),
+            "title": str(self.title),
+            "agent_type": str(self.agent_type),
             "goal": str(self.goal),
             "description": str(self.description),
             "backstory": str(self.backstory) if self.backstory else None,
@@ -184,10 +184,10 @@ class AgentConfig(BaseModel):
             "can_execute_code": bool(self.can_execute_code),
             "max_child_agents": int(self.max_child_agents),
             "max_queue_size": int(self.max_queue_size),
-            "max_task_complexity": int(self.max_task_complexity),
+            "max_job_complexity": int(self.max_job_complexity),
             "delegation_threshold": float(self.delegation_threshold),
-            "max_concurrent_tasks": int(self.max_concurrent_tasks),
-            "task_timeout": int(self.task_timeout),
+            "max_concurrent_jobs": int(self.max_concurrent_jobs),
+            "job_timeout": int(self.job_timeout),
             "resource_limits": dict(self.resource_limits),
             "websocket_enabled": bool(self.websocket_enabled),
             "websocket_host": str(self.websocket_host),
@@ -260,11 +260,11 @@ class LoadBalancerConfig(BaseModel):
     check_interval: int = Field(ge=1, default=30)
     overload_threshold: float = Field(ge=0.0, le=1.0, default=0.8)
     underload_threshold: float = Field(ge=0.0, le=1.0, default=0.2)
-    max_tasks_per_agent: int = Field(ge=1, default=10)
+    max_jobs_per_agent: int = Field(ge=1, default=10)
     balance_batch_size: int = Field(ge=1, default=3)
     min_load_difference: float = Field(ge=0.0, le=1.0, default=0.3)
     metrics_retention_period: int = Field(ge=0, default=3600)
-    task_move_timeout: int = Field(ge=1, default=30)
+    job_move_timeout: int = Field(ge=1, default=30)
 
 
 class ScalingConfig(BaseModel):
@@ -286,6 +286,6 @@ class FaultToleranceConfig(BaseModel):
     recovery_cooldown: int = Field(ge=0, default=300)
     heartbeat_timeout: int = Field(ge=1, default=60)
     resource_threshold: float = Field(ge=0.0, le=1.0, default=0.9)
-    task_timeout: int = Field(ge=0, default=1800)
+    job_timeout: int = Field(ge=0, default=1800)
     error_threshold: int = Field(ge=0, default=5)
     metrics_retention: int = Field(ge=0, default=3600)

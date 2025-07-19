@@ -12,7 +12,7 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="PilottAI - A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent task processing">
+    <meta name="description" content="PilottAI - A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent job processing">
     <link rel="icon" type="image/x-icon" href="public/logo.png">
     <title>PilottAI - Multi-Agent Orchestration Framework</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -34,7 +34,7 @@
             <a href="#agents">Agents</a>
 <!--            <a href="pricing.html" class="active">Pricing</a>-->
             <a href="https://docs.pilottai.com">Docs</a>
-            <a href="https://github.com/anuj0456/pilottai" target="_blank">GitHub</a>
+            <a href="https://github.com/pygig/pilottai" target="_blank">GitHub</a>
             <a href="https://chat.pilottai.com"><button class="try-button">Try Now</button></a>
         </div>
         <div class="mobile-menu-toggle">
@@ -50,7 +50,7 @@
                <a href="https://docs.pilottai.com" class="start-button" target="_blank">
                     <button class="primary-button">Get Started</button>
                 </a>
-                <a href="https://github.com/anuj0456/pilottai" class="github-button" target="_blank">
+                <a href="https://github.com/pygig/pilottai" class="github-button" target="_blank">
                     <i class="fab fa-github"></i> Star on GitHub <span class="github-star-count">...</span>
                 </a>
 <!--                <a href="#demo" class="demo-button">-->
@@ -88,7 +88,7 @@
                 <h3>Advanced Agent Architecture</h3>
                 <ul>
                     <li>Hierarchical multi-agent system</li>
-                    <li>Built-in task orchestration</li>
+                    <li>Built-in job orchestration</li>
                     <li>Flexible communication patterns</li>
                     <li>Enhanced memory management</li>
                 </ul>
@@ -110,7 +110,7 @@
                 <h3>Advanced Memory System</h3>
                 <ul>
                     <li>Semantic storage and retrieval</li>
-                    <li>Task history tracking</li>
+                    <li>Job history tracking</li>
                     <li>Context preservation</li>
                     <li>Intelligent knowledge retrieval</li>
                 </ul>
@@ -160,12 +160,12 @@ async def main():
 
     # Add processing agent
     agent = await pilott.add_agent(
-        role="processor",
+        title="processor",
         goal="Process documents efficiently",
         llm_config=llm_config
     )
 
-    # Execute task
+    # Execute job
     result = await pilott.execute([{
         "description": "Extract insights from Q1 report",
         "file_path": "documents/q1_report.pdf"
@@ -182,21 +182,21 @@ if __name__ == "__main__":
                 <pre class="code-block python"><code>
 # Create specialized agents
 research_analyst = await pilott.add_agent(
-    role="research_analyst",
+    title="research_analyst",
     goal="Analyze data and provide insights",
     tools=["data_analyzer", "research_synthesizer"],
     llm_config=llm_config
 )
 
 customer_service = await pilott.add_agent(
-    role="customer_service",
+    title="customer_service",
     goal="Handle customer inquiries professionally",
     tools=["email_sender", "ticket_manager"],
     llm_config=llm_config
 )
 
-# Execute agent-specific tasks
-analysis_result = await research_analyst.execute_task({
+# Execute agent-specific jobs
+analysis_result = await research_analyst.execute_job({
     "type": "analyze_market_data",
     "data_source": "market_survey_2024",
     "variables": ["price", "demand"]
@@ -227,7 +227,7 @@ await dynamic_scaling.start()
 
 # System automatically scales based on load
 for i in range(100):
-    pilott.execute([create_task(f"Task {i}")])
+    pilott.execute([create_job(f"Job {i}")])
                 </code></pre>
             </div>
             <div class="code-panel" id="memory-panel">
@@ -250,15 +250,15 @@ related_info = await agent.memory.semantic_search(
 )
 
 # Memory persists across agent executions
-await agent.memory.store_task(
-    task_id="task-123",
-    task_data={"description": "Handle product inquiry", "status": "completed"}
+await agent.memory.store_job(
+    job_id="job-123",
+    job_data={"description": "Handle product inquiry", "status": "completed"}
 )
                 </code></pre>
             </div>
             <div class="code-actions">
                 <button class="copy-button"><i class="fas fa-copy"></i> Copy</button>
-                <a href="https://github.com/anuj0456/pilottai" target="_blank" class="github-link">View on GitHub</a>
+                <a href="https://github.com/pygig/pilottai" target="_blank" class="github-link">View on GitHub</a>
             </div>
         </div>
     </section>
@@ -293,7 +293,7 @@ await agent.memory.store_task(
 
                 <!-- Component Boxes -->
                 <rect x="150" y="70" width="120" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
-                <text x="210" y="95" text-anchor="middle" fill="#fff" font-size="12">Task Router</text>
+                <text x="210" y="95" text-anchor="middle" fill="#fff" font-size="12">Job Router</text>
 
                 <rect x="290" y="70" width="120" height="40" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
                 <text x="350" y="95" text-anchor="middle" fill="#fff" font-size="12">Load Balancer</text>
@@ -321,7 +321,7 @@ await agent.memory.store_task(
                 <text x="185" y="370" text-anchor="middle" fill="#fff" font-size="10">Semantic Store</text>
 
                 <rect x="250" y="350" width="90" height="30" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
-                <text x="295" y="370" text-anchor="middle" fill="#fff" font-size="10">Task History</text>
+                <text x="295" y="370" text-anchor="middle" fill="#fff" font-size="10">Job History</text>
 
                 <rect x="450" y="350" width="90" height="30" rx="5" fill="rgba(255, 255, 255, 0.1)" stroke="#fff" stroke-width="1"/>
                 <text x="495" y="370" text-anchor="middle" fill="#fff" font-size="10">OpenAI</text>
@@ -335,7 +335,7 @@ await agent.memory.store_task(
     <section id="agents" class="agents-section">
         <div class="section-header">
             <h2>Specialized Agent Ecosystem</h2>
-            <p>Pre-built agents for common enterprise tasks</p>
+            <p>Pre-built agents for common enterprise jobs</p>
         </div>
 
         <div class="command-input">
@@ -353,7 +353,7 @@ await agent.memory.store_task(
                         </div>
                         <div class="agent-info">
                             <h3>Research Analyst</h3>
-                            <span class="agent-role">Data Analysis Expert</span>
+                            <span class="agent-type">Data Analysis Expert</span>
                         </div>
                     </div>
                     <div class="card-back">
@@ -376,7 +376,7 @@ await agent.memory.store_task(
                         </div>
                         <div class="agent-info">
                             <h3>Document Agent</h3>
-                            <span class="agent-role">Content Processor</span>
+                            <span class="agent-type">Content Processor</span>
                         </div>
                     </div>
                     <div class="card-back">
@@ -399,7 +399,7 @@ await agent.memory.store_task(
                         </div>
                         <div class="agent-info">
                             <h3>Customer Service</h3>
-                            <span class="agent-role">Support Specialist</span>
+                            <span class="agent-type">Support Specialist</span>
                         </div>
                     </div>
                     <div class="card-back">
@@ -422,7 +422,7 @@ await agent.memory.store_task(
                         </div>
                         <div class="agent-info">
                             <h3>Email Agent</h3>
-                            <span class="agent-role">Communication Expert</span>
+                            <span class="agent-type">Communication Expert</span>
                         </div>
                     </div>
                     <div class="card-back">
@@ -452,7 +452,7 @@ await agent.memory.store_task(
                 </div>
                 <p>Building the future of multi-agent systems</p>
                 <div class="social-links">
-                    <a href="https://github.com/anuj0456/pilottai" class="social-icon" title="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="https://github.com/pygig/pilottai" class="social-icon" title="GitHub"><i class="fab fa-github"></i></a>
                     <a href="https://x.com/pilott_ai" class="social-icon" title="Twitter"><i class="fab fa-twitter"></i></a>
                     <a href="#" class="social-icon" title="Discord"><i class="fab fa-discord"></i></a>
                     <a href="https://linkedin.com/company/pilottai" class="social-icon" title="LinkedIn"><i class="fab fa-linkedin"></i></a>
@@ -478,7 +478,7 @@ await agent.memory.store_task(
             <div class="footer-section contact">
                 <h4>Contact</h4>
                 <p><i class="fas fa-envelope"></i> <a href="mailto:support@pilottai.com">support@pilottai.com</a></p>
-                <p><i class="fab fa-github"></i> <a href="https://github.com/anuj0456/pilottai/issues" target="_blank">GitHub Issues</a></p>
+                <p><i class="fab fa-github"></i> <a href="https://github.com/pygig/pilottai/issues" target="_blank">GitHub Issues</a></p>
                 <p><i class="fab fa-discord"></i> <a href="#">Discord Community</a></p>
             </div>
         </div>

@@ -83,7 +83,7 @@ git checkout -b feature/your-feature-name
 
 ```bash
 git commit -m "feat: add new agent capability"
-git commit -m "fix: resolve memory leak in task router"
+git commit -m "fix: resolve memory leak in job router"
 ```
 
 ### Testing
@@ -142,20 +142,20 @@ git commit -m "fix: resolve memory leak in task router"
 
 ```python
 # Good Example
-async def process_task(task: Task) -> TaskResult:
-    """Process a task and return its result.
+async def process_job(job: Job) -> JobResult:
+    """Process a job and return its result.
 
     Args:
-        task: The task to process
+        job: The job to process
 
     Returns:
-        TaskResult: The result of task processing
+        JobResult: The result of job processing
     """
     try:
-        result = await self._execute_task_steps(task)
-        return TaskResult(success=True, output=result)
+        result = await self._execute_job_steps(job)
+        return JobResult(success=True, output=result)
     except Exception as e:
-        return TaskResult(success=False, error=str(e))
+        return JobResult(success=False, error=str(e))
 ```
 
 ### Testing Standards
@@ -165,10 +165,10 @@ async def process_task(task: Task) -> TaskResult:
 - Use meaningful test names and descriptions
 
 ```python
-async def test_task_processing_success():
-    """Test successful task processing with valid input."""
-    task = Task(description="test task")
-    result = await agent.process_task(task)
+async def test_job_processing_success():
+    """Test successful job processing with valid input."""
+    job = Job(description="test job")
+    result = await agent.process_job(job)
     assert result.success
     assert result.output is not None
 ```

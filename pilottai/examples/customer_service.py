@@ -31,7 +31,7 @@ async def main():
 
     # Create customer service agent
     customer_service = await pilott.add_agent(
-        role="customer_service",
+        title="customer_service",
         goal="Handle customer inquiries professionally",
         tools=[email_tool],
         llm_config=llm_config
@@ -39,7 +39,7 @@ async def main():
 
     # Create document processing agent
     doc_processor = await pilott.add_agent(
-        role="document_processor",
+        title="document_processor",
         goal="Process and analyze documents efficiently",
         tools=[document_tool],
         llm_config=llm_config
@@ -47,14 +47,14 @@ async def main():
 
     # Create research analyst agent
     research_analyst = await pilott.add_agent(
-        role="research_analyst",
+        title="research_analyst",
         goal="Analyze data and provide insights",
         tools=[document_tool],
         llm_config=llm_config
     )
 
-    # Example task
-    tasks = [
+    # Example job
+    jobs = [
         {
             "type": "customer_inquiry",
             "description": "Handle refund request",
@@ -72,10 +72,10 @@ async def main():
         }
     ]
 
-    # Execute task
-    results = await pilott.execute(tasks)
-    for task, result in zip(tasks, results):
-        print(f"Task: {task['description']}")
+    # Execute job
+    results = await pilott.serve(jobs)
+    for job, result in zip(jobs, results):
+        print(f"Job: {job['description']}")
         print(f"Result: {result.output}\n")
 
 if __name__ == "__main__":
