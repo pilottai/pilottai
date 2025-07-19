@@ -7,7 +7,7 @@ This directory contains example implementations showing how to create and use di
 The examples demonstrate how to:
 - Set up multiple specialized agents
 - Create and configure tools
-- Execute tasks across different agents
+- Execute jobs across different agents
 - Use the PilottAI Serve orchestrator
 
 ## Installation
@@ -48,13 +48,13 @@ asyncio.run(main())
 ## Example Output
 
 ```
-Task: Handle refund request
+Job: Handle refund request
 Result: Customer refund request processed successfully
 
-Task: Analyze quarterly report
+Job: Analyze quarterly report
 Result: Document analysis complete: 3 key insights found
 
-Task: Research competitor pricing
+Job: Research competitor pricing
 Result: Market research analysis completed
 ```
 
@@ -63,7 +63,7 @@ Result: Market research analysis completed
 1. Configure the agent:
 ```python
 agent_config = AgentConfig(
-    role="your_agent_role",
+    title="your_agent_title",
     goal="your_agent_goal",
     tools=["tool1", "tool2"]
 )
@@ -72,7 +72,7 @@ agent_config = AgentConfig(
 2. Add to PilottAI:
 ```python
 agent = await pilott.add_agent(
-    role=agent_config.role,
+    title=agent_config.title,
     goal=agent_config.goal,
     tools=agent_config.tools,
     llm_config=llm_config
@@ -82,7 +82,7 @@ agent = await pilott.add_agent(
 ## Best Practices
 
 1. **Agent Design**
-   - Give each agent a clear, focused role
+   - Give each agent a clear, focused title
    - Provide specific goals and tools
    - Use appropriate LLM configurations
 
@@ -91,8 +91,8 @@ agent = await pilott.add_agent(
    - Define clear tool interfaces
    - Handle tool errors gracefully
 
-3. **Task Execution**
-   - Group related tasks
+3. **Job Execution**
+   - Group related jobs
    - Set appropriate priorities
    - Monitor execution results
 
@@ -124,7 +124,7 @@ tool = Tool(
 
 The examples include basic error handling. In production, you should:
 - Add comprehensive error handling
-- Implement retries for failed tasks
+- Implement retries for failed jobs
 - Log errors appropriately
 - Handle API rate limits
 
@@ -139,4 +139,4 @@ Feel free to:
 
 ## Code
 
-Ready to use code [customer_service.py](../../pilott/agents/customer_service.py) 
+Ready to use code [customer_service.py](../../pilott/agents/customer_service.py)

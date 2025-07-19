@@ -16,7 +16,7 @@ class DynamicScaling:
         self.config = ScalingConfig(**(config or {}))
         self.logger = logging.getLogger("DynamicScaling")
         self.running = False
-        self.scaling_task: Optional[asyncio.Task] = None
+        self.scaling_job: Optional[asyncio.Task] = None
         self.metrics_history: deque = deque(maxlen=60)  # 1 hour of minute-by-minute metrics
         self.last_scale_time = datetime.now()
         self._setup_logging()
@@ -29,7 +29,7 @@ class DynamicScaling:
 
         try:
             self.running = True
-            self.scaling_task = asyncio.create_task(self._scaling_loop())
+            self.scaling_job = asyncio.create_task(self._scaling_loop())
             self.logger.info("Dynamic scaling started")
         except Exception as e:
             self.running = False
@@ -42,10 +42,10 @@ class DynamicScaling:
 
         try:
             self.running = False
-            if self.scaling_task:
-                self.scaling_task.cancel()
+            if self.scaling_job:
+                self.scaling_job.cancel()
                 try:
-                    await self.scaling_task
+                    await self.scaling_job
                 except asyncio.CancelledError:
                     pass
             self.logger.info("Dynamic scaling stopped")
@@ -202,8 +202,8 @@ class DynamicScaling:
     async def _safely_remove_agent(self, agent):
         """Safely remove an agent with proper cleanup"""
         try:
-            # Wait for agent to finish current task
-            await agent.wait_for_tasks()
+            # Wait for agent to finish current job
+            await agent.wait_for_jobs()
             # Stop agent
             await agent.stop()
             # Remove from orchestrator
@@ -230,7 +230,7 @@ class DynamicScaling:
                 if (
                         agent.status == 'idle' and
                         metrics['queue_size'] == 0 and
-                        metrics['active_tasks'] == 0
+                        metrics['active_jobs'] == 0
                 ):
                     idle_agents.append((agent, metrics['success_rate']))
 
@@ -287,10 +287,10 @@ class DynamicScaling:
             if num_agents == 0:
                 return 0.0
 
-            # Task load
-            total_tasks = sum(metrics['total_tasks'] for metrics in agent_metrics)
-            max_tasks = num_agents * 10  # Assuming 10 task per agent is optimal
-            task_load = min(1.0, total_tasks / max_tasks)
+            # Job load
+            total_jobs = sum(metrics['total_jobs'] for metrics in agent_metrics)
+            max_jobs = num_agents * 10  # Assuming 10 job per agent is optimal
+            job_load = min(1.0, total_jobs / max_jobs)
 
             # Queue utilization
             avg_queue_util = sum(
@@ -304,13 +304,13 @@ class DynamicScaling:
 
             # Weighted average of all metrics
             load = (
-                    0.35 * task_load +
+                    0.35 * job_load +
                     0.25 * avg_queue_util +
                     0.20 * cpu_load +
                     0.20 * memory_load
             )
             self.logger.debug(
-                f"Load metrics - Task: {task_load:.2f}, Queue: {avg_queue_util:.2f}, "
+                f"Load metrics - Job: {job_load:.2f}, Queue: {avg_queue_util:.2f}, "
                 f"CPU: {cpu_load:.2f}, Memory: {memory_load:.2f}, Total: {load:.2f}"
             )
             return min(1.0, load)

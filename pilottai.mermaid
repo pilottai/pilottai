@@ -1,10 +1,10 @@
 classDiagram
     class Serve {
         +agents: Dict[str, BaseAgent]
-        +tasks: Dict[str, Task]
+        +jobs: Dict[str, Job]
         +memory: Memory
         +add_agent()
-        +create_task()
+        +create_job()
         +execute()
         +start()
         +stop()
@@ -17,23 +17,23 @@ classDiagram
         +tools: Dict[str, Tool]
         +memory: Memory
         +llm: LLMHandler
-        +execute_task()
-        +evaluate_task_suitability()
+        +execute_job()
+        +evaluate_job_suitability()
         +start()
         +stop()
     }
 
     class Memory {
-        +store_task_start()
-        +store_task_result()
-        +store_task_context()
-        +get_task_history()
-        +get_similar_tasks()
+        +store_job_start()
+        +store_job_result()
+        +store_job_context()
+        +get_job_history()
+        +get_similar_jobs()
         +search()
     }
 
-    class TaskRouter {
-        +route_task()
+    class JobRouter {
+        +route_job()
         +_calculate_agent_scores()
         +_find_best_agent()
         +_analyze_agent_loads()
@@ -48,7 +48,7 @@ classDiagram
 
     class LoadBalancer {
         +_balance_system_load()
-        +_redistribute_tasks()
+        +_redistribute_jobs()
         +_calculate_agent_suitability()
     }
 
@@ -73,11 +73,11 @@ classDiagram
         +_process_response()
     }
 
-    class Task {
+    class Job {
         +id: str
         +description: str
-        +status: TaskStatus
-        +priority: TaskPriority
+        +status: JobStatus
+        +priority: JobPriority
         +mark_started()
         +mark_completed()
     }
@@ -87,16 +87,16 @@ classDiagram
     BaseAgent *-- Tool : uses
     BaseAgent *-- Memory : has
     BaseAgent *-- LLMHandler : uses
-    Serve *-- TaskRouter : routes tasks
+    Serve *-- JobRouter : routes jobs
     Serve *-- DynamicScaling : scales system
     Serve *-- LoadBalancer : balances load
     Serve *-- FaultTolerance : handles faults
-    BaseAgent -- Task : executes
-    Task -- TaskRouter : routed by
+    BaseAgent -- Job : executes
+    Job -- JobRouter : routed by
 
     note for Serve "Main orchestrator for the framework"
     note for BaseAgent "Core agent implementation"
-    note for TaskRouter "Routes tasks to appropriate agents"
+    note for JobRouter "Routes jobs to appropriate agents"
     note for DynamicScaling "Handles system scaling"
     note for LoadBalancer "Balances workload across agents"
     note for FaultTolerance "Handles system resilience"

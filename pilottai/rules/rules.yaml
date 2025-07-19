@@ -2,19 +2,19 @@ agent:
   system:
     base: |
       You are an AI agent with:
-      Role: {role}
+      Title: {title}
       Goal: {goal}
       Description: {description}
 
-      Make decisions based on your role, goal, and description.
+      Make decisions based on your title, goal, and description.
 
-  task_analysis: |
-    As {role} with the goal of {goal}, analyze:
-    {task_description}
+  job_analysis: |
+    As {title} with the goal of {goal}, analyze:
+    {job_description}
 
     Return as JSON:
     {{
-      "alignment": "How this aligns with role/goal",
+      "alignment": "How this aligns with title/goal",
       "challenges": ["challenges"],
       "required_tools": ["tools"],
       "required_knowledge": ["knowledge"],
@@ -26,7 +26,7 @@ agent:
 
   tool_selection: |
     Available tools: {tools}
-    Task: {task_description}
+    Job: {job_description}
 
     Return as JSON:
     {{
@@ -38,12 +38,12 @@ agent:
     }}
 
   step_planning: |
-    Task: {task_description}
+    Job: {job_description}
     Completed Steps: {completed_steps}
     Last Result: {last_result}
 
   expected_result: |
-    Generate a JSON output in the following format. The "steps" array must include at least one `"action": "task"` step. Also if Tools exists then at least one `"action": "tool"` step. Do not skip the task step.
+    Generate a JSON output in the following format. The "steps" array must include at least one `"action": "job"` step. Also if Tools exists then at least one `"action": "tool"` step. Do not skip the job step.
 
     {{
       "steps": [
@@ -55,25 +55,25 @@ agent:
           "validation_criteria": ["criteria"]
         }},
         {{
-          "action": "task",
+          "action": "job",
           "description": "description",
           "validation_criteria": ["criteria"]
         }}
       ],
-      "task_complete": false
+      "job_complete": false
     }}
 
   result_evaluation: |
-    Task: {task_description}
+    Job: {job_description}
     Result: {result}
 
-    Return as JSON:
+    Return a JSON output in the below format. The JSON must include all the fields :
     {{
       "success": true/false,
       "quality_score": "1-10",
       "matches_requirements": true/false,
       "goal_alignment": "1-10",
-      "task_result": ["task_result"],
+      "job_result": ["job_result"],
       "evaluation_result": ["evaluation_result"],
       "improvements": ["suggestions"],
       "next_actions": ["actions"],
@@ -81,8 +81,8 @@ agent:
     }}
 
 orchestrator:
-  task_analysis: |
-    Analyze task: {task_description}
+  job_analysis: |
+    Analyze job: {job_description}
     Format: {{
       "requires_decomposition": true/false,
       "complexity": "low/medium/high",
@@ -95,8 +95,8 @@ orchestrator:
       "priority": 1
     }}
 
-  task_decomposition: |
-    Decompose task: {task_description}
+  job_decomposition: |
+    Decompose job: {job_description}
     Format: {{
       "subtasks": [
         {{
@@ -108,17 +108,17 @@ orchestrator:
     }}
 
   agent_selection: |
-    Task: {task_description}
+    Job: {job_description}
     Agents: {agents_list}
     Format: {{
-      "selected_agent": "agent_role",
+      "selected_agent": "agent_title",
       "capability_match": 1,
       "risk_factors": []
     }}
 
   execution_strategy: |
-    Task: {task_description}
-    Load: {current_tasks}
+    Job: {job_description}
+    Load: {current_jobs}
     Max Concurrent: {max_concurrent}
     Format: {{
       "parallel_execution": false,
@@ -127,7 +127,7 @@ orchestrator:
     }}
 
   result_evaluation: |
-    Task: {task_description}
+    Job: {job_description}
     Result: {result}
     Format: {{
       "success": true/false,

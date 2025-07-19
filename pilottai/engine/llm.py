@@ -52,7 +52,7 @@ class LLMHandler:
             self,
             messages: List[Dict[str, str]],
             tools: Optional[List[Dict]] = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any] | None:
         """Generate response from LLM"""
         if not messages:
             raise ValueError("Messages cannot be empty")
@@ -81,6 +81,7 @@ class LLMHandler:
                         raise
                     self.logger.warning(f"Attempt {attempt + 1} failed: {str(e)}")
                     await asyncio.sleep(self.config["retry_delay"] * (attempt + 1))
+            return None
 
     async def _rate_limit(self):
         """Handle rate limiting"""

@@ -3,21 +3,21 @@ from datetime import datetime
 from typing import Dict, Optional, Any
 from pydantic import Field
 
-from pilottai.enums.task_e import TaskStatus, TaskPriority
-from pilottai.config.model import TaskResult
-from pilottai.core.base_task import BaseTask
+from pilottai.enums.job_e import JobStatus, JobPriority
+from pilottai.config.model import JobResult
+from pilottai.core.base_job import BaseJob
 
 
-class Task(BaseTask):
+class Job(BaseJob):
     """
-    Task class with improved status management.
+    Job class with improved status management.
     """
     # Core attributes
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     agent_id: str = None
     description: str
-    status: TaskStatus = Field(default=TaskStatus.PENDING)
-    priority: TaskPriority = Field(default=TaskPriority.MEDIUM)
+    status: JobStatus = Field(default=JobStatus.PENDING)
+    priority: JobPriority = Field(default=JobPriority.MEDIUM)
 
     # Settings
     context: Dict[str, Any] = Field(default_factory=dict)
@@ -29,39 +29,39 @@ class Task(BaseTask):
     completed_at: Optional[datetime] = None
 
     # Result
-    result: Optional[TaskResult] = None
+    result: Optional[JobResult] = None
 
     class Config:
         arbitrary_types_allowed = True
 
     async def mark_started(self, agent_id: Optional[str] = None) -> None:
-        """Mark task as started with the specified agent"""
-        if self.status != TaskStatus.PENDING:
-            raise ValueError(f"Cannot start task in {self.status} status")
+        """Mark job as started with the specified agent"""
+        if self.status != JobStatus.PENDING:
+            raise ValueError(f"Cannot start job in {self.status} status")
 
-        self.status = TaskStatus.IN_PROGRESS
+        self.status = JobStatus.IN_PROGRESS
         self.agent_id = agent_id
         self.started_at = datetime.now()
 
-    async def mark_completed(self, result: TaskResult) -> None:
-        """Mark task as completed with the given result"""
+    async def mark_completed(self, result: JobResult) -> None:
+        """Mark job as completed with the given result"""
         self.completed_at = datetime.now()
         self.result = result
 
         if result.success:
-            self.status = TaskStatus.COMPLETED
+            self.status = JobStatus.COMPLETED
         else:
             if hasattr(self, 'can_retry') and self.can_retry:
                 self.retry_count += 1
-                self.status = TaskStatus.PENDING
+                self.status = JobStatus.PENDING
             else:
-                self.status = TaskStatus.FAILED
+                self.status = JobStatus.FAILED
 
-    async def mark_cancelled(self, reason: str = "Task cancelled") -> None:
-        """Mark task as cancelled"""
-        self.status = TaskStatus.CANCELLED
+    async def mark_cancelled(self, reason: str = "Job cancelled") -> None:
+        """Mark job as cancelled"""
+        self.status = JobStatus.CANCELLED
         self.completed_at = datetime.now()
-        self.result = TaskResult(
+        self.result = JobResult(
             success=False,
             output=None,
             error=reason,
@@ -70,26 +70,26 @@ class Task(BaseTask):
 
     @property
     def is_completed(self) -> bool:
-        """Check if task is completed"""
-        return self.status in [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.CANCELLED]
+        """Check if job is completed"""
+        return self.status in [JobStatus.COMPLETED, JobStatus.FAILED, JobStatus.CANCELLED]
 
     @property
     def is_active(self) -> bool:
-        """Check if task is currently active"""
-        return self.status == TaskStatus.IN_PROGRESS
+        """Check if job is currently active"""
+        return self.status == JobStatus.IN_PROGRESS
 
     @property
     def can_retry(self) -> bool:
-        """Check if task can be retried"""
+        """Check if job can be retried"""
         return (
-                self.status == TaskStatus.FAILED and
-                self.retry_count < self.max_retries and
-                not self.is_expired
+            self.status == JobStatus.FAILED and
+            self.retry_count < self.max_retries and
+            not self.is_expired
         )
 
     @property
     def is_expired(self) -> bool:
-        """Check if task has expired"""
+        """Check if job has expired"""
         return bool(
             self.deadline and
             datetime.now() > self.deadline
@@ -97,13 +97,13 @@ class Task(BaseTask):
 
     @property
     def duration(self) -> Optional[float]:
-        """Get task duration in seconds"""
+        """Get job duration in seconds"""
         if self.started_at and self.completed_at:
             return (self.completed_at - self.started_at).total_seconds()
         return None
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert task to dictionary"""
+        """Convert job to dictionary"""
         return {
             "id": self.id,
             "description": self.description,
@@ -118,15 +118,15 @@ class Task(BaseTask):
             "duration": self.duration
         }
 
-    def copy(self, **kwargs) -> 'Task':
-        """Create a copy of the task with optional updates"""
+    def copy(self, **kwargs) -> 'Job':
+        """Create a copy of the job with optional updates"""
         data = self.model_dump()
         data.update(kwargs)
-        return Task(**data)
+        return Job(**data)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Task':
-        """Create task from dictionary"""
+    def from_dict(cls, data: Dict[str, Any]) -> 'Job':
+        """Create job from dictionary"""
         if 'result' in data and data['result']:
-            data['result'] = TaskResult(**data['result'])
+            data['result'] = JobResult(**data['result'])
         return cls(**data)

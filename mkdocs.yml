@@ -1,6 +1,6 @@
 site_name: PilottAI Framework
 site_url: https://docs.pilottai.com
-site_description: A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent task processing.
+site_description: A powerful Python framework for building scalable multi-agent systems with built-in orchestration, LLM integration, and intelligent job processing.
 site_author: PilottAI Team
 repo_url: https://github.com/anuj0456/pilottai
 repo_name: pilottai

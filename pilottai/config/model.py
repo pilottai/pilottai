@@ -6,14 +6,14 @@ from pydantic import BaseModel, Field, ConfigDict
 from pilottai.enums.health_e import HealthStatus
 
 class MemoryEntry(BaseModel):
-    """Enhanced memory entry with task awareness"""
+    """Enhanced memory entry with job awareness"""
     text: str
-    entry_type: str  # 'task', 'context', 'result', etc.
+    entry_type: str  # 'job', 'context', 'result', etc.
     metadata: Dict[str, Any] = Field(default_factory=dict)
     timestamp: datetime = Field(default_factory=datetime.now)
     tags: Set[str] = Field(default_factory=set)
     priority: int = Field(ge=0, default=1)
-    task_id: Optional[str] = None
+    job_id: Optional[str] = None
     agent_id: Optional[str] = None
 
 
@@ -78,15 +78,15 @@ class AgentHealth(BaseModel):
     resource_usage: float
     error_count: int
     recovery_attempts: int
-    stuck_tasks: List[str]
+    stuck_jobs: List[str]
     last_error: Optional[str] = None
 
 class LoadMetrics(BaseModel):
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
     queue_size: int = 0
-    active_tasks: int = 0
-    total_tasks: int = 0
+    active_jobs: int = 0
+    total_jobs: int = 0
     error_rate: float = 0.0
     timestamp: datetime = Field(default_factory=datetime.now)
 
@@ -100,8 +100,8 @@ class ToolMetrics(BaseModel):
     last_error: Optional[str] = None
     error_types: Dict[str, int] = Field(default_factory=dict)
 
-class TaskResult(BaseModel):
-    """Result of task execution"""
+class JobResult(BaseModel):
+    """Result of job execution"""
     success: bool
     output: Any
     error: Optional[str] = None

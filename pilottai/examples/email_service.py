@@ -48,14 +48,14 @@ async def main():
 
     # Create email agent
     email_agent = await pilott.add_agent(
-        role="email_manager",
+        title="email_manager",
         goal="Handle email communications efficiently",
         tools=[email_sender, email_analyzer, template_manager],
         llm_config=llm_config
     )
 
-    # Example task
-    tasks = [
+    # Example job
+    jobs = [
         {
             "type": "send_email",
             "template": "welcome",
@@ -73,10 +73,10 @@ async def main():
         }
     ]
 
-    # Execute task
-    results = await pilott.execute(tasks)
-    for task, result in zip(tasks, results):
-        print(f"Task type: {task['type']}")
+    # Execute job
+    results = await pilott.serve(jobs)
+    for job, result in zip(jobs, results):
+        print(f"Job type: {job['type']}")
         print(f"Result: {result.output}\n")
 
 if __name__ == "__main__":

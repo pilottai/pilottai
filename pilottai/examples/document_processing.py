@@ -46,14 +46,14 @@ async def main():
 
     # Create document processing agent
     doc_processor = await pilott.add_agent(
-        role="document_processor",
+        title="document_processor",
         goal="Process and analyze documents efficiently",
         tools=[text_extractor, content_analyzer, summarizer],
         llm_config=llm_config
     )
 
-    # Example task
-    task = {
+    # Example job
+    job = {
         "type": "document_analysis",
         "description": "Analyze quarterly report",
         "document": {
@@ -63,8 +63,8 @@ async def main():
         "agent": doc_processor
     }
 
-    # Execute task
-    result = await pilott.execute([task])
+    # Execute job
+    result = await pilott.serve([job])
     print(f"Analysis result: {result[0].output}")
 
 if __name__ == "__main__":

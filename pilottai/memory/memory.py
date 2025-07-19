@@ -8,137 +8,137 @@ from pilottai.config.model import MemoryEntry
 
 class Memory:
     """
-    Enhanced memory system for PilottAI with improved task integration.
-    Maintains context and history for better task execution.
+    Enhanced memory system for PilottAI with improved job integration.
+    Maintains context and history for better job execution.
     """
 
     def __init__(self, max_entries: int = 1000):
         self._memory_lock = asyncio.Lock()
-        self._task_index: Dict[str, List[int]] = {}  # Task ID -> Entry indices
+        self._job_index: Dict[str, List[int]] = {}  # Job ID -> Entry indices
         self._agent_index: Dict[str, List[int]] = {}  # Agent ID -> Entry indices
         self._entries: deque = deque(maxlen=max_entries)
         self._tag_index: Dict[str, List[int]] = {}
 
-    async def store_task_start(
+    async def store_job_start(
             self,
-            task_id: str,
+            job_id: str,
             description: str,
             agent_id: Optional[str] = None,
             context: Optional[Dict] = None
     ) -> None:
-        """Store task start information"""
+        """Store job start information"""
         entry = MemoryEntry(
-            text=f"Started task: {description}",
-            entry_type="task_start",
+            text=f"Started job: {description}",
+            entry_type="job_start",
             metadata={
                 "context": context or {},
                 "status": "started"
             },
-            tags={"task_start", f"task_{task_id}"},
-            task_id=task_id,
+            tags={"job_start", f"job_{job_id}"},
+            job_id=job_id,
             agent_id=agent_id
         )
         await self._store_entry(entry)
 
-    async def store_task_result(
+    async def store_job_result(
             self,
-            task_id: str,
+            job_id: str,
             result: Any,
             success: bool,
             execution_time: float,
             agent_id: Optional[str] = None
     ) -> None:
-        """Store task execution results"""
+        """Store job execution results"""
         status = "completed" if success else "failed"
         entry = MemoryEntry(
-            text=f"Task {status}: {str(result)}",
-            entry_type="task_result",
+            text=f"Job {status}: {str(result)}",
+            entry_type="job_result",
             metadata={
                 "success": success,
                 "execution_time": execution_time,
                 "result": result
             },
-            tags={"task_result", f"task_{task_id}", status},
-            task_id=task_id,
+            tags={"job_result", f"job_{job_id}", status},
+            job_id=job_id,
             agent_id=agent_id
         )
         await self._store_entry(entry)
 
-    async def store_task_context(
+    async def store_job_context(
             self,
-            task_id: str,
+            job_id: str,
             context: Dict[str, Any],
             context_type: str,
             agent_id: Optional[str] = None
     ) -> None:
-        """Store additional task context"""
+        """Store additional job context"""
         entry = MemoryEntry(
-            text=f"Context for task: {json.dumps(context)}",
-            entry_type="task_context",
+            text=f"Context for job: {json.dumps(context)}",
+            entry_type="job_context",
             metadata={
                 "context": context,
                 "context_type": context_type
             },
-            tags={"task_context", f"task_{task_id}", context_type},
-            task_id=task_id,
+            tags={"job_context", f"job_{job_id}", context_type},
+            job_id=job_id,
             agent_id=agent_id
         )
         await self._store_entry(entry)
 
-    async def get_task_history(
+    async def get_job_history(
             self,
-            task_id: str,
+            job_id: str,
             include_context: bool = True
     ) -> List[MemoryEntry]:
-        """Get complete history for a task"""
+        """Get complete history for a job"""
         async with self._memory_lock:
-            indices = self._task_index.get(task_id, [])
+            indices = self._job_index.get(job_id, [])
             entries = []
 
             for idx in indices:
                 entry = self._entries[idx]
-                if include_context or entry.entry_type != "task_context":
+                if include_context or entry.entry_type != "job_context":
                     entries.append(entry)
 
             return sorted(entries, key=lambda x: x.timestamp)
 
-    async def get_similar_tasks(
+    async def get_similar_jobs(
             self,
-            task_description: str,
+            job_description: str,
             limit: int = 5
     ) -> List[Dict[str, Any]]:
-        """Find similar past task based on description"""
+        """Find similar past job based on description"""
         async with self._memory_lock:
-            similar_tasks = []
+            similar_jobs = []
 
-            # Get all task start entries
-            task_starts = [
+            # Get all job start entries
+            job_starts = [
                 entry for entry in self._entries
-                if entry.entry_type == "task_start"
+                if entry.entry_type == "job_start"
             ]
 
             # Simple similarity based on common words
-            task_words = set(task_description.lower().split())
+            job_words = set(job_description.lower().split())
 
-            for entry in task_starts:
+            for entry in job_starts:
                 entry_words = set(entry.text.lower().split())
-                similarity = len(task_words & entry_words) / len(task_words | entry_words)
+                similarity = len(job_words & entry_words) / len(job_words | entry_words)
 
                 if similarity > 0.3:  # Threshold for similarity
-                    # Get task result
-                    task_result = await self.get_task_result(entry.task_id)
+                    # Get job result
+                    job_result = await self.get_job_result(entry.job_id)
 
-                    similar_tasks.append({
-                        "task_id": entry.task_id,
+                    similar_jobs.append({
+                        "job_id": entry.job_id,
                         "description": entry.text,
                         "similarity": similarity,
-                        "success": task_result.metadata.get("success") if task_result else None,
+                        "success": job_result.metadata.get("success") if job_result else None,
                         "timestamp": entry.timestamp
                     })
 
             # Sort by similarity and limit results
             return sorted(
-                similar_tasks,
+                similar_jobs,
                 key=lambda x: x["similarity"],
                 reverse=True
             )[:limit]
@@ -168,31 +168,31 @@ class Memory:
                 reverse=True
             )[:limit]
 
-    async def get_task_result(self, task_id: str) -> Optional[MemoryEntry]:
-        """Get the result of a specific task"""
+    async def get_job_result(self, job_id: str) -> Optional[MemoryEntry]:
+        """Get the result of a specific job"""
         async with self._memory_lock:
-            indices = self._task_index.get(task_id, [])
+            indices = self._job_index.get(job_id, [])
 
             for idx in indices:
                 entry = self._entries[idx]
-                if entry.entry_type == "task_result":
+                if entry.entry_type == "job_result":
                     return entry
 
             return None
 
-    async def get_task_context(
+    async def get_job_context(
             self,
-            task_id: str,
+            job_id: str,
             context_type: Optional[str] = None
     ) -> List[MemoryEntry]:
-        """Get context entries for a task"""
+        """Get context entries for a job"""
         async with self._memory_lock:
-            indices = self._task_index.get(task_id, [])
+            indices = self._job_index.get(job_id, [])
             contexts = []
 
             for idx in indices:
                 entry = self._entries[idx]
-                if entry.entry_type == "task_context":
+                if entry.entry_type == "job_context":
                     if context_type:
                         if entry.metadata.get("context_type") == context_type:
                             contexts.append(entry)
@@ -201,18 +201,18 @@ class Memory:
 
             return sorted(contexts, key=lambda x: x.timestamp)
 
-    async def build_task_context(
+    async def build_job_context(
             self,
-            task_description: str,
+            job_description: str,
             agent_id: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Build comprehensive context for a new task"""
+        """Build comprehensive context for a new job"""
         context = {}
 
-        # Get similar past task
-        similar_tasks = await self.get_similar_tasks(task_description)
-        if similar_tasks:
-            context["similar_tasks"] = similar_tasks
+        # Get similar past job
+        similar_jobs = await self.get_similar_jobs(job_description)
+        if similar_jobs:
+            context["similar_jobs"] = similar_jobs
 
         # Get agent context if specified
         if agent_id:
@@ -236,11 +236,11 @@ class Memory:
             self._entries.append(entry)
             entry_idx = len(self._entries) - 1
 
-            # Update task index
-            if entry.task_id:
-                if entry.task_id not in self._task_index:
-                    self._task_index[entry.task_id] = []
-                self._task_index[entry.task_id].append(entry_idx)
+            # Update job index
+            if entry.job_id:
+                if entry.job_id not in self._job_index:
+                    self._job_index[entry.job_id] = []
+                self._job_index[entry.job_id].append(entry_idx)
 
             # Update tag index
             for tag in entry.tags:
@@ -268,16 +268,16 @@ class Memory:
 
     def _rebuild_indices(self) -> None:
         """Rebuild all indices"""
-        self._task_index.clear()
+        self._job_index.clear()
         self._tag_index.clear()
         self._agent_index.clear()
 
         for idx, entry in enumerate(self._entries):
-            # Update task index
-            if entry.task_id:
-                if entry.task_id not in self._task_index:
-                    self._task_index[entry.task_id] = []
-                self._task_index[entry.task_id].append(idx)
+            # Update job index
+            if entry.job_id:
+                if entry.job_id not in self._job_index:
+                    self._job_index[entry.job_id] = []
+                self._job_index[entry.job_id].append(idx)
 
             # Update tag index
             for tag in entry.tags:

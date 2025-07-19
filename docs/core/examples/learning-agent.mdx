@@ -19,19 +19,19 @@ pilott = Serve(name="LearningAgent")
 
 # Create agent
 learning_agent = await pilott.add_agent(
-    role="learner",
+    title="learner",
     goal="Acquire and organize knowledge",
     tools=["knowledge_base", "pattern_recognizer"]
 )
 
 # Learn new topic
-task = {
+job = {
     "type": "learn_topic",
     "content": "Machine Learning Basics",
     "store_results": True
 }
 
-result = await pilott.execute([task])
+result = await pilott.execute([job])
 ```
 
 ## Tools

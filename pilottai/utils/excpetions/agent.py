@@ -15,9 +15,9 @@ class AgentInitError(PilottAIException):
 
 
 class AgentExecutionError(PilottAIException):
-    def __init__(self, message: str, agent_id: str = None, task_id: str = None, **details):
+    def __init__(self, message: str, agent_id: str = None, job_id: str = None, **details):
         if agent_id:
             details['agent_id'] = agent_id
-        if task_id:
-            details['task_id'] = task_id
+        if job_id:
+            details['job_id'] = job_id
         super().__init__(f"Agent execution failed: {message}", details)
