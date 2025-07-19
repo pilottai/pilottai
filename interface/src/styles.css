@@ -666,7 +666,7 @@ pre.code-block {
     font-size: 1.2rem;
 }
 
-.agent-role {
+.agent-type {
     color: var(--secondary-color);
     font-size: 0.9rem;
     opacity: 0.9;

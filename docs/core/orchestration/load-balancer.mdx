@@ -1,25 +1,25 @@
 # Load Balancer
 
-The Load Balancer component in PilottAI optimizes task distribution across agents, ensuring efficient resource utilization and preventing any single agent from becoming overloaded.
+The Load Balancer component in PilottAI optimizes job distribution across agents, ensuring efficient resource utilization and preventing any single agent from becoming overloaded.
 
 ## Overview
 
 The Load Balancer provides:
 
-- Intelligent task distribution based on agent suitability
-- Automatic redistribution of tasks from overloaded agents
+- Intelligent job distribution based on agent suitability
+- Automatic redistribution of jobs from overloaded agents
 - Agent load monitoring and analysis
 - Performance-aware routing decisions
-- Task prioritization and queue management
+- Job prioritization and queue management
 
 ## How It Works
 
 The Load Balancer continuously monitors agent loads and performance metrics to make informed decisions about:
 
-- Which agent should handle each incoming task
-- When to move tasks from overloaded to underutilized agents
-- How to prioritize tasks based on importance and dependencies
-- When to pause task acceptance for overloaded agents
+- Which agent should handle each incoming job
+- When to move jobs from overloaded to underutilized agents
+- How to prioritize jobs based on importance and dependencies
+- When to pause job acceptance for overloaded agents
 
 ## Basic Usage
 
@@ -46,8 +46,8 @@ async def load_balancing_example():
         "check_interval": 30,           # 30 seconds between checks
         "overload_threshold": 0.8,      # 80% capacity is considered overloaded
         "underload_threshold": 0.2,     # 20% capacity is considered underloaded
-        "max_tasks_per_agent": 10,      # Maximum tasks per agent
-        "balance_batch_size": 3,        # Move up to 3 tasks at once
+        "max_jobs_per_agent": 10,      # Maximum jobs per agent
+        "balance_batch_size": 3,        # Move up to 3 jobs at once
         "min_load_difference": 0.3      # Minimum load difference to trigger balancing
     }
 
@@ -61,25 +61,25 @@ async def load_balancing_example():
         # Add worker agents
         for i in range(5):
             await pilott.add_agent(
-                role=f"worker_{i}",
-                goal="Process tasks efficiently",
+                title=f"worker_{i}",
+                goal="Process jobs efficiently",
                 llm_config=llm_config
             )
 
-        # Create tasks with agent targeting to create imbalance
-        tasks = []
+        # Create jobs with agent targeting to create imbalance
+        jobs = []
 
-        # Assign many tasks to worker_0 to create imbalance
+        # Assign many jobs to worker_0 to create imbalance
         for i in range(15):
-            tasks.append({
+            jobs.append({
                 "type": "process",
-                "description": f"Process task {i}",
+                "description": f"Process job {i}",
                 "data": f"Sample data {i}",
                 "agent": "worker_0"  # Target specific agent
             })
 
-        # Execute tasks (this will overload worker_0)
-        results = await pilott.execute(tasks)
+        # Execute jobs (this will overload worker_0)
+        results = await pilott.execute(jobs)
 
         # Monitor load balancing
         for i in range(5):
@@ -104,11 +104,11 @@ The `LoadBalancer` component accepts the following configuration parameters:
 | `check_interval` | int | 30 | Seconds between load balance checks |
 | `overload_threshold` | float | 0.8 | Load threshold to consider an agent overloaded |
 | `underload_threshold` | float | 0.2 | Load threshold to consider an agent underutilized |
-| `max_tasks_per_agent` | int | 10 | Maximum tasks per agent |
-| `balance_batch_size` | int | 3 | Maximum tasks to move in one balancing operation |
-| `min_load_difference` | float | 0.3 | Minimum load difference to trigger task movement |
+| `max_jobs_per_agent` | int | 10 | Maximum jobs per agent |
+| `balance_batch_size` | int | 3 | Maximum jobs to move in one balancing operation |
+| `min_load_difference` | float | 0.3 | Minimum load difference to trigger job movement |
 | `metrics_retention_period` | int | 3600 | Seconds to retain metric history |
-| `task_move_timeout` | int | 30 | Seconds to wait for task movement to complete |
+| `job_move_timeout` | int | 30 | Seconds to wait for job movement to complete |
 
 ## Load Balancing Metrics
 
@@ -125,7 +125,7 @@ The metrics include:
 - Number of underloaded agents
 - Last balance operation time
 - Agent load distribution
-- Task movement history
+- Job movement history
 - Queue utilization per agent
 
 ## Load Balancing Process
@@ -141,11 +141,11 @@ flowchart TD
     C -->|No| E[Skip Balancing]
 
     D --> F{Suitable Targets Found?}
-    F -->|Yes| G[Identify Moveable Tasks]
+    F -->|Yes| G[Identify Moveable Jobs]
     F -->|No| H[Log No Targets]
 
-    G --> I[Calculate Best Agent for Each Task]
-    I --> J[Move Tasks]
+    G --> I[Calculate Best Agent for Each Job]
+    I --> J[Move Jobs]
     J --> K[Update Metrics]
     H --> K
     E --> K
@@ -154,16 +154,16 @@ flowchart TD
     L --> A
 ```
 
-## Task Suitability Scoring
+## Job Suitability Scoring
 
-The Load Balancer uses a comprehensive scoring system to determine the best agent for each task:
+The Load Balancer uses a comprehensive scoring system to determine the best agent for each job:
 
 ```python
-async def _calculate_agent_suitability(self, agent, task, metrics):
+async def _calculate_agent_suitability(self, agent, job, metrics):
     """Calculate comprehensive agent suitability score"""
 
     # Base capability score (0.0-1.0)
-    base_score = await agent.evaluate_task_suitability(task)
+    base_score = await agent.evaluate_job_suitability(job)
 
     # Load penalty (lower is better)
     load_score = 1 - self._calculate_composite_load(metrics)
@@ -185,24 +185,24 @@ async def _calculate_agent_suitability(self, agent, task, metrics):
 
 This scoring considers:
 
-1. **Task-Agent Match**: How suitable the agent is for the specific task
+1. **Job-Agent Match**: How suitable the agent is for the specific job
 2. **Current Load**: How busy the agent currently is
-3. **Historical Performance**: How well the agent has performed on similar tasks
+3. **Historical Performance**: How well the agent has performed on similar jobs
 4. **Resource Availability**: CPU and memory availability on the agent
 
 ## Advanced Usage
 
-### Task Movement Control
+### Job Movement Control
 
-You can mark certain tasks as unmovable:
+You can mark certain jobs as unmovable:
 
 ```python
-# Create task that should not be moved by load balancer
-task = {
+# Create job that should not be moved by load balancer
+job = {
     "type": "critical_process",
     "description": "Process critical data",
     "data": "Important information",
-    "unmoveable": True  # This task won't be moved by the load balancer
+    "unmoveable": True  # This job won't be moved by the load balancer
 }
 ```
 
@@ -219,26 +219,26 @@ class CustomLoadBalancer(LoadBalancer):
         return (
             0.2 * metrics.cpu_usage +
             0.2 * metrics.memory_usage +
-            0.5 * (metrics.queue_size / self.config.max_tasks_per_agent) +
+            0.5 * (metrics.queue_size / self.config.max_jobs_per_agent) +
             0.1 * metrics.error_rate
         )
 ```
 
-### Task Prioritization
+### Job Prioritization
 
-Tasks with higher priority will be preserved during load balancing:
+Jobs with higher priority will be preserved during load balancing:
 
 ```python
-# Create high-priority task
-high_priority_task = {
+# Create high-priority job
+high_priority_job = {
     "type": "urgent_process",
     "description": "Process urgent data",
     "data": "Critical information",
     "priority": "high"
 }
 
-# Create normal-priority task
-normal_task = {
+# Create normal-priority job
+normal_job = {
     "type": "regular_process",
     "description": "Process regular data",
     "data": "Standard information",
@@ -246,7 +246,7 @@ normal_task = {
 }
 ```
 
-When an agent becomes overloaded, lower-priority tasks will be moved first.
+When an agent becomes overloaded, lower-priority jobs will be moved first.
 
 ## Integration with Dynamic Scaling
 
@@ -260,24 +260,24 @@ await pilott.enable_dynamic_scaling(config=scaling_config)
 
 When both components are enabled:
 
-1. Load Balancer redistributes tasks to optimize current resources
+1. Load Balancer redistributes jobs to optimize current resources
 2. Dynamic Scaling adds or removes agents based on overall system load
 3. Both components share monitoring data for better decisions
 
 ## Performance Considerations
 
 - **Resource Overhead**: Load balancing adds a small overhead for metric collection and analysis
-- **Task Movement Cost**: Moving tasks between agents has an overhead cost
+- **Job Movement Cost**: Moving jobs between agents has an overhead cost
 - **Safe Mode**: By default, load balancer operates in safe mode to prevent data loss
-- **Batch Processing**: Tasks are moved in batches to reduce overhead
+- **Batch Processing**: Jobs are moved in batches to reduce overhead
 - **Queue Limits**: Respect maximum queue size limits to prevent memory issues
 
 ## Best Practices
 
 1. **Tune Thresholds**: Adjust overload and underload thresholds based on your workload
 2. **Set Appropriate Batch Size**: Larger batch sizes reduce balancing frequency but increase impact
-3. **Monitor Carefully**: Keep track of task movements and their impact
-4. **Mark Critical Tasks**: Use the `unmoveable` flag for critical tasks that shouldn't be disrupted
+3. **Monitor Carefully**: Keep track of job movements and their impact
+4. **Mark Critical Jobs**: Use the `unmoveable` flag for critical jobs that shouldn't be disrupted
 5. **Combine with Dynamic Scaling**: Use both for optimal resource utilization
 
 ## API Reference

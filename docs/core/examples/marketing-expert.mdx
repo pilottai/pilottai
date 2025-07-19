@@ -19,19 +19,19 @@ pilott = Serve(name="MarketingExpert")
 
 # Create agent
 marketing_agent = await pilott.add_agent(
-    role="marketing_expert",
+    title="marketing_expert",
     goal="Create and optimize marketing campaigns",
     tools=["content_creator", "campaign_analyzer"]
 )
 
 # Create content
-task = {
+job = {
     "type": "create_content",
     "content_type": "social_post",
     "target_audience": "tech professionals"
 }
 
-result = await pilott.execute([task])
+result = await pilott.execute([job])
 ```
 
 ## Tools

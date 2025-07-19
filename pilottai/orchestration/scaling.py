@@ -8,7 +8,7 @@ import psutil
 from aiohttp._websocket.reader_c import deque
 
 from pilottai.agent.agent import Agent
-from pilottai.task.task import Task
+from pilottai.job.job import Job
 from pilottai.enums.health_e import HealthStatus
 from pilottai.config.model import ScalingMetrics, AgentHealth
 from pilottai.core.base_config import FaultToleranceConfig, ScalingConfig
@@ -21,7 +21,7 @@ class FaultTolerance:
         self.health_status: Dict[str, AgentHealth] = {}
         self.recovery_history: Dict[str, List[Dict]] = {}
         self.running = False
-        self.monitoring_task: Optional[asyncio.Task] = None
+        self.monitoring_job: Optional[asyncio.Task] = None
         self.logger = logging.getLogger("FaultTolerance")
         self._health_lock = asyncio.Lock()
         self._monitored_agents: Set[str] = set()
@@ -34,7 +34,7 @@ class FaultTolerance:
 
         try:
             self.running = True
-            self.monitoring_task = asyncio.create_task(self._monitoring_loop())
+            self.monitoring_job = asyncio.create_task(self._monitoring_loop())
             self.logger.info("Fault tolerance monitoring started")
         except Exception as e:
             self.running = False
@@ -57,10 +57,10 @@ class FaultTolerance:
             return
         try:
             self.running = False
-            if self.monitoring_task:
-                self.monitoring_task.cancel()
+            if self.monitoring_job:
+                self.monitoring_job.cancel()
                 try:
-                    await self.monitoring_task
+                    await self.monitoring_job
                 except asyncio.CancelledError:
                     pass
             self.logger.info("Fault tolerance monitoring stopped")
@@ -78,7 +78,7 @@ class FaultTolerance:
                     resource_usage=0.0,
                     error_count=0,
                     recovery_attempts=0,
-                    stuck_tasks=[]
+                    stuck_jobs=[]
                 )
 
     async def unregister_agent(self, agent_id: str):
@@ -126,8 +126,8 @@ class FaultTolerance:
                 metrics.get('memory_usage', 0)
             )
 
-            # Check stuck task
-            stuck_tasks = await self._check_stuck_tasks(agent)
+            # Check stuck job
+            stuck_jobs = await self._check_stuck_jobs(agent)
 
             # Get error count
             error_count = metrics.get('error_count', 0)
@@ -136,7 +136,7 @@ class FaultTolerance:
             status = self._determine_health_status(
                 heartbeat_ok,
                 resource_usage,
-                len(stuck_tasks),
+                len(stuck_jobs),
                 error_count
             )
 
@@ -146,7 +146,7 @@ class FaultTolerance:
                 resource_usage=resource_usage,
                 error_count=error_count,
                 recovery_attempts=self.health_status[agent.id].recovery_attempts,
-                stuck_tasks=stuck_tasks,
+                stuck_jobs=stuck_jobs,
                 last_error=metrics.get('last_error')
             )
 
@@ -158,7 +158,7 @@ class FaultTolerance:
                 resource_usage=1.0,
                 error_count=self.health_status[agent.id].error_count + 1,
                 recovery_attempts=self.health_status[agent.id].recovery_attempts,
-                stuck_tasks=[],
+                stuck_jobs=[],
                 last_error=str(e)
             )
 
@@ -166,7 +166,7 @@ class FaultTolerance:
             self,
             heartbeat_ok: bool,
             resource_usage: float,
-            stuck_tasks: int,
+            stuck_jobs: int,
             error_count: int
     ) -> HealthStatus:
         if not heartbeat_ok:
@@ -175,7 +175,7 @@ class FaultTolerance:
         if resource_usage > self.config.resource_threshold:
             return HealthStatus.CRITICAL
 
-        if stuck_tasks > 0:
+        if stuck_jobs > 0:
             return HealthStatus.DEGRADED
 
         if error_count > self.config.error_threshold:
@@ -191,20 +191,20 @@ class FaultTolerance:
         except:
             return False
 
-    async def _check_stuck_tasks(self, agent) -> List[str]:
-        stuck_tasks = []
+    async def _check_stuck_jobs(self, agent) -> List[str]:
+        stuck_jobs = []
         try:
-            for task_id, task in agent.tasks.items():
-                if self._is_task_stuck(task):
-                    stuck_tasks.append(task_id)
+            for job_id, job in agent.jobs.items():
+                if self._is_job_stuck(job):
+                    stuck_jobs.append(job_id)
         except Exception as e:
-            self.logger.error(f"Error checking stuck task: {str(e)}")
-        return stuck_tasks
+            self.logger.error(f"Error checking stuck job: {str(e)}")
+        return stuck_jobs
 
-    def _is_task_stuck(self, task: Dict) -> bool:
-        if task.get('status') not in ['completed', 'failed']:
-            created_time = datetime.fromisoformat(task['created_at'])
-            return (datetime.now() - created_time).total_seconds() > self.config.task_timeout
+    def _is_job_stuck(self, job: Dict) -> bool:
+        if job.get('status') not in ['completed', 'failed']:
+            created_time = datetime.fromisoformat(job['created_at'])
+            return (datetime.now() - created_time).total_seconds() > self.config.job_timeout
         return False
 
     async def _handle_unhealthy_agent(self, agent, health_status: AgentHealth):
@@ -283,15 +283,15 @@ class FaultTolerance:
 
             # Create new agent
             new_agent = await self.orchestrator.create_agent(
-                role=agent.config.role,
-                agent_type=agent.config.role_type
+                title=agent.config.title,
+                agent_type=agent.config.agent_type
             )
 
             if not new_agent:
                 raise Exception("Failed to create replacement agent")
 
-            # Move recoverable task
-            await self._transfer_tasks(agent, new_agent)
+            # Move recoverable job
+            await self._transfer_jobs(agent, new_agent)
 
             # Remove old agent
             await self.unregister_agent(agent.id)
@@ -307,30 +307,30 @@ class FaultTolerance:
             self.logger.error(f"Agent replacement failed: {str(e)}")
             raise
 
-    async def _transfer_tasks(self, old_agent, new_agent):
-        """Transfer recoverable task to new agent"""
+    async def _transfer_jobs(self, old_agent, new_agent):
+        """Transfer recoverable job to new agent"""
         try:
-            recoverable_tasks = [
-                task for task in old_agent.tasks.values()
-                if self._is_task_recoverable(task)
+            recoverable_jobs = [
+                job for job in old_agent.jobs.values()
+                if self._is_job_recoverable(job)
             ]
 
-            for task in recoverable_tasks:
+            for job in recoverable_jobs:
                 try:
-                    await new_agent.add_task(task)
+                    await new_agent.add_job(job)
                 except Exception as e:
-                    self.logger.error(f"Failed to transfer task {task['id']}: {str(e)}")
+                    self.logger.error(f"Failed to transfer job {job['id']}: {str(e)}")
 
-            self.logger.info(f"Transferred {len(recoverable_tasks)} task to new agent")
+            self.logger.info(f"Transferred {len(recoverable_jobs)} job to new agent")
 
         except Exception as e:
-            self.logger.error(f"Task transfer failed: {str(e)}")
+            self.logger.error(f"Job transfer failed: {str(e)}")
             raise
 
-    def _is_task_recoverable(self, task: Dict) -> bool:
+    def _is_job_recoverable(self, job: Dict) -> bool:
         return (
-                task['status'] in ['pending', 'in_progress'] and
-                not task.get('non_recoverable', False)
+                job['status'] in ['pending', 'in_progress'] and
+                not job.get('non_recoverable', False)
         )
 
     def get_health_metrics(self) -> Dict:
@@ -357,25 +357,25 @@ class FaultTolerance:
             self.logger.error(f"Resource check failed for {agent.id}: {str(e)}")
             return False
 
-    async def _check_task_progress(self, agent: Agent) -> bool:
-        """Check if agent is making progress on task"""
+    async def _check_job_progress(self, agent: Agent) -> bool:
+        """Check if agent is making progress on job"""
         try:
-            stuck_tasks = [task for task in agent.tasks.values()
-                           if self._is_task_stuck(task)]
-            progress_ok = len(stuck_tasks) == 0
+            stuck_jobs = [job for job in agent.jobs.values()
+                           if self._is_job_stuck(job)]
+            progress_ok = len(stuck_jobs) == 0
             if not progress_ok:
-                self.logger.warning(f"Agent {agent.id} has {len(stuck_tasks)} stuck task")
+                self.logger.warning(f"Agent {agent.id} has {len(stuck_jobs)} stuck job")
             return progress_ok
         except Exception as e:
-            self.logger.error(f"Task progress check failed for {agent.id}: {str(e)}")
+            self.logger.error(f"Job progress check failed for {agent.id}: {str(e)}")
             return False
 
-    def _get_recoverable_tasks(self, agent: Agent) -> List[Task]:
-        """Get task that can be recovered"""
+    def _get_recoverable_jobs(self, agent: Agent) -> List[Job]:
+        """Get job that can be recovered"""
         return [
-            task for task in agent.tasks.values()
-            if task['status'] in ['queued', 'in_progress']
-               and not task.get('non_recoverable', False)
+            job for job in agent.jobs.values()
+            if job['status'] in ['queued', 'in_progress']
+               and not job.get('non_recoverable', False)
         ]
 
 class DynamicScaling:
@@ -384,7 +384,7 @@ class DynamicScaling:
         self.config = ScalingConfig(**(config or {}))
         self.logger = logging.getLogger("DynamicScaling")
         self.running = False
-        self.scaling_task: Optional[asyncio.Task] = None
+        self.scaling_job: Optional[asyncio.Task] = None
         self.metrics_history: deque = deque(maxlen=60)
         self.last_scale_time = datetime.now()
         self._scaling_lock = asyncio.Lock()
@@ -405,7 +405,7 @@ class DynamicScaling:
 
         try:
             self.running = True
-            self.scaling_task = asyncio.create_task(self._scaling_loop())
+            self.scaling_job = asyncio.create_job(self._scaling_loop())
             self.logger.info("Dynamic scaling started")
         except Exception as e:
             self.running = False
@@ -418,10 +418,10 @@ class DynamicScaling:
 
         try:
             self.running = False
-            if self.scaling_task:
-                self.scaling_task.cancel()
+            if self.scaling_job:
+                self.scaling_job.cancel()
                 try:
-                    await self.scaling_task
+                    await self.scaling_job
                 except asyncio.CancelledError:
                     pass
             self.logger.info("Dynamic scaling stopped")
@@ -571,7 +571,7 @@ class DynamicScaling:
 
     async def _safely_remove_agent(self, agent):
         try:
-            await agent.wait_for_tasks()
+            await agent.wait_for_jobs()
             await agent.stop()
             await self.orchestrator.remove_child_agent(agent.id)
         except Exception as e:
@@ -591,7 +591,7 @@ class DynamicScaling:
                 if (
                     agent.status == 'idle' and
                     metrics['queue_size'] == 0 and
-                    metrics['active_tasks'] == 0
+                    metrics['active_jobs'] == 0
                 ):
                     idle_agents.append((agent, metrics['success_rate']))
 

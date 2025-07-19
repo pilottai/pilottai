@@ -11,7 +11,7 @@ class DataController:
     def __init__(self, max_size: int = 10000, cleanup_interval: int = 3600):
         self._memory_lock = asyncio.Lock()
         self._semantic_store: deque = deque(maxlen=max_size)
-        self._task_history: Dict[str, deque] = {}
+        self._job_history: Dict[str, deque] = {}
         self._agent_interactions: Dict[str, Dict[str, Any]] = {}
         self._pattern_store: Dict[str, Dict[str, Any]] = {}
 
@@ -21,25 +21,25 @@ class DataController:
         self._priority_index: Dict[int, Set[int]] = {}
 
         # Configuration
-        self.max_task_history = 1000
+        self.max_job_history = 1000
         self.cleanup_interval = cleanup_interval
         self.last_cleanup = datetime.now()
 
         # Locks
         self._semantic_lock = asyncio.Lock()
-        self._task_lock = asyncio.Lock()
+        self._job_lock = asyncio.Lock()
         self._interaction_lock = asyncio.Lock()
         self._pattern_lock = asyncio.Lock()
-        self._cleanup_task = None
+        self._cleanup_job = None
 
     async def start(self):
-        self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
+        self._cleanup_job = asyncio.create_task(self._periodic_cleanup())
 
     async def stop(self):
-        if self._cleanup_task:
-            self._cleanup_task.cancel()
+        if self._cleanup_job:
+            self._cleanup_job.cancel()
             try:
-                await self._cleanup_task
+                await self._cleanup_job
             except asyncio.CancelledError:
                 pass
 
@@ -129,21 +129,21 @@ class DataController:
             self._priority_index[item.priority] = set()
         self._priority_index[item.priority].add(index)
 
-    async def store_task(self, task_id: str, task_data: Dict[str, Any]) -> None:
-        if not task_id or not task_data:
-            raise ValueError("Task ID and data required")
+    async def store_job(self, job_id: str, job_data: Dict[str, Any]) -> None:
+        if not job_id or not job_data:
+            raise ValueError("Job ID and data required")
         try:
-            async with self._task_lock:
-                if task_id not in self._task_history:
-                    self._task_history[task_id] = deque(maxlen=self.max_task_history)
+            async with self._job_lock:
+                if job_id not in self._job_history:
+                    self._job_history[job_id] = deque(maxlen=self.max_job_history)
                 entry = {
-                    "data": dict(task_data),
+                    "data": dict(job_data),
                     "timestamp": datetime.now(),
-                    "version": len(self._task_history[task_id]) + 1
+                    "version": len(self._job_history[job_id]) + 1
                 }
-                self._task_history[task_id].append(entry)
+                self._job_history[job_id].append(entry)
         except Exception as e:
-            raise ValueError(f"Failed to store task: {str(e)}")
+            raise ValueError(f"Failed to store job: {str(e)}")
 
     async def store_interaction(
             self,
@@ -203,33 +203,33 @@ class DataController:
         except Exception as e:
             raise ValueError(f"Failed to retrieve pattern: {str(e)}")
 
-    async def get_recent_tasks(
+    async def get_recent_jobs(
             self,
             limit: int = 10,
-            task_type: Optional[str] = None
+            job_type: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         if limit < 1:
             raise ValueError("Limit must be positive")
         try:
-            async with self._task_lock:
-                all_tasks = []
-                for task_list in self._task_history.values():
-                    if task_type:
-                        filtered_tasks = [
-                            task for task in task_list
-                            if task["data"].get("type") == task_type
+            async with self._job_lock:
+                all_jobs = []
+                for job_list in self._job_history.values():
+                    if job_type:
+                        filtered_jobs = [
+                            job for job in job_list
+                            if job["data"].get("type") == job_type
                         ]
-                        all_tasks.extend(filtered_tasks)
+                        all_jobs.extend(filtered_jobs)
                     else:
-                        all_tasks.extend(list(task_list))
+                        all_jobs.extend(list(job_list))
 
                 return sorted(
-                    all_tasks,
+                    all_jobs,
                     key=lambda x: x["timestamp"],
                     reverse=True
                 )[:limit]
         except Exception as e:
-            raise ValueError(f"Failed to get recent tasks: {str(e)}")
+            raise ValueError(f"Failed to get recent jobs: {str(e)}")
 
     async def _periodic_cleanup(self):
         while True:
@@ -270,7 +270,7 @@ class DataController:
     def clear(self) -> None:
         """Clear all memory stores"""
         self._semantic_store.clear()
-        self._task_history.clear()
+        self._job_history.clear()
         self._agent_interactions.clear()
         self._pattern_store.clear()
         self._tag_index.clear()

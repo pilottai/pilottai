@@ -39,14 +39,14 @@ async def main():
 
     # Create web search agent
     search_agent = await pilott.add_agent(
-        role="web_searcher",
+        title="web_searcher",
         goal="Execute and analyze web searches effectively",
         tools=[search_executor, result_analyzer],
         llm_config=llm_config
     )
 
-    # Example task
-    tasks = [
+    # Example job
+    jobs = [
         {
             "type": "web_search",
             "query": "latest AI developments 2024",
@@ -63,10 +63,10 @@ async def main():
         }
     ]
 
-    # Execute task
-    results = await pilott.execute(tasks)
-    for task, result in zip(tasks, results):
-        print(f"Task type: {task['type']}")
+    # Execute job
+    results = await pilott.serve(jobs)
+    for job, result in zip(jobs, results):
+        print(f"Job type: {job['type']}")
         print(f"Result: {result.output}\n")
 
 if __name__ == "__main__":

@@ -37,14 +37,14 @@ async def main():
 
     # Create marketing agent
     marketing_agent = await pilott.add_agent(
-        role="marketing_expert",
+        title="marketing_expert",
         goal="Create and optimize marketing campaigns",
         tools=[content_creator, campaign_analyzer],
         llm_config=llm_config
     )
 
-    # Example task
-    tasks = [
+    # Example job
+    jobs = [
         {
             "type": "create_content",
             "content_type": "social_post",
@@ -58,10 +58,10 @@ async def main():
         }
     ]
 
-    # Execute task
-    results = await pilott.execute(tasks)
-    for task, result in zip(tasks, results):
-        print(f"Task type: {task['type']}")
+    # Execute job
+    results = await pilott.serve(jobs)
+    for job, result in zip(jobs, results):
+        print(f"Job type: {job['type']}")
         print(f"Result: {result.output}\n")
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ class LoadBalancer:
         self.config = LoadBalancerConfig(**(config or {}))
         self.logger = logging.getLogger("LoadBalancer")
         self.running = False
-        self.balancing_task: Optional[asyncio.Task] = None
+        self.balancing_job: Optional[asyncio.Task] = None
         self._balance_lock = asyncio.Lock()
         self._metrics_history: Dict[str, List[LoadMetrics]] = {}
         self._monitored_agents: Set[str] = set()
@@ -31,7 +31,7 @@ class LoadBalancer:
             return
         try:
             self.running = True
-            self.balancing_task = asyncio.create_task(self._balancing_loop())
+            self.balancing_job = asyncio.create_task(self._balancing_loop())
             self.logger.info("Load balancer started")
         except Exception as e:
             self.running = False
@@ -43,10 +43,10 @@ class LoadBalancer:
             return
         try:
             self.running = False
-            if self.balancing_task:
-                self.balancing_task.cancel()
+            if self.balancing_job:
+                self.balancing_job.cancel()
                 try:
-                    await self.balancing_task
+                    await self.balancing_job
                 except asyncio.CancelledError:
                     pass
             self.logger.info("Load balancer stopped")
@@ -72,7 +72,7 @@ class LoadBalancer:
             overloaded, underloaded = await self._analyze_agent_loads(current_metrics)
             if not overloaded or not underloaded:
                 return
-            await self._redistribute_tasks(overloaded, underloaded, current_metrics)
+            await self._redistribute_jobs(overloaded, underloaded, current_metrics)
         except Exception as e:
             self.logger.error(f"Load balancing error: {str(e)}")
 
@@ -88,8 +88,8 @@ class LoadBalancer:
                     cpu_usage=max(system_cpu, agent_metrics.get('cpu_usage', 0.0)),
                     memory_usage=max(system_memory, agent_metrics.get('memory_usage', 0.0)),
                     queue_size=agent_metrics.get('queue_size', 0),
-                    active_tasks=agent_metrics.get('active_tasks', 0),
-                    total_tasks=agent_metrics.get('total_tasks', 0),
+                    active_jobs=agent_metrics.get('active_jobs', 0),
+                    total_jobs=agent_metrics.get('total_jobs', 0),
                     error_rate=1 - agent_metrics.get('success_rate', 0.0)
                 )
 
@@ -104,7 +104,7 @@ class LoadBalancer:
     async def _handle_overload(self, agent_id: str):
         try:
             agent = self.orchestrator.child_agents[agent_id]
-            await agent.pause_task_acceptance()
+            await agent.pause_job_acceptance()
             self.logger.warning(f"Agent {agent_id} paused due to resource overload")
         except Exception as e:
             self.logger.error(f"Error handling overload for agent {agent_id}: {str(e)}")
@@ -156,11 +156,11 @@ class LoadBalancer:
         return (
             0.3 * metrics.cpu_usage +
             0.3 * metrics.memory_usage +
-            0.2 * (metrics.queue_size / self.config.max_tasks_per_agent) +
+            0.2 * (metrics.queue_size / self.config.max_jobs_per_agent) +
             0.2 * metrics.error_rate
         )
 
-    async def _redistribute_tasks(
+    async def _redistribute_jobs(
             self,
             overloaded: List[str],
             underloaded: List[str],
@@ -168,89 +168,89 @@ class LoadBalancer:
     ):
         for over_agent_id in overloaded:
             try:
-                moveable_tasks = await self._get_moveable_tasks(over_agent_id)
+                moveable_jobs = await self._get_moveable_jobs(over_agent_id)
                 moves_made = 0
 
-                moveable_tasks.sort(key=lambda x: x.get('priority', 0), reverse=True)
+                moveable_jobs.sort(key=lambda x: x.get('priority', 0), reverse=True)
 
-                for task in moveable_tasks:
+                for job in moveable_jobs:
                     if moves_made >= self.config.balance_batch_size:
                         break
 
                     best_agent_id = await self._find_best_agent(
-                        task,
+                        job,
                         underloaded,
                         current_metrics
                     )
 
                     if best_agent_id:
                         try:
-                            async with asyncio.timeout(self.config.task_move_timeout):
-                                await self._move_task(task, over_agent_id, best_agent_id)
+                            async with asyncio.timeout(self.config.job_move_timeout):
+                                await self._move_job(job, over_agent_id, best_agent_id)
                                 moves_made += 1
                         except asyncio.TimeoutError:
-                            self.logger.error(f"Task move timed out for task {task['id']}")
+                            self.logger.error(f"Job move timed out for job {job['id']}")
                         except Exception as e:
-                            self.logger.error(f"Failed to move task {task['id']}: {str(e)}")
+                            self.logger.error(f"Failed to move job {job['id']}: {str(e)}")
 
                 if moves_made > 0:
                     self._last_balance_time = datetime.now()
-                    self.logger.info(f"Moved {moves_made} task from agent {over_agent_id}")
+                    self.logger.info(f"Moved {moves_made} job from agent {over_agent_id}")
 
             except Exception as e:
-                self.logger.error(f"Error redistributing task for agent {over_agent_id}: {str(e)}")
+                self.logger.error(f"Error redistributing job for agent {over_agent_id}: {str(e)}")
 
-    async def _move_task(self, task: Dict, from_agent_id: str, to_agent_id: str):
+    async def _move_job(self, job: Dict, from_agent_id: str, to_agent_id: str):
         lock_acquired = False
         try:
             from_agent = self.orchestrator.child_agents[from_agent_id]
             to_agent = self.orchestrator.child_agents[to_agent_id]
 
-            task['locked'] = True
+            job['locked'] = True
             lock_acquired = True
 
             if self._safe_mode:
-                # Save task state before moving
-                task_backup = task.copy()
+                # Save job state before moving
+                job_backup = job.copy()
 
-            await from_agent.remove_task(task['id'])
-            await to_agent.add_task(task)
+            await from_agent.remove_job(job['id'])
+            await to_agent.add_job(job)
 
-            task['moved_at'] = datetime.now().isoformat()
-            task['moved_from'] = from_agent_id
-            task['moved_to'] = to_agent_id
+            job['moved_at'] = datetime.now().isoformat()
+            job['moved_from'] = from_agent_id
+            job['moved_to'] = to_agent_id
 
-            self.logger.info(f"Moved task {task['id']} from {from_agent_id} to {to_agent_id}")
+            self.logger.info(f"Moved job {job['id']} from {from_agent_id} to {to_agent_id}")
 
         except Exception as e:
-            self.logger.error(f"Task movement failed: {str(e)}")
+            self.logger.error(f"Job movement failed: {str(e)}")
             if lock_acquired and self._safe_mode:
                 try:
-                    await from_agent.add_task(task_backup)
+                    await from_agent.add_job(job_backup)
                 except Exception as restore_error:
-                    self.logger.error(f"Failed to restore task {task['id']}: {str(restore_error)}")
+                    self.logger.error(f"Failed to restore job {job['id']}: {str(restore_error)}")
             raise
         finally:
-            task['locked'] = False
+            job['locked'] = False
 
-    async def _get_moveable_tasks(self, agent_id: str) -> List[Dict]:
+    async def _get_moveable_jobs(self, agent_id: str) -> List[Dict]:
         try:
             agent = self.orchestrator.child_agents[agent_id]
-            return [task for task in agent.tasks.values() if self._is_task_moveable(task)]
+            return [job for job in agent.jobs.values() if self._is_job_moveable(job)]
         except Exception as e:
-            self.logger.error(f"Error getting moveable task: {str(e)}")
+            self.logger.error(f"Error getting moveable job: {str(e)}")
             return []
 
-    def _is_task_moveable(self, task: Dict) -> bool:
+    def _is_job_moveable(self, job: Dict) -> bool:
         return (
-            task.get('status') == 'pending' and
-            not task.get('locked', False) and
-            not task.get('unmoveable', False)
+            job.get('status') == 'pending' and
+            not job.get('locked', False) and
+            not job.get('unmoveable', False)
         )
 
     async def _find_best_agent(
             self,
-            task: Dict,
+            job: Dict,
             candidates: List[str],
             current_metrics: Dict[str, LoadMetrics]
     ) -> Optional[str]:
@@ -260,10 +260,10 @@ class LoadBalancer:
         for agent_id in candidates:
             try:
                 agent = self.orchestrator.child_agents[agent_id]
-                if not await self._can_accept_task(agent, current_metrics[agent_id]):
+                if not await self._can_accept_job(agent, current_metrics[agent_id]):
                     continue
 
-                score = await self._calculate_agent_suitability(agent, task, current_metrics[agent_id])
+                score = await self._calculate_agent_suitability(agent, job, current_metrics[agent_id])
 
                 if score > best_score:
                     best_score = score
@@ -274,28 +274,28 @@ class LoadBalancer:
 
         return best_agent_id
 
-    async def _can_accept_task(
+    async def _can_accept_job(
             self,
             agent: Any,
             metrics: LoadMetrics
     ) -> bool:
-        """Check if agent can accept new task"""
+        """Check if agent can accept new job"""
         return (
-                agent.status != 'stopped' and
-                metrics.queue_size < self.config.max_tasks_per_agent and
-                self._calculate_composite_load(metrics) < self.config.overload_threshold
+            agent.status != 'stopped' and
+            metrics.queue_size < self.config.max_jobs_per_agent and
+            self._calculate_composite_load(metrics) < self.config.overload_threshold
         )
 
     async def _calculate_agent_suitability(
             self,
             agent: Any,
-            task: Dict,
+            job: Dict,
             metrics: LoadMetrics
     ) -> float:
         """Calculate comprehensive agent suitability score"""
         try:
             # Base capability score
-            base_score = await agent.evaluate_task_suitability(task)
+            base_score = await agent.evaluate_job_suitability(job)
 
             # Load penalty
             load_score = 1 - self._calculate_composite_load(metrics)
@@ -357,13 +357,13 @@ class LoadBalancer:
         try:
             metrics = await agent.get_metrics()
             # Calculate different types of load
-            task_load = metrics['total_tasks'] / self.config.max_tasks_per_agent
+            job_load = metrics['total_jobs'] / self.config.max_jobs_per_agent
             queue_load = metrics['queue_utilization']
             error_rate = 1 - metrics['success_rate']  # Convert success rate to error rate
 
             # Weighted average with error rate penalty
             base_load = (
-                    0.4 * task_load +
+                    0.4 * job_load +
                     0.4 * queue_load +
                     0.2 * error_rate
             )

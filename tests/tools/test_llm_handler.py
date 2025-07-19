@@ -66,7 +66,7 @@ class TestLLMHandler:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = "Test response"
-        mock_response.choices[0].message.role = "assistant"
+        mock_response.choices[0].message.title = "assistant"
         mock_response.model = "test-model"
         mock_response.usage.prompt_tokens = 10
         mock_response.usage.completion_tokens = 5
@@ -107,7 +107,7 @@ class TestLLMHandler:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = None
-        mock_response.choices[0].message.role = "assistant"
+        mock_response.choices[0].message.title = "assistant"
         mock_response.choices[0].message.tool_calls = [
             {"type": "function", "function": {"name": "test_tool", "arguments": "{}"}}
         ]
@@ -158,7 +158,7 @@ class TestLLMHandler:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = "Test response"
-        mock_response.choices[0].message.role = "assistant"
+        mock_response.choices[0].message.title = "assistant"
         mock_response.model = "test-model"
         mock_response.usage = MagicMock()
 
@@ -191,7 +191,7 @@ class TestLLMHandler:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = "Success after retry"
-        mock_response.choices[0].message.role = "assistant"
+        mock_response.choices[0].message.title = "assistant"
         mock_response.model = "test-model"
         mock_response.usage = MagicMock()
 
@@ -265,7 +265,7 @@ class TestLLMHandler:
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = "Test response"
-        mock_response.choices[0].message.role = "assistant"
+        mock_response.choices[0].message.title = "assistant"
         mock_response.model = "test-model"
         mock_response.usage.prompt_tokens = 10
         mock_response.usage.completion_tokens = 5

@@ -71,13 +71,13 @@ async def main():
 
     # Add document processing agent
     doc_processor = await pilott.add_agent(
-        role="document_processor",
+        title="document_processor",
         goal="Process documents efficiently",
         tools=["text_extractor", "content_analyzer", "summarizer"]
     )
 
     # Process a document
-    task = {
+    job = {
         "type": "document_analysis",
         "document": {
             "path": "document.pdf",
@@ -85,7 +85,7 @@ async def main():
         }
     }
 
-    result = await pilott.execute([task])
+    result = await pilott.execute([job])
 ```
 
 ## Supported Document Types
@@ -99,7 +99,7 @@ async def main():
 
 1. **Document Analysis**
    ```python
-   task = {
+   job = {
        "type": "document_analysis",
        "description": "Analyze quarterly report"
    }
@@ -107,7 +107,7 @@ async def main():
 
 2. **Text Extraction**
    ```python
-   task = {
+   job = {
        "type": "text_extraction",
        "document": {"path": "file.pdf"}
    }
@@ -115,7 +115,7 @@ async def main():
 
 3. **Content Summarization**
    ```python
-   task = {
+   job = {
        "type": "summarization",
        "document": {"path": "article.txt"}
    }
@@ -126,10 +126,10 @@ async def main():
 Customize agent behavior:
 ```python
 config = AgentConfig(
-    role="document_processor",
+    title="document_processor",
     goal="Process documents efficiently",
-    max_concurrent_tasks=5,
-    task_timeout=300
+    max_concurrent_jobs=5,
+    job_timeout=300
 )
 ```
 
@@ -160,7 +160,7 @@ Common issues and solutions:
    - Check file format compatibility
 
 2. **Processing Timeouts**
-   - Adjust task_timeout in configuration
+   - Adjust job_timeout in configuration
    - Process large documents in smaller chunks
    - Monitor system resources
 

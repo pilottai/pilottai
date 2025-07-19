@@ -7,42 +7,42 @@ from typing import Dict, Tuple, Optional, Any, List
 from pilottai.config.model import DelegationMetrics
 
 
-class TaskDelegator:
+class JobDelegator:
     def __init__(self, agent):
         self.agent = agent
         self.delegation_history: Dict[str, List[Dict]] = defaultdict(list)
         self.agent_metrics: Dict[str, DelegationMetrics] = {}
         self.active_delegations: Dict[str, Dict] = {}
-        self.logger = logging.getLogger(f"TaskDelegator_{agent.id}")
+        self.logger = logging.getLogger(f"JobDelegator_{agent.id}")
         self._delegation_lock = asyncio.Lock()
         self.MAX_HISTORY_PER_AGENT = 1000
         self.HISTORY_CLEANUP_INTERVAL = 3600
         self._last_cleanup = datetime.now()
-        self._cleanup_task = None
+        self._cleanup_job = None
 
     async def start(self):
-        self._cleanup_task = asyncio.create_task(self._periodic_cleanup())
+        self._cleanup_job = asyncio.create_job(self._periodic_cleanup())
 
     async def stop(self):
-        if self._cleanup_task:
-            self._cleanup_task.cancel()
+        if self._cleanup_job:
+            self._cleanup_job.cancel()
             try:
-                await self._cleanup_task
+                await self._cleanup_job
             except asyncio.CancelledError:
                 pass
 
-    async def evaluate_delegation(self, task: Dict) -> Tuple[bool, Optional[str]]:
+    async def evaluate_delegation(self, job: Dict) -> Tuple[bool, Optional[str]]:
         try:
             async with self._delegation_lock:
-                if not await self._should_delegate(task):
+                if not await self._should_delegate(job):
                     return False, None
 
-                best_agent = await self._find_best_agent(task)
+                best_agent = await self._find_best_agent(job)
                 if best_agent:
-                    self.active_delegations[task['id']] = {
+                    self.active_delegations[job['id']] = {
                         'agent_id': best_agent.id,
                         'started_at': datetime.now(),
-                        'task': task
+                        'job': job
                     }
                     return True, best_agent.id
                 return False, None
@@ -50,7 +50,7 @@ class TaskDelegator:
             self.logger.error(f"Delegation evaluation failed: {str(e)}")
             return False, None
 
-    async def _find_best_agent(self, task: Dict) -> Optional[Any]:
+    async def _find_best_agent(self, job: Dict) -> Optional[Any]:
         try:
             scores = {}
             available_agents = self._get_available_agents()
@@ -58,10 +58,10 @@ class TaskDelegator:
             async with asyncio.timeout(10):  # 10 second timeout
                 for agent_id, agent in available_agents.items():
                     try:
-                        if not await self._can_accept_task(agent):
+                        if not await self._can_accept_job(agent):
                             continue
 
-                        score = await self._calculate_total_score(agent, task)
+                        score = await self._calculate_total_score(agent, job)
                         if score > 0:
                             scores[agent_id] = score
 
@@ -82,9 +82,9 @@ class TaskDelegator:
             self.logger.error(f"Error finding best agent: {str(e)}")
             return None
 
-    async def _calculate_total_score(self, agent: Any, task: Dict) -> float:
+    async def _calculate_total_score(self, agent: Any, job: Dict) -> float:
         try:
-            base_score = await agent.evaluate_task_suitability(task)
+            base_score = await agent.evaluate_job_suitability(job)
             metrics = await agent.get_metrics()
 
             load_score = 1 - metrics.get('queue_utilization', 0)
@@ -105,29 +105,29 @@ class TaskDelegator:
         except Exception:
             return 0.0
 
-    async def _calculate_base_score(self, agent: Any, task: Dict) -> float:
+    async def _calculate_base_score(self, agent: Any, job: Dict) -> float:
         """Calculate base suitability score"""
         try:
-            capabilities_match = await agent.evaluate_task_suitability(task)
-            specialization_bonus = 0.2 if task.get('type') in getattr(agent, 'specializations', []) else 0
+            capabilities_match = await agent.evaluate_job_suitability(job)
+            specialization_bonus = 0.2 if job.get('type') in getattr(agent, 'specializations', []) else 0
             return capabilities_match + specialization_bonus
         except Exception:
             return 0.0
 
-    def _calculate_performance_score(self, agent_id: str, task: Dict) -> float:
+    def _calculate_performance_score(self, agent_id: str, job: Dict) -> float:
         """Calculate performance score based on history"""
         try:
             metrics = self.agent_metrics.get(agent_id)
             if not metrics:
                 return 0.5
 
-            total_tasks = metrics.success_count + metrics.failure_count
-            if total_tasks == 0:
+            total_jobs = metrics.success_count + metrics.failure_count
+            if total_jobs == 0:
                 return 0.5
 
-            success_rate = metrics.success_count / total_tasks
-            similar_task_bonus = self._get_similar_task_performance(agent_id, task)
-            return 0.7 * success_rate + 0.3 * similar_task_bonus
+            success_rate = metrics.success_count / total_jobs
+            similar_job_bonus = self._get_similar_job_performance(agent_id, job)
+            return 0.7 * success_rate + 0.3 * similar_job_bonus
         except Exception:
             return 0.5
 
@@ -149,36 +149,36 @@ class TaskDelegator:
         except Exception:
             return 0.0
 
-    def _get_similar_task_performance(self, agent_id: str, task: Dict) -> float:
-        """Calculate performance for similar task"""
+    def _get_similar_job_performance(self, agent_id: str, job: Dict) -> float:
+        """Calculate performance for similar job"""
         try:
-            similar_tasks = [
+            similar_jobs = [
                 entry for entry in self.delegation_history[agent_id]
-                if self._is_similar_task(entry['task'], task)
+                if self._is_similar_job(entry['job'], job)
             ]
 
-            if not similar_tasks:
+            if not similar_jobs:
                 return 0.5
 
-            success_count = sum(1 for task in similar_tasks if task.get('success', False))
-            return success_count / len(similar_tasks)
+            success_count = sum(1 for job in similar_jobs if job.get('success', False))
+            return success_count / len(similar_jobs)
 
         except Exception:
             return 0.5
 
-    def _is_similar_task(self, task1: Dict, task2: Dict) -> bool:
-        """Compare task similarity"""
+    def _is_similar_job(self, job1: Dict, job2: Dict) -> bool:
+        """Compare job similarity"""
         return (
-                task1.get('type') == task2.get('type') or
-                bool(set(task1.get('tags', [])) & set(task2.get('tags', [])))
+                job1.get('type') == job2.get('type') or
+                bool(set(job1.get('tags', [])) & set(job2.get('tags', [])))
         )
 
-    async def record_delegation(self, agent_id: str, task: Dict, result: Dict):
+    async def record_delegation(self, agent_id: str, job: Dict, result: Dict):
         try:
             async with self._delegation_lock:
                 entry = {
-                    'task_id': task['id'],
-                    'task': task,
+                    'job_id': job['id'],
+                    'job': job,
                     'timestamp': datetime.now().isoformat(),
                     'success': result.get('status') == 'completed',
                     'execution_time': result.get('execution_time', 0),
@@ -201,12 +201,12 @@ class TaskDelegator:
                     error_type = entry.get('error_type', 'unknown')
                     metrics.error_types[error_type] = metrics.error_types.get(error_type, 0) + 1
 
-                total_tasks = metrics.success_count + metrics.failure_count
+                total_jobs = metrics.success_count + metrics.failure_count
                 metrics.total_execution_time += entry['execution_time']
-                metrics.avg_execution_time = metrics.total_execution_time / total_tasks
+                metrics.avg_execution_time = metrics.total_execution_time / total_jobs
 
                 # Remove completed delegation
-                self.active_delegations.pop(task['id'], None)
+                self.active_delegations.pop(job['id'], None)
 
         except Exception as e:
             self.logger.error(f"Error recording delegation: {str(e)}")
@@ -222,7 +222,7 @@ class TaskDelegator:
                 'success_rate': metrics.success_count / (metrics.success_count + metrics.failure_count)
                 if (metrics.success_count + metrics.failure_count) > 0 else 0,
                 'avg_execution_time': metrics.avg_execution_time,
-                'total_tasks': metrics.success_count + metrics.failure_count,
+                'total_jobs': metrics.success_count + metrics.failure_count,
                 'last_success': metrics.last_success,
                 'last_failure': metrics.last_failure,
                 'error_distribution': metrics.error_types
@@ -232,14 +232,14 @@ class TaskDelegator:
 
 
 
-    def _get_historic_performance(self, agent_id: str, task_type: str) -> float:
+    def _get_historic_performance(self, agent_id: str, job_type: str) -> float:
         """Calculate historic performance score for an agent"""
         try:
-            history = self.delegation_history.get(agent_id, {}).get(task_type, [])
+            history = self.delegation_history.get(agent_id, {}).get(job_type, [])
             if not history:
                 return 0.5  # Default score for new agents
 
-            # Only consider recent history (last 100 task)
+            # Only consider recent history (last 100 job)
             recent_history = history[-100:]
             successes = sum(1 for result in recent_history
                           if result.get('status') == 'success')
@@ -286,12 +286,12 @@ class TaskDelegator:
                                                         ][-self.MAX_HISTORY_PER_AGENT:]
 
                 # Clean up stale delegations
-                stale_tasks = [
-                    task_id for task_id, info in self.active_delegations.items()
+                stale_jobs = [
+                    job_id for job_id, info in self.active_delegations.items()
                     if current_time - info['started_at'] > timedelta(hours=1)
                 ]
-                for task_id in stale_tasks:
-                    self.active_delegations.pop(task_id)
+                for job_id in stale_jobs:
+                    self.active_delegations.pop(job_id)
 
                 self._last_cleanup = current_time
 
@@ -303,10 +303,10 @@ class TaskDelegator:
             agent_id: agent
             for agent_id, agent in self.agent.child_agents.items()
             if agent.status not in ['stopped', 'error'] and
-               len([d for d in self.active_delegations.values() if d['agent_id'] == agent_id]) < getattr(agent, 'max_concurrent_tasks',5)
+               len([d for d in self.active_delegations.values() if d['agent_id'] == agent_id]) < getattr(agent, 'max_concurrent_jobs',5)
         }
 
-    async def _can_accept_task(self, agent: Any) -> bool:
+    async def _can_accept_job(self, agent: Any) -> bool:
         try:
             metrics = await agent.get_metrics()
             return (
@@ -318,7 +318,7 @@ class TaskDelegator:
         except Exception:
             return False
 
-    async def _should_delegate(self, task: Dict) -> bool:
+    async def _should_delegate(self, job: Dict) -> bool:
         try:
             if not self.agent.config.allow_delegation:
                 return False
@@ -327,11 +327,11 @@ class TaskDelegator:
             if metrics['queue_utilization'] > 0.8:
                 return True
 
-            if task.get('complexity', 1) > self.agent.config.max_task_complexity:
+            if job.get('complexity', 1) > self.agent.config.max_job_complexity:
                 return True
 
-            if task.get('required_capabilities'):
-                missing_capabilities = set(task['required_capabilities']) - set(self.agent.config.required_capabilities)
+            if job.get('required_capabilities'):
+                missing_capabilities = set(job['required_capabilities']) - set(self.agent.config.required_capabilities)
                 if missing_capabilities:
                     return True
 

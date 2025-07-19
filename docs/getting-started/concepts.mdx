@@ -10,10 +10,10 @@ PilottAI is designed around a modular, hierarchical architecture:
 classDiagram
     class Serve {
         +agents: Dict[str, BaseAgent]
-        +tasks: Dict[str, Task]
+        +jobs: Dict[str, Job]
         +memory: Memory
         +add_agent()
-        +create_task()
+        +create_job()
         +execute()
         +start()
         +stop()
@@ -26,23 +26,23 @@ classDiagram
         +tools: Dict[str, Tool]
         +memory: Memory
         +llm: LLMHandler
-        +execute_task()
-        +evaluate_task_suitability()
+        +execute_job()
+        +evaluate_job_suitability()
         +start()
         +stop()
     }
 
     class Memory {
-        +store_task_start()
-        +store_task_result()
-        +store_task_context()
-        +get_task_history()
-        +get_similar_tasks()
+        +store_job_start()
+        +store_job_result()
+        +store_job_context()
+        +get_job_history()
+        +get_similar_jobs()
         +search()
     }
 
-    class TaskRouter {
-        +route_task()
+    class JobRouter {
+        +route_job()
         +_calculate_agent_scores()
         +_find_best_agent()
         +_analyze_agent_loads()
@@ -51,20 +51,20 @@ classDiagram
     Serve *-- BaseAgent : manages
     Serve *-- Memory : uses
     BaseAgent *-- Memory : has
-    Serve *-- TaskRouter : routes tasks
+    Serve *-- JobRouter : routes jobs
 ```
 
 ### Core Components
 
-1. **Serve**: The main orchestrator that manages agents, routes tasks, and coordinates execution.
+1. **Serve**: The main orchestrator that manages agents, routes jobs, and coordinates execution.
 
-2. **Agents**: Autonomous entities that perform specific tasks using LLMs and tools.
+2. **Agents**: Autonomous entities that perform specific jobs using LLMs and tools.
 
-3. **Tasks**: Units of work that are routed to appropriate agents for execution.
+3. **Jobs**: Units of work that are routed to appropriate agents for execution.
 
-4. **Memory**: Storage system for context, task history, and knowledge.
+4. **Memory**: Storage system for context, job history, and knowledge.
 
-5. **Tools**: Integrations and capabilities that agents can use to accomplish tasks.
+5. **Tools**: Integrations and capabilities that agents can use to accomplish jobs.
 
 6. **Orchestration**: Systems for scaling, load balancing, and fault tolerance.
 
@@ -72,17 +72,17 @@ classDiagram
 
 Agents are the primary actors in the PilottAI framework. Each agent:
 
-- Has a specific role and goal
+- Has a specific title and goal
 - Can use tools to interact with external systems
-- Utilizes LLMs for decision-making and task execution
+- Utilizes LLMs for decision-making and job execution
 - Maintains its own memory and context
 
 ### Agent Types
 
-PilottAI supports different agent roles:
+PilottAI supports different agent types:
 
-- **Orchestrator**: Manages and delegates tasks to worker agents
-- **Worker**: Executes specific tasks using specialized capabilities
+- **Orchestrator**: Manages and delegates jobs to worker agents
+- **Worker**: Executes specific jobs using specialized capabilities
 - **Hybrid**: Combines orchestration and execution capabilities
 
 ### Agent Configuration
@@ -90,11 +90,11 @@ PilottAI supports different agent roles:
 Agents are configured using the `AgentConfig` class:
 
 ```python
-from pilottai.core import AgentConfig, AgentRole
+from pilottai.core import AgentConfig, AgentType
 
 config = AgentConfig(
-    role="document_processor",          # Agent's role/type
-    role_type=AgentRole.WORKER,         # Role classification
+    title="document_processor",          # Agent's title/type
+    agent_type=AgentType.WORKER,         # Agent classification
     goal="Process documents efficiently", # Main objective
     description="Document processing worker", # Brief description
     backstory=None,                      # Optional background story
@@ -108,16 +108,16 @@ config = AgentConfig(
 )
 ```
 
-## Tasks
+## Jobs
 
-Tasks represent units of work that agents perform. Each task:
+Jobs represent units of work that agents perform. Each job:
 
 - Has a description and context
 - May be assigned to a specific agent or automatically routed
 - Has a priority level
 - Tracks execution status and results
 
-### Task Lifecycle
+### Job Lifecycle
 
 ```mermaid
 stateDiagram-v2
@@ -130,14 +130,14 @@ stateDiagram-v2
     FAILED --> [*]: Max retries
 ```
 
-### Task Creation
+### Job Creation
 
 ```python
-from pilottai.core import Task, TaskPriority
+from pilottai.core import Job, JobPriority
 
-task = Task(
+job = Job(
     description="Extract key information from document",
-    priority=TaskPriority.HIGH,
+    priority=JobPriority.HIGH,
     context={"file_path": "document.pdf"}
 )
 ```
@@ -146,14 +146,14 @@ task = Task(
 
 PilottAI includes a sophisticated memory system that:
 
-- Stores task execution history
+- Stores job execution history
 - Maintains agent context
 - Enables semantic search and retrieval
 - Supports knowledge persistence
 
 ### Memory Components
 
-1. **Task Memory**: Records task execution details
+1. **Job Memory**: Records job execution details
 2. **Semantic Memory**: Stores knowledge and context
 3. **Enhanced Memory**: Advanced memory with pattern recognition
 
@@ -202,7 +202,7 @@ Tools extend agent capabilities by providing:
 
 - External system integrations
 - Specialized functionality
-- Task-specific utilities
+- Job-specific utilities
 
 ### Tool Creation
 
@@ -242,7 +242,7 @@ await pilott.enable_dynamic_scaling(
 
 ### Load Balancing
 
-Distributes tasks across agents to optimize performance:
+Distributes jobs across agents to optimize performance:
 
 ```python
 await pilott.enable_load_balancing(
