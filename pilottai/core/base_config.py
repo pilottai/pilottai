@@ -13,7 +13,7 @@ class ServeConfig:
     """Configuration for Serve orchestrator"""
     process_type: ProcessType = ProcessType.SEQUENTIAL
     memory_enabled: bool = True
-    verbose: bool = False
+    verbose: bool = True
     max_concurrent_jobs: int = 5
     job_timeout: int = 300
     max_queue_size: int = 1000
@@ -95,7 +95,7 @@ class LogConfig(BaseModel):
     """Enhanced logging configuration"""
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    verbose: bool = False
+    verbose: bool = True
     log_to_file: bool = False
     log_dir: Path = Field(default=Path("logs"))
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -129,7 +129,7 @@ class AgentConfig(BaseModel):
     max_execution_time: Optional[int] = None
     retry_limit: int = 2
     code_execution_mode: str = "safe"
-    verbose: bool = False
+    verbose: bool = True
     can_delegate: bool = False
     use_cache: bool = True
     can_execute_code: bool = False

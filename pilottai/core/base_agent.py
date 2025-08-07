@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional, Union
 import asyncio
-import logging
 import uuid
 from abc import ABC, abstractmethod
 
@@ -14,7 +13,7 @@ from pilottai.memory.memory import Memory
 from pilottai.engine.llm import LLMHandler
 from pilottai.tools.tool import Tool
 from pilottai.utils.common_utils import format_system_prompt
-
+from pilottai.utils.logger import Logger
 
 
 class BaseAgent(ABC):
@@ -152,6 +151,6 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def _setup_logger(self) -> logging.Logger:
+    def _setup_logger(self) -> Logger:
         """Setup agent logging"""
         pass

@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import weakref
 from collections import deque
 from datetime import datetime, timedelta
@@ -9,12 +8,14 @@ import psutil
 
 from pilottai.config.model import ScalingMetrics
 from pilottai.core.base_config import ScalingConfig
+from pilottai.utils.logger import Logger
+
 
 class DynamicScaling:
     def __init__(self, orchestrator, config: Optional[Dict] = None):
         self.orchestrator = weakref.proxy(orchestrator)
         self.config = ScalingConfig(**(config or {}))
-        self.logger = logging.getLogger("DynamicScaling")
+        self.logger = Logger("DynamicScaling")
         self.running = False
         self.scaling_job: Optional[asyncio.Task] = None
         self.metrics_history: deque = deque(maxlen=60)  # 1 hour of minute-by-minute metrics

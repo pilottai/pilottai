@@ -1,10 +1,10 @@
 import asyncio
-import logging
 from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, Tuple, Optional, Any, List
 
 from pilottai.config.model import DelegationMetrics
+from pilottai.utils.logger import Logger
 
 
 class JobDelegator:
@@ -13,7 +13,7 @@ class JobDelegator:
         self.delegation_history: Dict[str, List[Dict]] = defaultdict(list)
         self.agent_metrics: Dict[str, DelegationMetrics] = {}
         self.active_delegations: Dict[str, Dict] = {}
-        self.logger = logging.getLogger(f"JobDelegator_{agent.id}")
+        self.logger = Logger(f"JobDelegator_{agent.id}")
         self._delegation_lock = asyncio.Lock()
         self.MAX_HISTORY_PER_AGENT = 1000
         self.HISTORY_CLEANUP_INTERVAL = 3600
@@ -21,6 +21,7 @@ class JobDelegator:
         self._cleanup_job = None
 
     async def start(self):
+        #TODO
         self._cleanup_job = asyncio.create_job(self._periodic_cleanup())
 
     async def stop(self):

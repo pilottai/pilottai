@@ -1,6 +1,5 @@
 import sys
 import asyncio
-import logging
 from typing import Dict, List, Optional, Any, Union
 
 from pilottai.agent import Agent, ActionAgent, MasterAgent, SuperAgent
@@ -15,6 +14,7 @@ from pilottai.utils.agent_utils import AgentUtils
 from pilottai.tools.tool import Tool
 from pilottai.enums.process_e import ProcessType
 from pilottai.utils.job_utils import JobUtility
+from pilottai.utils.logger import Logger
 
 
 class Pilott:
@@ -172,8 +172,6 @@ class Pilott:
                 results = await self._process_agent_jobs(agent)
                 if isinstance(results, list):
                     all_results.extend(results)
-                else:
-                    all_results.append(results)
             except Exception as e:
                 self.logger.error(f"Agent {agent.id} execution failed: {str(e)}")
                 # Create a failure result for each job
@@ -338,41 +336,31 @@ class Pilott:
 
             return results
 
-        if sys.version_info >= (3, 11):
-            async with asyncio.TaskGroup() as group:
-                futures = [
-                    group.create_task(process_agent_jobs(agent.id, agent.jobs))
-                    for agent in agents
-                ]
-            for future in futures:
-                all_results.extend(future.result())
 
-            # Python < 3.11 — fallback to asyncio.gather
-        else:
-            jobs = [
-                process_agent_jobs(agent.id, agent.jobs)
-                for agent in agents
-            ]
-            results = await asyncio.gather(*jobs, return_exceptions=True)
-            for result in results:
-                if isinstance(result, list):
-                    all_results.extend(result)
-                else:
-                    all_results.append(result)
+        jobs = [
+            process_agent_jobs(agent.id, agent.jobs)
+            for agent in agents
+        ]
+        results = await asyncio.gather(*jobs, return_exceptions=True)
+        for result in results:
+            if isinstance(result, list):
+                all_results.extend(result)
+            else:
+                all_results.append(result)
 
         return all_results
 
-    def _setup_logger(self) -> logging.Logger:
+    def _setup_logger(self) -> Logger:
         """Setup logging"""
-        logger = logging.getLogger(f"PilottAI_{self.config.name}")
+        logger = Logger(f"PilottAI_{self.config.name}")
         if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(
+            handler = logger.StreamHandler()
+            formatter = logger.Formatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             )
             handler.setFormatter(formatter)
             logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG if self.config.serve_config.verbose else logging.INFO)
+        logger.setLevel(logger.DEBUG if self.config.serve_config.verbose else logger.INFO)
         return logger
 
     async def get_job_result(self, job_id: str) -> Optional[JobResult]:

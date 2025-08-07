@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Any
 
@@ -7,6 +6,8 @@ from pydantic import ConfigDict
 
 from pilottai.core.base_config import RouterConfig
 from pilottai.enums.job_e import JobPriority
+from pilottai.utils.logger import Logger
+
 
 class JobRouter:
     """Routes job to appropriate agents based on various criteria"""
@@ -18,7 +19,7 @@ class JobRouter:
         self.agent_scores: Dict[str, float] = {}
         self.last_check: Dict[str, datetime] = {}
         self._router_lock = asyncio.Lock()
-        self.logger = logging.getLogger("JobRouter")
+        self.logger = Logger("JobRouter")
 
     async def route_job(self, job: Dict) -> Optional[str]:
         try:
