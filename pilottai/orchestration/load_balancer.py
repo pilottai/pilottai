@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import weakref
 from datetime import datetime, timedelta
 from typing import Dict, List, Tuple, Optional, Set, Any
@@ -11,12 +10,14 @@ from pilottai.enums.agent_e import AgentStatus
 
 from pilottai.config.model import LoadMetrics
 from pilottai.core.base_config import LoadBalancerConfig
+from pilottai.utils.logger import Logger
+
 
 class LoadBalancer:
     def __init__(self, orchestrator, config: Optional[Dict] = None):
         self.orchestrator = weakref.proxy(orchestrator)
         self.config = LoadBalancerConfig(**(config or {}))
-        self.logger = logging.getLogger("LoadBalancer")
+        self.logger = Logger("LoadBalancer")
         self.running = False
         self.balancing_job: Optional[asyncio.Task] = None
         self._balance_lock = asyncio.Lock()
@@ -80,6 +81,7 @@ class LoadBalancer:
         metrics = {}
         for agent in await self._get_available_agents():
             try:
+                # TODO get metrics for agent ops
                 agent_metrics = await agent.get_metrics()
                 system_cpu = psutil.cpu_percent(interval=1) / 100.0
                 system_memory = psutil.virtual_memory().percent / 100.0
@@ -337,11 +339,11 @@ class LoadBalancer:
         }
 
     def _setup_logging(self):
-        self.logger.setLevel(logging.DEBUG if self.orchestrator.verbose else logging.INFO)
+        self.logger.setLevel(self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO)
         if not self.logger.handlers:
-            handler = logging.StreamHandler()
+            handler = self.logger.StreamHandler()
             handler.setFormatter(
-                logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                self.logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             )
             self.logger.addHandler(handler)
 
@@ -355,6 +357,7 @@ class LoadBalancer:
     async def _calculate_agent_load(self, agent: Agent) -> float:
         """Calculate comprehensive load for an agent"""
         try:
+            #TODO get metrics for agent ops
             metrics = await agent.get_metrics()
             # Calculate different types of load
             job_load = metrics['total_jobs'] / self.config.max_jobs_per_agent

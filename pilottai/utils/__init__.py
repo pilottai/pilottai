@@ -1,5 +1,5 @@
-from pilottai.utils.logger import setup_logger
+from pilottai.utils.logger import Logger
 
 __all__ = [
-    'setup_logger'
+    'Logger'
 ]

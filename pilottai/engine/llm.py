@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Union
 
@@ -7,6 +6,7 @@ import litellm
 from litellm import ModelResponse
 
 from pilottai.core.base_config import LLMConfig
+from pilottai.utils.logger import Logger
 
 
 class LLMHandler:
@@ -40,7 +40,7 @@ class LLMHandler:
                 "retry_delay": float(config.retry_delay)
             }
 
-        self.logger = logging.getLogger(f"LLMHandler_{id(self)}")
+        self.logger = Logger(f"LLMHandler_{id(self)}")
         self.last_call = datetime.min
         self.call_times = []
         self._setup_logging()
@@ -142,10 +142,10 @@ class LLMHandler:
 
     def _setup_logging(self):
         """Setup logging"""
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(self.logger.INFO)
         if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter(
+            handler = self.logger.StreamHandler()
+            handler.setFormatter(self.logger.Formatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             ))
             self.logger.addHandler(handler)

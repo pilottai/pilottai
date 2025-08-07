@@ -1,11 +1,11 @@
 import asyncio
-import logging
 import traceback
 from datetime import datetime
 from typing import Any, List, Dict, Optional, Set
 
 from pilottai.config.model import ToolMetrics, ToolError, ToolTimeoutError
 from pilottai.enums.tool_e import ToolStatus
+from pilottai.utils.logger import Logger
 
 
 class Tool:
@@ -60,16 +60,16 @@ class Tool:
             "description": self.description
         }
 
-    def _setup_logger(self) -> logging.Logger:
+    def _setup_logger(self) -> Logger:
         """Setup logging"""
-        logger = logging.getLogger(f"Tool_{self.name}")
+        logger = Logger(f"Tool_{self.name}")
         if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(
+            handler = logger.StreamHandler()
+            formatter = logger.Formatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
             logger.addHandler(handler)
-            logger.setLevel(logging.INFO)
+            logger.setLevel(logger.INFO)
         return logger
 
     async def execute(self, execution_id: Optional[str] = None, **kwargs) -> Any:

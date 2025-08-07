@@ -1,10 +1,10 @@
 from typing import Dict, List, Union, Tuple
 import asyncio
-import logging
 
 from pilottai.job.job import Job
 from pilottai.agent.agent import Agent
 from pilottai.engine.llm import LLMHandler
+from pilottai.utils.logger import Logger
 
 
 class AgentUtils:
@@ -12,13 +12,14 @@ class AgentUtils:
     Utility class for agent operations, including job assignment and management.
     Contains static methods to handle common agent operations.
     """
+    def __init__(self):
+        self.logger = Logger("AgentUtils")
 
-    @staticmethod
     async def assign_job(
+        self,
         job: Union[Dict, Job],
         agents: List[Agent],
         llm_handler: LLMHandler,
-        max_concurrent_agents: int = 1,
         assignment_strategy: str = "llm"
     ) -> Tuple[Agent, float]:
         """
@@ -28,13 +29,11 @@ class AgentUtils:
             job: The job to assign
             agents: List of available agents
             llm_handler: LLM handler for making decisions
-            max_concurrent_agents: Maximum number of agents to assign (default: 1)
             assignment_strategy: Strategy for assignment ('suitability', 'llm', 'round_robin')
 
         Returns:
             Tuple of (assigned_agent, confidence_score)
         """
-        logger = logging.getLogger("AgentUtils")
 
         if not agents:
             raise ValueError("No agents available for job assignment")
@@ -45,17 +44,17 @@ class AgentUtils:
             job_obj = job
 
         if assignment_strategy == "llm":
-            return await AgentUtils._assign_job_using_llm(job_obj, agents, llm_handler)
+            return await self._assign_job_using_llm(job_obj, agents, llm_handler)
         elif assignment_strategy == "suitability":
-            return await AgentUtils._assign_job_by_suitability(job_obj, agents)
+            return await self._assign_job_by_suitability(job_obj, agents)
         elif assignment_strategy == "round_robin":
-            return AgentUtils._assign_job_round_robin(job_obj, agents)
+            return self._assign_job_round_robin(job_obj, agents)
         else:
-            logger.warning(f"Unknown assignment strategy: {assignment_strategy}, falling back to LLM")
-            return await AgentUtils._assign_job_using_llm(job_obj, agents, llm_handler)
+            self.logger.warning(f"Unknown assignment strategy: {assignment_strategy}, falling back to LLM")
+            return await self._assign_job_using_llm(job_obj, agents, llm_handler)
 
-    @staticmethod
     async def _assign_job_using_llm(
+        self,
         job: Job,
         agents: List[Agent],
         llm_handler: LLMHandler
@@ -138,16 +137,16 @@ class AgentUtils:
                 return agents[selected_idx], confidence
             else:
                 # Fallback to first agent if index is invalid
-                logging.warning(f"Invalid agent index {selected_idx}, defaulting to first agent")
+                self.logger.warning(f"Invalid agent index {selected_idx}, defaulting to first agent")
                 return agents[0], 0.5
 
         except Exception as e:
-            logging.error(f"Error parsing LLM response for job assignment: {e}")
+            self.logger.error(f"Error parsing LLM response for job assignment: {e}")
             # Fallback to first available agent
             return agents[0], 0.5
 
-    @staticmethod
     async def _assign_job_by_suitability(
+        self,
         job: Job,
         agents: List[Agent]
     ) -> Tuple[Agent, float]:
@@ -174,7 +173,7 @@ class AgentUtils:
                 score = await agent.evaluate_job_suitability(job_dict)
                 scores.append((agent, score))
             except Exception as e:
-                logging.error(f"Error getting suitability from agent {agent.id}: {e}")
+                self.logger.error(f"Error getting suitability from agent {agent.id}: {e}")
                 scores.append((agent, 0.0))
 
         # Sort by score and pick the best
@@ -186,8 +185,8 @@ class AgentUtils:
             # Fallback to first agent with minimum confidence
             return agents[0], 0.1
 
-    @staticmethod
     def _assign_job_round_robin(
+        self,
         job: Job,
         agents: List[Agent]
     ) -> Tuple[Agent, float]:
@@ -209,7 +208,7 @@ class AgentUtils:
         available_agents = [a for a in agents if a.status != "BUSY"]
 
         if not available_agents:
-            logging.warning("No available agents, assigning to potentially busy agent")
+            self.logger.warning("No available agents, assigning to potentially busy agent")
             available_agents = agents
 
         # Update index and wrap around
@@ -218,8 +217,8 @@ class AgentUtils:
         # Return selected agent with medium confidence
         return available_agents[AgentUtils._last_assigned_index], 0.7
 
-    @staticmethod
     async def distribute_jobs(
+        self,
         jobs: List[Job],
         agents: List[Agent],
         llm_handler: LLMHandler,
@@ -246,7 +245,7 @@ class AgentUtils:
             assignment_jobs = []
             for job in jobs:
                 assignment_jobs.append(
-                    AgentUtils.assign_job(job, agents, llm_handler, assignment_strategy=strategy)
+                    self.assign_job(job, agents, llm_handler, assignment_strategy=strategy)
                 )
 
             # Execute all assignments in parallel
@@ -256,7 +255,7 @@ class AgentUtils:
             for i, result in enumerate(results):
                 job = jobs[i]
                 if isinstance(result, Exception):
-                    logging.error(f"Error assigning job {job.id}: {result}")
+                    self.logger.error(f"Error assigning job {job.id}: {result}")
                     continue
 
                 agent, confidence = result
@@ -265,11 +264,11 @@ class AgentUtils:
             # Sequential assignment
             for job in jobs:
                 try:
-                    agent, confidence = await AgentUtils.assign_job(
+                    agent, confidence = await self.assign_job(
                         job, agents, llm_handler, assignment_strategy=strategy
                     )
                     assignments[job.id] = (agent, job)
                 except Exception as e:
-                    logging.error(f"Error assigning job {job.id}: {e}")
+                    self.logger.error(f"Error assigning job {job.id}: {e}")
 
         return assignments

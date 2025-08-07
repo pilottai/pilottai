@@ -4,9 +4,8 @@ import re
 import uuid
 import json
 import asyncio
-import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Callable, Any
 
 from pilottai.core.base_agent import BaseAgent
 from pilottai.core.base_config import AgentConfig, LLMConfig
@@ -19,6 +18,9 @@ from pilottai.tools.tool import Tool
 from pilottai.utils.excpetions.agent import AgentExecutionError
 from pilottai.utils.job_utils import JobUtility
 from pilottai.utils.common_utils import format_system_prompt, get_agent_rule, extract_json_from_response
+from pilottai.utils.logger import Logger
+
+
 
 
 class Agent(BaseAgent):
@@ -39,6 +41,7 @@ class Agent(BaseAgent):
         memory_enabled: bool = True,
         reasoning: bool = True,
         feedback: bool = False,
+        funcs: List[Callable[..., Any]] = None,
         args: Optional[Dict] = None,
         depends_on: Optional[Union[List[Agent], Agent]] = None
     ):
@@ -438,15 +441,6 @@ class Agent(BaseAgent):
                 "description": "Direct execution of steps string"
             }, {})
 
-        # Handle other non-list steps
-        if not isinstance(steps, list):
-            self.logger.warning(f"Steps is not a list, it's a {type(steps)}")
-            return await self._execute_step({
-                "action": "direct_execution",
-                "input": str(steps),
-                "description": "Direct execution of non-list steps"
-            }, {})
-
         # Limit to a reasonable number of steps to avoid excessive errors
         if len(steps) > 50:
             self.logger.warning(f"Too many steps ({len(steps)}), limiting to 50")
@@ -511,13 +505,6 @@ class Agent(BaseAgent):
 
     async def _execute_step(self, step: Dict, context: Dict) -> str:
         """Execute a single step with proper type checking"""
-        if not isinstance(step, dict):
-            # Convert to dictionary if step is a string
-            if isinstance(step, str):
-                return await self._execute_direct_step(step, context)
-            else:
-                return f"Error: Invalid step type: {type(step)}"
-
         try:
             action = step.get("action", "").lower()
 
@@ -757,19 +744,19 @@ class Agent(BaseAgent):
             self.logger.error(f"Failed to stop agent: {str(e)}")
             raise
 
-    def _setup_logger(self) -> logging.Logger:
+    def _setup_logger(self) -> Logger:
         """Setup agent logging"""
-        logger = logging.getLogger(f"Agent_{self.title}_{self.id}")
+        logger = Logger(f"Agent_{self.title}_{self.id}")
 
         if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(
+            handler = logger.StreamHandler()
+            formatter = logger.Formatter(
                 '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
             )
             handler.setFormatter(formatter)
             logger.addHandler(handler)
 
-        logger.setLevel(logging.DEBUG if self.config.verbose else logging.INFO)
+        logger.setLevel(logger.DEBUG if self.config.verbose else logger.INFO)
         return logger
 
     def _resolve_job_dependency(self, job, dependents=None, context: dict = None):

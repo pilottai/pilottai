@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import weakref
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set
@@ -12,6 +11,7 @@ from pilottai.job.job import Job
 from pilottai.enums.health_e import HealthStatus
 from pilottai.config.model import ScalingMetrics, AgentHealth
 from pilottai.core.base_config import FaultToleranceConfig, ScalingConfig
+from pilottai.utils.logger import Logger
 
 
 class FaultTolerance:
@@ -22,7 +22,7 @@ class FaultTolerance:
         self.recovery_history: Dict[str, List[Dict]] = {}
         self.running = False
         self.monitoring_job: Optional[asyncio.Task] = None
-        self.logger = logging.getLogger("FaultTolerance")
+        self.logger = Logger("FaultTolerance")
         self._health_lock = asyncio.Lock()
         self._monitored_agents: Set[str] = set()
         self._setup_logging()
@@ -44,11 +44,11 @@ class FaultTolerance:
 
     def _setup_logging(self):
         """Setup logging for fault tolerance"""
-        self.logger.setLevel(logging.DEBUG if self.orchestrator.verbose else logging.INFO)
+        self.logger.setLevel(self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO)
         if not self.logger.handlers:
-            handler = logging.StreamHandler()
+            handler = self.logger.StreamHandler()
             handler.setFormatter(
-                logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                self.logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             )
             self.logger.addHandler(handler)
 
@@ -347,6 +347,7 @@ class FaultTolerance:
     async def _check_resource_usage(self, agent: Agent) -> bool:
         """Check if agent's resource usage is within limits"""
         try:
+            # TODO get metrics for agent ops
             metrics = await agent.get_metrics()
             usage = metrics.get('resource_usage', 0)
             is_within_limits = usage < self.config.resource_threshold
@@ -382,7 +383,7 @@ class DynamicScaling:
     def __init__(self, orchestrator, config: Optional[Dict] = None):
         self.orchestrator = weakref.proxy(orchestrator)
         self.config = ScalingConfig(**(config or {}))
-        self.logger = logging.getLogger("DynamicScaling")
+        self.logger = Logger("DynamicScaling")
         self.running = False
         self.scaling_job: Optional[asyncio.Task] = None
         self.metrics_history: deque = deque(maxlen=60)
@@ -391,11 +392,11 @@ class DynamicScaling:
         self._setup_logging()
 
     def _setup_logging(self):
-        self.logger.setLevel(logging.DEBUG if self.orchestrator.verbose else logging.INFO)
+        self.logger.setLevel(self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO)
         if not self.logger.handlers:
-            handler = logging.StreamHandler()
+            handler = self.logger.StreamHandler()
             handler.setFormatter(
-                logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                self.logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             )
             self.logger.addHandler(handler)
 
@@ -405,6 +406,7 @@ class DynamicScaling:
 
         try:
             self.running = True
+            #TODO create job
             self.scaling_job = asyncio.create_job(self._scaling_loop())
             self.logger.info("Dynamic scaling started")
         except Exception as e:
