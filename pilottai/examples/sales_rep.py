@@ -37,41 +37,15 @@ async def main():
     )
 
     # Create sales agent
-    sales_agent = await pilott.add_agent(
+    await pilott.add_agent(
         title="sales_representative",
         goal="Manage leads and close sales effectively",
         tools=[lead_manager, proposal_generator],
         llm_config=llm_config
     )
 
-    # Example job
-    jobs = [
-        {
-            "type": "manage_lead",
-            "lead_id": "LEAD123",
-            "action": "qualify",
-            "details": {
-                "company": "TechCorp",
-                "budget": "100k",
-                "timeline": "Q2"
-            }
-        },
-        {
-            "type": "generate_proposal",
-            "client_info": {
-                "name": "TechCorp",
-                "requirements": ["cloud storage", "analytics"]
-            },
-            "product_line": "enterprise",
-            "customizations": ["custom dashboard", "api access"]
-        }
-    ]
-
     # Execute job
-    results = await pilott.serve(jobs)
-    for job, result in zip(jobs, results):
-        print(f"Job type: {job['type']}")
-        print(f"Result: {result.output}\n")
+    results = await pilott.serve()
 
 if __name__ == "__main__":
     import asyncio

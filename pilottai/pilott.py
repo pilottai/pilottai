@@ -69,11 +69,7 @@ class Pilott:
         self.logger = self._setup_logger()
 
     def _verify_jobs(self, jobs):
-        jobs_obj = None
-        if isinstance(jobs, str):
-            jobs_obj = JobUtility.to_job_list(jobs)
-        elif isinstance(jobs, list):
-            jobs_obj = JobUtility.to_job_list(jobs)
+        jobs_obj = JobUtility.to_job_list(jobs)
         return jobs_obj
 
     async def serve(self) -> List[JobResult] | None:
@@ -110,6 +106,19 @@ class Pilott:
         except Exception as e:
             self.logger.error(f"Job execution failed: {str(e)}")
             raise
+
+    async def add_agent(self, title: str, goal: str, description: str, tools: Optional[List[Tool]] = None, llm_config: Optional[LLMConfig] = None):
+        if self.agents is None:
+            self.agents = []
+        agent = Agent(title=title, goal=goal, description=description, tools=tools, llm_config=llm_config)
+        self.agents.append(agent)
+        return agent
+
+    async def add_jobs(self, jobs: Union[str, Job, List[str], List[Job]]):
+        if self.jobs is None:
+            self.jobs = []
+        self.jobs.extend(JobUtility.to_job_list(jobs))
+
 
     async def _get_agent_by_job(self, job: Job, agents: List[Agent]):
         """Assign agent to each independent job"""

@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Union, Callable, Any
 
 from pilottai.core.base_agent import BaseAgent
 from pilottai.core.base_config import AgentConfig, LLMConfig
-from pilottai.config.model import JobResult
+from pilottai.config.model import JobResult, AgentMetrics
 from pilottai.job.job import Job
 from pilottai.enums.agent_e import AgentStatus
 from pilottai.memory.memory import Memory
@@ -32,16 +32,20 @@ class Agent(BaseAgent):
         title: str,
         goal: str,
         description: str,
-        jobs: Union[str, Job, List[str], List[Job]],
+        jobs: Optional[Union[str, Job, List[str], List[Job]]] = None,
         tools: Optional[List[Tool]] = None,
         config: Optional[AgentConfig] = None,
         llm_config: Optional[LLMConfig] = None,
-        output_format=None,
-        output_sample=None,
-        memory_enabled: bool = True,
-        reasoning: bool = True,
-        feedback: bool = False,
-        funcs: List[Callable[..., Any]] = None,
+
+        #TODO
+        input_sample: Optional[str] = None,
+        output_sample: Optional[str] = None,
+        output_format: Optional[str] = None,
+        memory_enabled: Optional[bool] = True,
+        reasoning: Optional[bool] = True,
+        feedback: Optional[bool] = False,
+        funcs: Optional[List[Callable[..., Any]]] = None,
+
         args: Optional[Dict] = None,
         depends_on: Optional[Union[List[Agent], Agent]] = None
     ):
@@ -54,10 +58,12 @@ class Agent(BaseAgent):
             config=config,
             llm_config=llm_config,
             output_format=output_format,
+            input_sample=input_sample,
             output_sample=output_sample,
             memory_enabled=memory_enabled,
             reasoning=reasoning,
             feedback=feedback,
+            funcs=funcs,
             args=args,
             depends_on=depends_on
         )
@@ -70,6 +76,7 @@ class Agent(BaseAgent):
         self.description = description
         self.jobs = self._verify_jobs(jobs)
         self.args = args
+        self.funcs = funcs
 
         # Core configuration
         self.config = config if config else AgentConfig()
@@ -86,9 +93,10 @@ class Agent(BaseAgent):
         self.memory = Memory() if memory_enabled else None
         self.llm = LLMHandler(llm_config) if llm_config else None
 
-        # Output management
+        # I/O management
         self._output = None
         self.output_format = output_format
+        self.input_sample = input_sample
         self.output_sample = output_sample
         self.reasoning = reasoning
 
@@ -111,15 +119,7 @@ class Agent(BaseAgent):
         self._output = value
 
     def _verify_jobs(self, jobs):
-        try:
-            if isinstance(jobs, str):
-                jobs_obj = JobUtility.to_job_list(jobs)
-            elif all(isinstance(t, (str, Job)) for t in jobs):
-                jobs_obj = JobUtility.to_job_list(jobs)
-            else:
-                jobs_obj = jobs
-        except:
-            raise ValueError(f"Cannot convert {type(jobs)} to Job. Must be a string, dictionary, or Job object.")
+        jobs_obj = JobUtility.to_job_list(jobs)
         return jobs_obj
 
     async def execute_jobs(self) -> List[JobResult]:
@@ -657,12 +657,6 @@ class Agent(BaseAgent):
     def _parse_json_response(self, response: str) -> str:
         """Parse JSON response from LLM"""
         try:
-            # First try to extract JSON from markdown code blocks
-            # if "```json" in response:
-            #     json_str = response.split("```json")[1].split("```")[0]
-            # elif "```" in response:
-            #     json_str = response.split("```")[1].split("```")[0]
-            # else:
             json_str = response
 
             return json_str  # Using eval for more forgiving parsing
@@ -805,3 +799,18 @@ class Agent(BaseAgent):
 
         job.description = description
         return job
+
+    # TODO
+    async def get_metrics(self):
+        metrics = {}
+        return AgentMetrics(
+            cpu_usage = 0.0,
+            memory_usage = 0.0,
+            queue_size = 0,
+            active_jobs= 0,
+            total_jobs = 0,
+            error_rate = 0.0,
+            queue_load = metrics['queue_utilization'],
+            usage = metrics.get('resource_usage', 0),
+            timestamp=datetime.now().astimezone()
+        )

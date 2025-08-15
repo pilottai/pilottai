@@ -81,7 +81,7 @@ class AgentHealth(BaseModel):
     stuck_jobs: List[str]
     last_error: Optional[str] = None
 
-class LoadMetrics(BaseModel):
+class AgentMetrics(BaseModel):
     cpu_usage: float = 0.0
     memory_usage: float = 0.0
     queue_size: int = 0
@@ -89,6 +89,12 @@ class LoadMetrics(BaseModel):
     total_jobs: int = 0
     error_rate: float = 0.0
     timestamp: datetime = Field(default_factory=datetime.now)
+    queue_load: float = 0.0
+    usage: int = 0
+    error_count: int = 0
+    recovery_attempts: int = 0
+    stuck_jobs: List[str] = []
+    last_error: Optional[str] = None
 
 class ToolMetrics(BaseModel):
     usage_count: int = 0
@@ -119,19 +125,3 @@ class JobResult(BaseModel):
             "metadata": self.metadata,
             "completion_time": self.completion_time.isoformat()
         }
-
-class ToolError(Exception):
-    """Base class for tool errors"""
-    pass
-
-class ToolTimeoutError(ToolError):
-    """Tool execution timeout error"""
-    pass
-
-class ToolPermissionError(ToolError):
-    """Tool permission error"""
-    pass
-
-class ToolValidationError(ToolError):
-    """Tool input validation error"""
-    pass

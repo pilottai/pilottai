@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, AnyStr, Any, Callable
 import asyncio
 import uuid
 from abc import ABC, abstractmethod
@@ -27,17 +27,19 @@ class BaseAgent(ABC):
             title: str,
             goal: str,
             description: str,
-            jobs: Union[Job, str, List[str], List[Job]],
+            jobs: Optional[Union[str, Job, List[str], List[Job]]] = None,
             tools: Optional[List[Tool]] = None,
             config: Optional[AgentConfig] = None,
             llm_config: Optional[LLMConfig] = None,
-            output_format = None,
-            output_sample = None,
-            memory_enabled: bool = True,
-            reasoning: bool = False,
-            feedback: bool = False,
+            input_sample: Optional[str] = None,
+            output_sample: Optional[str] = None,
+            output_format: Optional[str] = None,
+            memory_enabled: Optional[bool] = True,
+            reasoning: Optional[bool] = True,
+            feedback: Optional[bool] = False,
+            funcs: Optional[List[Callable[..., Any]]] = None,
             args: Optional[Dict] = None,
-            depends_on: Optional[Union[List[BaseAgent], BaseAgent]]=None
+            depends_on: Optional[Union[List[BaseAgent], BaseAgent]] = None
     ):
         # Basic Configuration
         # Required fields
@@ -47,6 +49,7 @@ class BaseAgent(ABC):
         self.description = description
         self.jobs = self._verify_jobs(jobs)
         self.args = args
+        self.funcs = funcs
 
         # Core configuration
         self.config = config if config else AgentConfig()
@@ -63,8 +66,9 @@ class BaseAgent(ABC):
         self.memory = Memory() if memory_enabled else None
         self.llm = LLMHandler(llm_config) if llm_config else None
 
-        # Output management
+        # I/O management
         self.output_format = output_format
+        self.input_sample = input_sample
         self.output_sample = output_sample
         self.reasoning = reasoning
 
@@ -153,4 +157,9 @@ class BaseAgent(ABC):
     @abstractmethod
     def _setup_logger(self) -> Logger:
         """Setup agent logging"""
+        pass
+
+    @abstractmethod
+    async def get_metrics(self):
+        """Agent Metrics"""
         pass

@@ -150,7 +150,7 @@ class Logger:
         extra = {k: v for k, v in extra.items() if v is not None}
 
         # Log the message
-        self.logger.log(level, message, extra=extra, exc_info=kwargs.get('exc_info', False))
+        self.logger.log(level, message, extra=extra, exc_info=kwargs.get('exc_info', False), stacklevel=3)
 
     def log_api_request(self, method: str, endpoint: str, status_code: int,
                         duration: float, user_id: Optional[int] = None,

@@ -38,9 +38,6 @@ class JobUtility:
 
             return Job(**job_input)
 
-        else:
-            raise ValueError(
-                f"Cannot convert {type(job_input)} to Job. Must be a string, dictionary, or Job object.")
 
     @staticmethod
     def to_job_list(job_inputs: Union[str, Dict, Job, List[str], List[Dict], List[Job]]) -> List[Job]:
@@ -63,9 +60,6 @@ class JobUtility:
             for item in job_inputs:
                 jobs.append(JobUtility.to_job(item))
             return jobs
-
-        else:
-            raise ValueError(f"Cannot convert {type(job_inputs)} to a list of Jobs")
 
     @staticmethod
     def is_job_object(job_input: Any) -> bool:

@@ -45,29 +45,8 @@ async def main():
         llm_config=llm_config
     )
 
-    # Example job
-    jobs = [
-        {
-            "type": "web_search",
-            "query": "latest AI developments 2024",
-            "search_type": "news",
-            "filters": {
-                "date_range": "last_month",
-                "sources": ["tech_news", "research_papers"]
-            }
-        },
-        {
-            "type": "analyze_results",
-            "results": ["result1", "result2"],
-            "criteria": ["relevance", "credibility"]
-        }
-    ]
-
     # Execute job
-    results = await pilott.serve(jobs)
-    for job, result in zip(jobs, results):
-        print(f"Job type: {job['type']}")
-        print(f"Result: {result.output}\n")
+    results = await pilott.serve()
 
 if __name__ == "__main__":
     import asyncio

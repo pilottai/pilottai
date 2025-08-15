@@ -3,12 +3,13 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Dict, Tuple, Optional, Any, List
 
+from pilottai.agent import Agent
 from pilottai.config.model import DelegationMetrics
 from pilottai.utils.logger import Logger
 
 
 class JobDelegator:
-    def __init__(self, agent):
+    def __init__(self, agent: Agent):
         self.agent = agent
         self.delegation_history: Dict[str, List[Dict]] = defaultdict(list)
         self.agent_metrics: Dict[str, DelegationMetrics] = {}
@@ -21,8 +22,7 @@ class JobDelegator:
         self._cleanup_job = None
 
     async def start(self):
-        #TODO
-        self._cleanup_job = asyncio.create_job(self._periodic_cleanup())
+        self._cleanup_job = asyncio.create_task(self._periodic_cleanup())
 
     async def stop(self):
         if self._cleanup_job:
@@ -56,25 +56,13 @@ class JobDelegator:
             scores = {}
             available_agents = self._get_available_agents()
 
-            async with asyncio.timeout(10):  # 10 second timeout
-                for agent_id, agent in available_agents.items():
-                    try:
-                        if not await self._can_accept_job(agent):
-                            continue
-
-                        score = await self._calculate_total_score(agent, job)
-                        if score > 0:
-                            scores[agent_id] = score
-
-                    except Exception as e:
-                        self.logger.error(f"Error calculating score for agent {agent_id}: {str(e)}")
-                        continue
-
-                if not scores:
-                    return None
-
-                best_agent_id = max(scores.items(), key=lambda x: x[1])[0]
-                return available_agents[best_agent_id]
+            try:
+                await asyncio.wait_for(
+                    self._score_agents(available_agents, job, scores),
+                    timeout=10
+                )
+            except asyncio.TimeoutError:
+                return None
 
         except asyncio.TimeoutError:
             self.logger.error("Agent selection timed out")
@@ -83,7 +71,20 @@ class JobDelegator:
             self.logger.error(f"Error finding best agent: {str(e)}")
             return None
 
-    async def _calculate_total_score(self, agent: Any, job: Dict) -> float:
+    async def _score_agents(self, available_agents, job, scores):
+        for agent_id, agent in available_agents.items():
+            try:
+                if not await self._can_accept_job(agent):
+                    continue
+
+                score = await self._calculate_total_score(agent, job)
+                if score > 0:
+                    scores[agent_id] = score
+
+            except Exception as e:
+                self.logger.error(f"Error calculating score for agent {agent_id}: {str(e)}")
+
+    async def _calculate_total_score(self, agent: Agent, job: Dict) -> float:
         try:
             base_score = await agent.evaluate_job_suitability(job)
             metrics = await agent.get_metrics()
@@ -132,7 +133,7 @@ class JobDelegator:
         except Exception:
             return 0.5
 
-    async def _calculate_load_score(self, agent: Any) -> float:
+    async def _calculate_load_score(self, agent: Agent) -> float:
         """Calculate current load score"""
         try:
             metrics = await agent.get_metrics()
@@ -140,7 +141,7 @@ class JobDelegator:
         except Exception:
             return 1.0
 
-    async def _calculate_resource_score(self, agent: Any) -> float:
+    async def _calculate_resource_score(self, agent: Agent) -> float:
         """Calculate resource availability score"""
         try:
             metrics = await agent.get_metrics()
@@ -252,7 +253,7 @@ class JobDelegator:
             )
             return 0.5
 
-    async def _calculate_load_penalty(self, agent) -> float:
+    async def _calculate_load_penalty(self, agent: Agent) -> float:
         """Calculate load penalty based on agent metrics"""
         try:
             metrics = await agent.get_metrics()
@@ -307,7 +308,7 @@ class JobDelegator:
                len([d for d in self.active_delegations.values() if d['agent_id'] == agent_id]) < getattr(agent, 'max_concurrent_jobs',5)
         }
 
-    async def _can_accept_job(self, agent: Any) -> bool:
+    async def _can_accept_job(self, agent: Agent) -> bool:
         try:
             metrics = await agent.get_metrics()
             return (
@@ -341,14 +342,3 @@ class JobDelegator:
         except Exception as e:
             self.logger.error(f"Error checking delegation: {str(e)}")
             return False
-
-    async def get_metrics(self) -> Dict[str, Any]:
-        return {
-            'active_delegations': len(self.active_delegations),
-            'agent_metrics': {
-                agent_id: metrics.model_dump()
-                for agent_id, metrics in self.agent_metrics.items()
-            },
-            'history_size': sum(len(h) for h in self.delegation_history.values()),
-            'last_cleanup': self._last_cleanup.isoformat()
-        }

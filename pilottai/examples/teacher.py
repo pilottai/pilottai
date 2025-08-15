@@ -43,25 +43,7 @@ async def main():
         llm_config=llm_config
     )
 
-    # Example job
-    jobs = [
-        {
-            "type": "learn_topic",
-            "content": "Introduction to Machine Learning",
-            "store_results": True
-        },
-        {
-            "type": "analyze_patterns",
-            "data": "Historical market trends",
-            "pattern_type": "trends"
-        }
-    ]
-
-    # Execute job
-    results = await pilott.serve(jobs)
-    for job, result in zip(jobs, results):
-        print(f"Job type: {job['type']}")
-        print(f"Result: {result.output}\n")
+    results = await pilott.serve()
 
 if __name__ == "__main__":
     import asyncio

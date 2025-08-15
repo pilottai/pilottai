@@ -47,37 +47,16 @@ async def main():
     )
 
     # Create email agent
-    email_agent = await pilott.add_agent(
+    #TODO
+    await pilott.add_agent(
         title="email_manager",
         goal="Handle email communications efficiently",
         tools=[email_sender, email_analyzer, template_manager],
         llm_config=llm_config
     )
 
-    # Example job
-    jobs = [
-        {
-            "type": "send_email",
-            "template": "welcome",
-            "recipient": "user@example.com",
-            "variables": {
-                "name": "John",
-                "product": "Premium Plan"
-            }
-        },
-        {
-            "type": "analyze_email",
-            "content": "I'm having issues with my account...",
-            "priority": "high",
-            "agent":email_agent
-        }
-    ]
-
     # Execute job
-    results = await pilott.serve(jobs)
-    for job, result in zip(jobs, results):
-        print(f"Job type: {job['type']}")
-        print(f"Result: {result.output}\n")
+    results = await pilott.serve()
 
 if __name__ == "__main__":
     import asyncio

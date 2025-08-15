@@ -265,12 +265,12 @@ class DynamicScaling:
 
     def _setup_logging(self):
         """Setup logging for dynamic scaling"""
-        level = logging.DEBUG if self.orchestrator.verbose else logging.INFO
+        level = self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO
         self.logger.setLevel(level)
         if not self.logger.handlers:
-            handler = logging.StreamHandler()
+            handler = self.logger.StreamHandler()
             handler.setFormatter(
-                logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                self.logger.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             )
             self.logger.addHandler(handler)
 
