@@ -181,7 +181,7 @@ async def test_job_processing_success():
 
 ## Questions or Need Help?
 
-- Check our [documentation](https://pilottai.readthedocs.io)
+- Check our [documentation](https://docs.pilottai.com)
 - Ask in our [Discord](https://discord.gg/pilottai)
 - Open a [discussion](https://github.com/pilottai/pilott/discussions)
 

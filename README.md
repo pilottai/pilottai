@@ -124,9 +124,11 @@ PilottAI includes ready-to-use specialized agents:
 - 🌐 [Social Media Agent](pilottai/examples/social_media_agent.md): Content scheduling and engagement
 - 🔍 [Web Search Agent](pilottai/examples/web_search.md): Search operations and analysis
 
-## Documentation
+## 📚 Documentation
 
-Visit our [documentation](https://pilottai.readthedocs.io) for:
+👉 **[Read the full documentation here](https://docs.pilottai.com)**
+
+The documentation includes:
 - Detailed guides
 - API reference
 - Examples
