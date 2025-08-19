@@ -8,7 +8,7 @@ import asyncio
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 
-from pilottai.config.config import GLOBAL_CONFIG, Config
+from pilottai.config.config import GLOBAL_CONFIG
 from pilottai.agent.helper.agent_io import AgentIO
 from pilottai.core.base_agent import BaseAgent
 from pilottai.core.base_config import AgentConfig, LLMConfig
