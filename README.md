@@ -13,7 +13,7 @@
 [![PyPI version](https://badge.fury.io/py/pilottai.svg)](https://badge.fury.io/py/pilottai)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Documentation Status](https://readthedocs.org/projects/pilottai/badge/?version=latest)](https://docs.pilottai.com)
+[![Documentation Status](https://github.com/pilottai/pilottai/actions/workflows/deploy-docs.yml/badge.svg?branch=main)](https://docs.pilottai.com)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/pygig/pilottai?style=flat-square)](https://github.com/pygig/pilottai)
 
@@ -114,19 +114,21 @@ if __name__ == "__main__":
 
 PilottAI includes ready-to-use specialized agents:
 
-- 🎫 [Customer Service Agent](pilottai/examples/customer_service.md): Ticket and support management
-- 📄 [Document Processing Agent](pilottai/examples/document_processing.md): Document analysis and extraction
-- 📧 [Email Agent](pilottai/examples/email_agent.md): Email handling and template management
-- 🧠 [Learning Agent](pilottai/examples/learning_agent.md): Knowledge acquisition and pattern recognition
-- 📢 [Marketing Expert Agent](pilottai/examples/marketing_expert.md): Campaign management and content creation
-- 📊 [Research Analyst Agent](pilottai/examples/research_analyst.md): Data analysis and research synthesis
-- 💼 [Sales Representative Agent](pilottai/examples/sales_rep.md): Lead management and proposals
-- 🌐 [Social Media Agent](pilottai/examples/social_media_agent.md): Content scheduling and engagement
-- 🔍 [Web Search Agent](pilottai/examples/web_search.md): Search operations and analysis
+- 🎫 [Customer Service Agent](pilottai/examples/customer_service.py): Ticket and support management
+- 📄 [Document Processing Agent](pilottai/examples/document_processing.py): Document analysis and extraction
+- 📧 [Email Agent](pilottai/examples/email_service.py): Email handling and template management
+- 🧠 [Learning Agent](pilottai/examples/teacher.py): Knowledge acquisition and pattern recognition
+- 📢 [Marketing Expert Agent](pilottai/examples/marketing_expert.py): Campaign management and content creation
+- 📊 [Research Analyst Agent](pilottai/examples/research_analyst.py): Data analysis and research synthesis
+- 💼 [Sales Representative Agent](pilottai/examples/sales_rep.py): Lead management and proposals
+- 🌐 [Social Media Agent](pilottai/examples/social_media_manager.py): Content scheduling and engagement
+- 🔍 [Web Search Agent](pilottai/examples/web_search.py): Search operations and analysis
 
-## Documentation
+## 📚 Documentation
 
-Visit our [documentation](https://pilottai.readthedocs.io) for:
+👉 **[Read the full documentation here](https://docs.pilottai.com)**
+
+The documentation includes:
 - Detailed guides
 - API reference
 - Examples
@@ -211,8 +213,8 @@ We welcome contributions! See our [Contributing Guide](.github/CONTRIBUTING.md) 
 
 ## Support
 
-- 📚 [Documentation](https://pilottai.readthedocs.io)
-- 💬 [Discord](https://discord.gg/pilottai)
+- 📚 [Documentation](https://docs.pilottai.com)
+- 💬 [Discord](https://discord.gg/pilottai) <!-- TODO: Correct link -->
 - 📝 [GitHub Issues](https://github.com/pilottai/pilott/issues)
 - 📧 [Email Support](mailto:support@pilottai.com)
 
