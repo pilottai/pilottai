@@ -114,15 +114,15 @@ if __name__ == "__main__":
 
 PilottAI includes ready-to-use specialized agents:
 
-- 🎫 [Customer Service Agent](pilottai/examples/customer_service.md): Ticket and support management
-- 📄 [Document Processing Agent](pilottai/examples/document_processing.md): Document analysis and extraction
-- 📧 [Email Agent](pilottai/examples/email_agent.md): Email handling and template management
-- 🧠 [Learning Agent](pilottai/examples/learning_agent.md): Knowledge acquisition and pattern recognition
-- 📢 [Marketing Expert Agent](pilottai/examples/marketing_expert.md): Campaign management and content creation
-- 📊 [Research Analyst Agent](pilottai/examples/research_analyst.md): Data analysis and research synthesis
-- 💼 [Sales Representative Agent](pilottai/examples/sales_rep.md): Lead management and proposals
-- 🌐 [Social Media Agent](pilottai/examples/social_media_agent.md): Content scheduling and engagement
-- 🔍 [Web Search Agent](pilottai/examples/web_search.md): Search operations and analysis
+- 🎫 [Customer Service Agent](pilottai/examples/customer_service.py): Ticket and support management
+- 📄 [Document Processing Agent](pilottai/examples/document_processing.py): Document analysis and extraction
+- 📧 [Email Agent](pilottai/examples/email_service.py): Email handling and template management
+- 🧠 [Learning Agent](pilottai/examples/teacher.py): Knowledge acquisition and pattern recognition
+- 📢 [Marketing Expert Agent](pilottai/examples/marketing_expert.py): Campaign management and content creation
+- 📊 [Research Analyst Agent](pilottai/examples/research_analyst.py): Data analysis and research synthesis
+- 💼 [Sales Representative Agent](pilottai/examples/sales_rep.py): Lead management and proposals
+- 🌐 [Social Media Agent](pilottai/examples/social_media_manager.py): Content scheduling and engagement
+- 🔍 [Web Search Agent](pilottai/examples/web_search.py): Search operations and analysis
 
 ## 📚 Documentation
 
@@ -214,7 +214,7 @@ We welcome contributions! See our [Contributing Guide](.github/CONTRIBUTING.md) 
 ## Support
 
 - 📚 [Documentation](https://pilottai.readthedocs.io)
-- 💬 [Discord](https://discord.gg/pilottai)
+- 💬 [Discord](https://discord.gg/pilottai) <!-- TODO: Correct link -->
 - 📝 [GitHub Issues](https://github.com/pilottai/pilott/issues)
 - 📧 [Email Support](mailto:support@pilottai.com)
 

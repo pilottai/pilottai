@@ -175,14 +175,14 @@ async def test_job_processing_success():
 
 ## Community
 
-- Join our [Discord](https://discord.gg/pilottai)
+- Join our [Discord](https://discord.gg/pilottai) <!-- TODO: Correct link -->
 - Follow us on [Twitter](https://twitter.com/pilottai)
 - Subscribe to our [newsletter](https://pilottai.com/newsletter)
 
 ## Questions or Need Help?
 
 - Check our [documentation](https://docs.pilottai.com)
-- Ask in our [Discord](https://discord.gg/pilottai)
+- Ask in our [Discord](https://discord.gg/pilottai) <!-- TODO: Correct link -->
 - Open a [discussion](https://github.com/pilottai/pilott/discussions)
 
 Thank you for contributing to PilottAI! 🚀
