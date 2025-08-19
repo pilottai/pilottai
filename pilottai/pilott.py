@@ -3,7 +3,7 @@ import asyncio
 from typing import Dict, List, Optional, Any, Union
 
 from pilottai.agent import Agent, ActionAgent, MasterAgent, SuperAgent
-from pilottai.config.config import Config
+from pilottai.config.config import Config, set_global_config
 from pilottai.core.base_config import LLMConfig, ServeConfig
 from pilottai.memory.memory import Memory
 from pilottai.config.model import JobResult
@@ -38,6 +38,7 @@ class Pilott:
       ):
         # Initialize configuration
         self.config = Config(name = name, serve_config=serve_config, llm_config=llm_config)
+        set_global_config(config=self.config)
 
         # Core components
         self.agents = agents
@@ -69,12 +70,22 @@ class Pilott:
         self.logger = self._setup_logger()
 
     def _verify_jobs(self, jobs):
-        jobs_obj = None
-        if isinstance(jobs, str):
-            jobs_obj = JobUtility.to_job_list(jobs)
-        elif isinstance(jobs, list):
-            jobs_obj = JobUtility.to_job_list(jobs)
+        jobs_obj = JobUtility.to_job_list(jobs)
         return jobs_obj
+
+    async def add_agent(self, title: str, goal: str, description: str, tools: Optional[List[Tool]] = None, llm_config: Optional[LLMConfig] = None):
+        if self.agents is None:
+            self.agents = []
+        agent = Agent(title=title, goal=goal, description=description, tools=tools, llm_config=llm_config)
+        self.agents.append(agent)
+        return agent
+
+
+    async def add_jobs(self, jobs: Union[str, Job, List[str], List[Job]]):
+        if self.jobs is None:
+            self.jobs = []
+        self.jobs.extend(JobUtility.to_job_list(jobs))
+
 
     async def serve(self) -> List[JobResult] | None:
         """
@@ -111,11 +122,46 @@ class Pilott:
             self.logger.error(f"Job execution failed: {str(e)}")
             raise
 
+
     async def _get_agent_by_job(self, job: Job, agents: List[Agent]):
         """Assign agent to each independent job"""
         agent, score = self.agentUtility.assign_job(job, agents, llm_handler=self.llm, assignment_strategy=self.job_assignment_type)
         agent.jobs.append(job)
         return agent
+
+
+    async def _execute_sequential(self, agents: List[Agent]) -> List[JobResult]:
+        """
+        Execute all agents with their assigned job sequentially.
+
+        Args:
+            agents: List of agents to execute sequentially
+
+        Returns:
+            List of job results from all agents
+        """
+        all_results = []
+
+        # Process each agent in sequence
+        for agent in agents:
+            try:
+                results = await self._process_agent_jobs(agent)
+                if isinstance(results, list):
+                    all_results.extend(results)
+            except Exception as e:
+                self.logger.error(f"Agent {agent.id} execution failed: {str(e)}")
+                # Create a failure result for each job
+                for job in agent.jobs:
+                    job_id = job.id if hasattr(job, 'id') else "unknown"
+                    all_results.append(JobResult(
+                        success=False,
+                        output=None,
+                        error=f"Agent {agent.id} execution error: {str(e)}",
+                        execution_time=0.0,
+                        metadata={"agent_id": agent.id, "job_id": job_id}
+                    ))
+
+        return all_results
 
     async def _execute_parallel(self, agents: List[Agent]) -> List[JobResult]:
         """
@@ -154,38 +200,6 @@ class Pilott:
 
         return all_results
 
-    async def _execute_sequential(self, agents: List[Agent]) -> List[JobResult]:
-        """
-        Execute all agents with their assigned job sequentially.
-
-        Args:
-            agents: List of agents to execute sequentially
-
-        Returns:
-            List of job results from all agents
-        """
-        all_results = []
-
-        # Process each agent in sequence
-        for agent in agents:
-            try:
-                results = await self._process_agent_jobs(agent)
-                if isinstance(results, list):
-                    all_results.extend(results)
-            except Exception as e:
-                self.logger.error(f"Agent {agent.id} execution failed: {str(e)}")
-                # Create a failure result for each job
-                for job in agent.jobs:
-                    job_id = job.id if hasattr(job, 'id') else "unknown"
-                    all_results.append(JobResult(
-                        success=False,
-                        output=None,
-                        error=f"Agent {agent.id} execution error: {str(e)}",
-                        execution_time=0.0,
-                        metadata={"agent_id": agent.id, "job_id": job_id}
-                    ))
-
-        return all_results
 
     async def _process_agent_jobs(self, agent: Agent) -> List[JobResult]:
         """

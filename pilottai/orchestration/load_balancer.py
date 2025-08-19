@@ -8,7 +8,7 @@ import psutil
 from pilottai.agent.agent import Agent
 from pilottai.enums.agent_e import AgentStatus
 
-from pilottai.config.model import LoadMetrics
+from pilottai.config.model import AgentMetrics
 from pilottai.core.base_config import LoadBalancerConfig
 from pilottai.utils.logger import Logger
 
@@ -21,7 +21,7 @@ class LoadBalancer:
         self.running = False
         self.balancing_job: Optional[asyncio.Task] = None
         self._balance_lock = asyncio.Lock()
-        self._metrics_history: Dict[str, List[LoadMetrics]] = {}
+        self._metrics_history: Dict[str, List[AgentMetrics]] = {}
         self._monitored_agents: Set[str] = set()
         self._last_balance_time = datetime.now()
         self._safe_mode = True
@@ -77,16 +77,15 @@ class LoadBalancer:
         except Exception as e:
             self.logger.error(f"Load balancing error: {str(e)}")
 
-    async def _collect_system_metrics(self) -> Dict[str, LoadMetrics]:
+    async def _collect_system_metrics(self) -> Dict[str, AgentMetrics]:
         metrics = {}
         for agent in await self._get_available_agents():
             try:
-                # TODO get metrics for agent ops
                 agent_metrics = await agent.get_metrics()
                 system_cpu = psutil.cpu_percent(interval=1) / 100.0
                 system_memory = psutil.virtual_memory().percent / 100.0
 
-                metrics[agent.id] = LoadMetrics(
+                metrics[agent.id] = AgentMetrics(
                     cpu_usage=max(system_cpu, agent_metrics.get('cpu_usage', 0.0)),
                     memory_usage=max(system_memory, agent_metrics.get('memory_usage', 0.0)),
                     queue_size=agent_metrics.get('queue_size', 0),
@@ -111,7 +110,7 @@ class LoadBalancer:
         except Exception as e:
             self.logger.error(f"Error handling overload for agent {agent_id}: {str(e)}")
 
-    def _update_metrics_history(self, metrics: Dict[str, LoadMetrics]):
+    def _update_metrics_history(self, metrics: Dict[str, AgentMetrics]):
         current_time = datetime.now()
         retention_time = current_time - timedelta(seconds=self.config.metrics_retention_period)
 
@@ -127,7 +126,7 @@ class LoadBalancer:
 
     async def _analyze_agent_loads(
             self,
-            current_metrics: Dict[str, LoadMetrics]
+            current_metrics: Dict[str, AgentMetrics]
     ) -> Tuple[List[str], List[str]]:
         overloaded = []
         underloaded = []
@@ -154,7 +153,7 @@ class LoadBalancer:
         loads = [self._calculate_composite_load(m) for m in history]
         return (loads[-1] - loads[0]) / len(loads)
 
-    def _calculate_composite_load(self, metrics: LoadMetrics) -> float:
+    def _calculate_composite_load(self, metrics: AgentMetrics) -> float:
         return (
             0.3 * metrics.cpu_usage +
             0.3 * metrics.memory_usage +
@@ -166,7 +165,7 @@ class LoadBalancer:
             self,
             overloaded: List[str],
             underloaded: List[str],
-            current_metrics: Dict[str, LoadMetrics]
+            current_metrics: Dict[str, AgentMetrics]
     ):
         for over_agent_id in overloaded:
             try:
@@ -187,9 +186,11 @@ class LoadBalancer:
 
                     if best_agent_id:
                         try:
-                            async with asyncio.timeout(self.config.job_move_timeout):
-                                await self._move_job(job, over_agent_id, best_agent_id)
-                                moves_made += 1
+                            await asyncio.wait_for(
+                                self._move_job(job, over_agent_id, best_agent_id),
+                                timeout=self.config.job_move_timeout
+                            )
+                            moves_made += 1
                         except asyncio.TimeoutError:
                             self.logger.error(f"Job move timed out for job {job['id']}")
                         except Exception as e:
@@ -204,6 +205,8 @@ class LoadBalancer:
 
     async def _move_job(self, job: Dict, from_agent_id: str, to_agent_id: str):
         lock_acquired = False
+        from_agent = None
+        job_backup = None
         try:
             from_agent = self.orchestrator.child_agents[from_agent_id]
             to_agent = self.orchestrator.child_agents[to_agent_id]
@@ -254,7 +257,7 @@ class LoadBalancer:
             self,
             job: Dict,
             candidates: List[str],
-            current_metrics: Dict[str, LoadMetrics]
+            current_metrics: Dict[str, AgentMetrics]
     ) -> Optional[str]:
         best_agent_id = None
         best_score = float('-inf')
@@ -279,7 +282,7 @@ class LoadBalancer:
     async def _can_accept_job(
             self,
             agent: Any,
-            metrics: LoadMetrics
+            metrics: AgentMetrics
     ) -> bool:
         """Check if agent can accept new job"""
         return (
@@ -292,7 +295,7 @@ class LoadBalancer:
             self,
             agent: Any,
             job: Dict,
-            metrics: LoadMetrics
+            metrics: AgentMetrics
     ) -> float:
         """Calculate comprehensive agent suitability score"""
         try:
@@ -320,24 +323,6 @@ class LoadBalancer:
             self.logger.error(f"Error calculating agent suitability: {str(e)}")
             return float('-inf')
 
-    async def get_metrics(self) -> Dict[str, Any]:
-        return {
-            "active_agents": len(await self._get_available_agents()),
-            "overloaded_agents": len([
-                agent_id for agent_id, metrics in (await self._collect_system_metrics()).items()
-                if self._calculate_composite_load(metrics) > self.config.overload_threshold
-            ]),
-            "underloaded_agents": len([
-                agent_id for agent_id, metrics in (await self._collect_system_metrics()).items()
-                if self._calculate_composite_load(metrics) < self.config.underload_threshold
-            ]),
-            "last_balance_time": self._last_balance_time.isoformat(),
-            "metrics_history": {
-                agent_id: [m.model_dump() for m in history]
-                for agent_id, history in self._metrics_history.items()
-            }
-        }
-
     def _setup_logging(self):
         self.logger.setLevel(self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO)
         if not self.logger.handlers:
@@ -357,7 +342,6 @@ class LoadBalancer:
     async def _calculate_agent_load(self, agent: Agent) -> float:
         """Calculate comprehensive load for an agent"""
         try:
-            #TODO get metrics for agent ops
             metrics = await agent.get_metrics()
             # Calculate different types of load
             job_load = metrics['total_jobs'] / self.config.max_jobs_per_agent

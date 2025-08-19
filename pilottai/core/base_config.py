@@ -96,7 +96,7 @@ class LogConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     verbose: bool = True
-    log_to_file: bool = False
+    json_format: bool = True
     log_dir: Path = Field(default=Path("logs"))
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     log_level: str = Field(default="INFO", pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$")

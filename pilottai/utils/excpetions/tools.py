@@ -19,3 +19,13 @@ class ToolExecutionError(PilottAIException):
         if tool_name:
             details['tool_name'] = tool_name
         super().__init__(f"Tool execution failed: {message}", details)
+
+
+class ToolTimeoutError(ToolError):
+    """Tool execution timeout error"""
+    pass
+
+
+class ToolValidationError(ToolError):
+    """Tool input validation error"""
+    pass

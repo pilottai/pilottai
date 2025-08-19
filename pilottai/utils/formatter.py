@@ -13,7 +13,8 @@ class ColoredFormatter(logging.Formatter):
         'WARNING': '\033[33m',  # Yellow
         'ERROR': '\033[31m',  # Red
         'CRITICAL': '\033[35m',  # Magenta
-        'RESET': '\033[0m'  # Reset
+        'RESET': '\033[0m',  # Reset
+        'OUTPUT': '\033[37m',    # White
     }
 
     def format(self, record):
@@ -36,6 +37,15 @@ class ColoredFormatter(logging.Formatter):
 class JsonFormatter(logging.Formatter):
     """JSON formatter for structured logging"""
 
+    def custom_serializer(self, obj):
+        if hasattr(obj, "to_dict"):  # if your JobResult has to_dict
+            return obj.to_dict()
+        if hasattr(obj, "__dict__"):  # fallback: use its __dict__
+            return obj.__dict__
+        if isinstance(obj, datetime):  # handle datetime cleanly
+            return obj.isoformat()
+        return str(obj)  # last resort
+
     def format(self, record):
         log_entry = {
             'timestamp': datetime.fromtimestamp(record.created).isoformat(),
@@ -49,31 +59,6 @@ class JsonFormatter(logging.Formatter):
             'thread_name': record.threadName
         }
 
-        # Add context information
-        if hasattr(record, 'context'):
-            log_entry['context'] = record.context
-
-        if hasattr(record, 'user_id'):
-            log_entry['user_id'] = record.user_id
-
-        if hasattr(record, 'request_id'):
-            log_entry['request_id'] = record.request_id
-
-        if hasattr(record, 'ip_address'):
-            log_entry['ip_address'] = record.ip_address
-
-        if hasattr(record, 'endpoint'):
-            log_entry['endpoint'] = record.endpoint
-
-        if hasattr(record, 'method'):
-            log_entry['method'] = record.method
-
-        if hasattr(record, 'duration'):
-            log_entry['duration'] = record.duration
-
-        if hasattr(record, 'status_code'):
-            log_entry['status_code'] = record.status_code
-
         # Add exception information
         if record.exc_info:
             log_entry['exception'] = {
@@ -82,4 +67,5 @@ class JsonFormatter(logging.Formatter):
                 'traceback': traceback.format_exception(*record.exc_info)
             }
 
-        return json.dumps(log_entry, ensure_ascii=False)
+        json_output = json.dumps(log_entry, ensure_ascii=False, indent=2, default=self.custom_serializer)
+        return json_output

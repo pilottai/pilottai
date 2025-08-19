@@ -4,6 +4,7 @@ from typing import Dict, Optional, Any
 
 from pydantic import ConfigDict
 
+from pilottai.agent import Agent
 from pilottai.core.base_config import RouterConfig
 from pilottai.enums.job_e import JobPriority
 from pilottai.utils.logger import Logger
@@ -89,7 +90,7 @@ class JobRouter:
                 continue
         return scores
 
-    async def _calculate_load_penalty(self, agent) -> float:
+    async def _calculate_load_penalty(self, agent: Agent) -> float:
         try:
             metrics = await agent.get_metrics()
             queue_load = metrics.get('queue_utilization', 1.0)
@@ -120,7 +121,7 @@ class JobRouter:
         except Exception:
             return 0.0
 
-    async def _calculate_performance_bonus(self, agent) -> float:
+    async def _calculate_performance_bonus(self, agent: Agent) -> float:
         try:
             metrics = await agent.get_metrics()
             return metrics.get('success_rate', 0.5)

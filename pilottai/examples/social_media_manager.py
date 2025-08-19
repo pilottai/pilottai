@@ -38,34 +38,15 @@ async def main():
     )
 
     # Create social media agent
-    social_agent = await pilott.add_agent(
+    await pilott.add_agent(
         title="social_media_manager",
         goal="Manage social media presence and engagement",
         tools=[content_scheduler, engagement_analyzer],
         llm_config=llm_config
     )
 
-    # Example job
-    jobs = [
-        {
-            "type": "schedule_content",
-            "platform": "twitter",
-            "content": "Excited to announce our latest feature release! #TechNews",
-            "schedule_time": "2024-03-15T10:00:00Z"
-        },
-        {
-            "type": "analyze_engagement",
-            "post_id": "POST123",
-            "metrics": ["likes", "shares", "comments"],
-            "timeframe": "last_24h"
-        }
-    ]
-
     # Execute job
-    results = await pilott.serve(jobs)
-    for job, result in zip(jobs, results):
-        print(f"Job type: {job['type']}")
-        print(f"Result: {result.output}\n")
+    results = await pilott.serve()
 
 if __name__ == "__main__":
     import asyncio
