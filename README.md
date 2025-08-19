@@ -13,7 +13,7 @@
 [![PyPI version](https://badge.fury.io/py/pilottai.svg)](https://badge.fury.io/py/pilottai)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Documentation Status](https://readthedocs.org/projects/pilottai/badge/?version=latest)](https://docs.pilottai.com)
+[![Documentation Status](https://github.com/pilottai/pilottai/actions/workflows/deploy-docs.yml/badge.svg?branch=main)](https://docs.pilottai.com)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/pygig/pilottai?style=flat-square)](https://github.com/pygig/pilottai)
 
@@ -213,7 +213,7 @@ We welcome contributions! See our [Contributing Guide](.github/CONTRIBUTING.md) 
 
 ## Support
 
-- 📚 [Documentation](https://pilottai.readthedocs.io)
+- 📚 [Documentation](https://docs.pilottai.com)
 - 💬 [Discord](https://discord.gg/pilottai) <!-- TODO: Correct link -->
 - 📝 [GitHub Issues](https://github.com/pilottai/pilott/issues)
 - 📧 [Email Support](mailto:support@pilottai.com)
