@@ -3,9 +3,10 @@ import traceback
 from datetime import datetime
 from typing import Any, List, Dict, Optional, Set
 
-from pilottai.config.model import ToolMetrics, ToolError, ToolTimeoutError
+from pilottai.config.model import ToolMetrics
 from pilottai.enums.tool_e import ToolStatus
 from pilottai.utils.logger import Logger
+from pilottai.utils.excpetions.tools import ToolError, ToolTimeoutError
 
 
 class Tool:

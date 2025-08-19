@@ -16,6 +16,7 @@ class Logger:
     WARN = WARNING
     INFO = 20
     DEBUG = 10
+    OUTPUT = 5
     NOTSET = 0
 
     # Level to Name map
@@ -25,6 +26,7 @@ class Logger:
         WARNING: 'WARNING',
         INFO: 'INFO',
         DEBUG: 'DEBUG',
+        OUTPUT: 'OUTPUT',
         NOTSET: 'NOTSET',
     }
 
@@ -37,6 +39,7 @@ class Logger:
         'WARNING': WARNING,
         'INFO': INFO,
         'DEBUG': DEBUG,
+        'OUTPUT': OUTPUT,
         'NOTSET': NOTSET,
     }
 
@@ -48,7 +51,7 @@ class Logger:
             log_dir: str = "logs",
             level: str = "INFO",
             console_output: bool = True,
-            json_format: bool = False,
+            json_format: bool = True,
             max_file_size: str = "10MB",
             backup_count: int = 30
     ):
@@ -133,6 +136,11 @@ class Logger:
         """Log exception with traceback"""
         kwargs['exc_info'] = True
         self._log(logging.ERROR, message, **kwargs)
+
+    def output(self, message: str, **kwargs):
+        """Log exception with traceback"""
+        kwargs['exc_info'] = True
+        self._log(Logger.OUTPUT, message, **kwargs)
 
     def addHandler(self, handler):
         return self.logger.addHandler(handler)

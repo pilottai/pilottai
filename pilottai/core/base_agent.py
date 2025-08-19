@@ -5,6 +5,7 @@ import asyncio
 import uuid
 from abc import ABC, abstractmethod
 
+from pilottai.agent.helper.agent_io import AgentIO
 from pilottai.core.base_config import AgentConfig, LLMConfig
 from pilottai.config.model import JobResult
 from pilottai.job.job import Job
@@ -29,17 +30,14 @@ class BaseAgent(ABC):
             description: str,
             jobs: Optional[Union[str, Job, List[str], List[Job]]] = None,
             tools: Optional[List[Tool]] = None,
-            config: Optional[AgentConfig] = None,
+            agent_config: Optional[AgentConfig] = None,
             llm_config: Optional[LLMConfig] = None,
-            input_sample: Optional[str] = None,
-            output_sample: Optional[str] = None,
-            output_format: Optional[str] = None,
-            memory_enabled: Optional[bool] = True,
+            io_sample: Optional[AgentIO] = None,
+            args: Optional[Dict] = None,
+            depends_on: Optional[Union[List[BaseAgent], BaseAgent]] = None,
+            memory_config: Optional[Memory] = None,
             reasoning: Optional[bool] = True,
             feedback: Optional[bool] = False,
-            funcs: Optional[List[Callable[..., Any]]] = None,
-            args: Optional[Dict] = None,
-            depends_on: Optional[Union[List[BaseAgent], BaseAgent]] = None
     ):
         # Basic Configuration
         # Required fields
@@ -49,10 +47,9 @@ class BaseAgent(ABC):
         self.description = description
         self.jobs = self._verify_jobs(jobs)
         self.args = args
-        self.funcs = funcs
 
         # Core configuration
-        self.config = config if config else AgentConfig()
+        self.agent_config = agent_config if agent_config else AgentConfig()
         self.id = str(uuid.uuid4())
 
         # State management
@@ -63,13 +60,11 @@ class BaseAgent(ABC):
 
         # Components
         self.tools = tools
-        self.memory = Memory() if memory_enabled else None
+        self.memory = Memory() if not memory_config else memory_config
         self.llm = LLMHandler(llm_config) if llm_config else None
 
         # I/O management
-        self.output_format = output_format
-        self.input_sample = input_sample
-        self.output_sample = output_sample
+        self.io_sample = io_sample
         self.reasoning = reasoning
 
         self.system_prompt = format_system_prompt(title, goal, description)

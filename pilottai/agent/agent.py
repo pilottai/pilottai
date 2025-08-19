@@ -3,10 +3,13 @@ from __future__ import annotations
 import re
 import uuid
 import json
+import psutil
 import asyncio
 from datetime import datetime
-from typing import Dict, List, Optional, Union, Callable, Any
+from typing import Dict, List, Optional, Union
 
+from pilottai.config.config import GLOBAL_CONFIG, Config
+from pilottai.agent.helper.agent_io import AgentIO
 from pilottai.core.base_agent import BaseAgent
 from pilottai.core.base_config import AgentConfig, LLMConfig
 from pilottai.config.model import JobResult, AgentMetrics
@@ -34,20 +37,14 @@ class Agent(BaseAgent):
         description: str,
         jobs: Optional[Union[str, Job, List[str], List[Job]]] = None,
         tools: Optional[List[Tool]] = None,
-        config: Optional[AgentConfig] = None,
+        agent_config: Optional[AgentConfig] = None,
         llm_config: Optional[LLMConfig] = None,
-
-        #TODO
-        input_sample: Optional[str] = None,
-        output_sample: Optional[str] = None,
-        output_format: Optional[str] = None,
-        memory_enabled: Optional[bool] = True,
+        io_sample: Optional[AgentIO] = None,
         reasoning: Optional[bool] = True,
-        feedback: Optional[bool] = False,
-        funcs: Optional[List[Callable[..., Any]]] = None,
-
         args: Optional[Dict] = None,
-        depends_on: Optional[Union[List[Agent], Agent]] = None
+        depends_on: Optional[Union[List[Agent], Agent]] = None,
+        memory_config: Optional[Memory] = None,
+        feedback: Optional[bool] = False
     ):
         super().__init__(
             title=title,
@@ -55,15 +52,12 @@ class Agent(BaseAgent):
             description=description,
             jobs=jobs,
             tools=tools,
-            config=config,
+            agent_config=agent_config,
             llm_config=llm_config,
-            output_format=output_format,
-            input_sample=input_sample,
-            output_sample=output_sample,
-            memory_enabled=memory_enabled,
+            io_sample=io_sample,
+            memory_config=memory_config,
             reasoning=reasoning,
             feedback=feedback,
-            funcs=funcs,
             args=args,
             depends_on=depends_on
         )
@@ -76,10 +70,10 @@ class Agent(BaseAgent):
         self.description = description
         self.jobs = self._verify_jobs(jobs)
         self.args = args
-        self.funcs = funcs
+        self._config = GLOBAL_CONFIG
 
         # Core configuration
-        self.config = config if config else AgentConfig()
+        self.agent_config = agent_config if agent_config else AgentConfig()
         self.id = str(uuid.uuid4())
 
         # State management
@@ -90,23 +84,29 @@ class Agent(BaseAgent):
 
         # Components
         self.tools = tools
-        self.memory = Memory() if memory_enabled else None
+        self.memory = Memory() if not memory_config else memory_config
         self.llm = LLMHandler(llm_config) if llm_config else None
 
         # I/O management
         self._output = None
-        self.output_format = output_format
-        self.input_sample = input_sample
-        self.output_sample = output_sample
+        self.io_sample = io_sample
         self.reasoning = reasoning
 
         self.system_prompt = format_system_prompt(title, goal, description)
 
         # HITL
         self.feedback = feedback
+        self._output_accepted = True
 
         # Setup logging
         self.logger = self._setup_logger()
+
+        # Validation rule
+        if feedback and not memory_config:
+            raise ValueError(
+                "Feedback requires an active memory configuration. Please provide `memory_config` when enabling feedback."
+            )
+
 
     @property
     def output(self):
@@ -125,19 +125,25 @@ class Agent(BaseAgent):
     async def execute_jobs(self) -> List[JobResult]:
         """Execute all job assigned to this agent"""
         results = []
+
+        start_time = datetime.now()
+
         for job in self.jobs:
             try:
                 result = await self.execute_job(job, dependent_agent=self.depends_on, args=self.args)
                 results.append(result)
             except Exception as e:
                 self.logger.error(f"Failed to execute job {job.id if hasattr(job, 'id') else 'unknown'}: {str(e)}")
+                execution_time = (datetime.now() - start_time).total_seconds()
+
                 results.append(JobResult(
                     success=False,
                     output=None,
                     error=str(e),
-                    execution_time=0.0,
+                    execution_time=execution_time,
                     metadata={"agent_id": self.id}
                 ))
+
         return results
 
     async def execute_job(self, job: Job, dependent_agent: Optional[Union[List[Agent], Agent]]=None, args: Optional[Dict]=None) -> Optional[JobResult]:
@@ -200,7 +206,9 @@ class Agent(BaseAgent):
                         execution_time=execution_time,
                         agent_id=self.id
                     )
-
+                self.logger.output(f'{self.id} completed successfully. Result: {job_result}')
+                if self.feedback:
+                    job_result.feedback = self._get_feedback(job.description, result)
                 return job_result
 
         except Exception as e:
@@ -298,7 +306,17 @@ class Agent(BaseAgent):
                 available_tools_str = f"Tools: {json.dumps(available_tools, indent=2)}"
                 formatted_template += available_tools_str
 
-            formatted_template += get_agent_rule('expected_result', 'agent', '')
+            formatted_template += get_agent_rule('plan_output_format', 'agent', '')
+            if self.io_sample:
+                formatted_template += get_agent_rule('sample_input', 'agent', self.io_sample.input_sample)
+                formatted_template += get_agent_rule('sample_output', 'agent', self.io_sample.output_sample)
+
+                formatted_template = formatted_template.format(
+                    input_sample=self.io_sample.input_sample,
+                    input_sample_type=self.io_sample.input_type,
+                    output_sample=self.io_sample.output_sample,
+                    output_sample_type=self.io_sample.output_type,
+                )
 
             # Create prompt for LLM
             messages = [
@@ -499,9 +517,12 @@ class Agent(BaseAgent):
                 step_results[f"step_{i + 1}"] = error_msg
 
         # Summarize results with context
-        summary = await self._summarize_results(results, step_results)
+        if self.reasoning:
+            result = await self._summarize_results(results, step_results)
+        else:
+            result = "\n\n".join([f"Step {i + 1}: {result}" for i, result in enumerate(results)])
         plan["job_complete"] = True
-        return summary
+        return result
 
     async def _execute_step(self, step: Dict, context: Dict) -> str:
         """Execute a single step with proper type checking"""
@@ -569,7 +590,7 @@ class Agent(BaseAgent):
     async def _summarize_results(self, results: List[str], step_results: Dict[str, str]) -> None | dict | str:
         """Generate the final result based on job description and execution steps"""
         try:
-            retry_count = self.config.retry_limit
+            retry_count = self.agent_config.retry_limit
             for _ in range(retry_count):
                 # Compile execution results
                 execution_context = "\n\n".join([f"Step {i + 1}: {result}" for i, result in enumerate(results)])
@@ -672,7 +693,7 @@ class Agent(BaseAgent):
             score = 0.7
 
             if "required_capabilities" in job:
-                missing = set(job["required_capabilities"]) - set(self.config.required_capabilities)
+                missing = set(job["required_capabilities"]) - set(self.agent_config.required_capabilities)
                 if missing:
                     return 0.0
 
@@ -750,7 +771,7 @@ class Agent(BaseAgent):
             handler.setFormatter(formatter)
             logger.addHandler(handler)
 
-        logger.setLevel(logger.DEBUG if self.config.verbose else logger.INFO)
+        logger.setLevel(logger.DEBUG if self.agent_config.verbose else logger.INFO)
         return logger
 
     def _resolve_job_dependency(self, job, dependents=None, context: dict = None):
@@ -800,17 +821,56 @@ class Agent(BaseAgent):
         job.description = description
         return job
 
-    # TODO
-    async def get_metrics(self):
-        metrics = {}
+    def _get_feedback(self, job_description: str, result: str) -> str:
+        """Prompt user for feedback restricted to accept/reject or 1/0"""
+        valid_feedback = {"accept": "accept", "1": "accept", "reject": "reject", "0": "reject"}
+
+        while True:
+            user_input = input(
+                f"Feedback for result '{job_description}' (result: {result}) [accept/reject/1/0]: "
+            ).strip().lower()
+
+            if user_input in valid_feedback:
+                return valid_feedback[user_input]
+
+            print("❌ Invalid input! Please enter 'accept', 'reject', '1', or '0'.")
+
+
+    async def get_metrics(self) -> AgentMetrics:
+        # Initialize defaults
+        cpu_usage = 0.0
+        memory_usage = 0.0
+        queue_size = 0
+        active_jobs = 0
+        total_jobs = 0
+        error_rate = 0.0
+        queue_utilization = 0.0
+        usage = 0.0
+
+        try:
+            process = psutil.Process()
+            cpu_usage = psutil.cpu_percent(interval=0.1)
+            memory_info = process.memory_info()
+            memory_usage = memory_info.rss / (1024 * 1024)  # MB
+            active_jobs = 1 if self.current_job else 0
+            total_jobs = len(self.jobs) if self.jobs else 0
+            queue = getattr(self, "_job_queue", None)
+            queue_size = queue.qsize() if queue else 0
+            error_rate = getattr(self, "_error_count", 0) / max(1, total_jobs)
+            queue_utilization = (queue_size / max(1, total_jobs)) if total_jobs > 0 else 0.0
+            usage = cpu_usage + memory_usage
+        except Exception as e:
+            self.logger.error(f"Failed to collect metrics: {e}")
+
         return AgentMetrics(
-            cpu_usage = 0.0,
-            memory_usage = 0.0,
-            queue_size = 0,
-            active_jobs= 0,
-            total_jobs = 0,
-            error_rate = 0.0,
-            queue_load = metrics['queue_utilization'],
-            usage = metrics.get('resource_usage', 0),
+            cpu_usage=cpu_usage,
+            memory_usage=memory_usage,
+            queue_size=queue_size,
+            active_jobs=active_jobs,
+            total_jobs=total_jobs,
+            error_rate=error_rate,
+            queue_load=queue_utilization,
+            usage=usage,
             timestamp=datetime.now().astimezone()
         )
+
