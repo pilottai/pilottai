@@ -38,7 +38,7 @@ class JobDelegator:
             return True
         return False
 
-    def record_delegation(self, agent_id: str, job: Dict, result: Dict):
+    async def record_delegation(self, agent_id: str, job: Dict, result: Dict):
         """Record delegation with history limit"""
         if agent_id not in self.delegation_history:
             self.delegation_history[agent_id] = []

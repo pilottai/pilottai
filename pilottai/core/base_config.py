@@ -33,17 +33,17 @@ class SecureConfig:
                 key_path.write_bytes(self.key)
         self.cipher = Fernet(self.key)
 
-    def encrypt(self, value: str) -> bytes:
+    async def encrypt(self, value: str) -> bytes:
         if not value:
             raise ValueError("Cannot encrypt empty value")
         return self.cipher.encrypt(value.encode())
 
-    def decrypt(self, value: bytes) -> str:
+    async def decrypt(self, value: bytes) -> str:
         if not value:
             raise ValueError("Cannot decrypt empty value")
         return self.cipher.decrypt(value).decode()
 
-    def cleanup(self):
+    async def cleanup(self):
         try:
             if self._key_path and self._key_path.exists():
                 self._key_path.unlink()
@@ -81,7 +81,7 @@ class LLMConfig(BaseModel):
             return SecretStr(v)
         return v
 
-    def to_dict(self) -> Dict[str, Any]:
+    async def to_dict(self) -> Dict[str, Any]:
         return {
             "model_name": self.model_name,
             "provider": self.provider,
@@ -105,7 +105,7 @@ class LogConfig(BaseModel):
     log_rotation: str = Field(default="midnight")
 
     @field_validator('log_dir')
-    def create_log_dir(cls, v):
+    async def create_log_dir(cls, v):
         v = Path(v)
         try:
             v.mkdir(parents=True, exist_ok=True)
@@ -155,7 +155,7 @@ class AgentConfig(BaseModel):
     websocket_port: int = 8765
 
     @field_validator('resource_limits')
-    def validate_resource_limits(cls, v):
+    async def validate_resource_limits(cls, v):
         for key, value in v.items():
             if value <= 0 or value > 100:
                 raise ValueError(f"Resource limit {key} must be between 0 and 100")
@@ -195,7 +195,7 @@ class AgentConfig(BaseModel):
         }
 
     @classmethod
-    def from_file(cls, path: Path) -> 'AgentConfig':
+    async def from_file(cls, path: Path) -> 'AgentConfig':
         """Load configuration from file with proper error handling"""
         if not path.exists():
             raise FileNotFoundError(f"Config file not found: {path}")
@@ -209,7 +209,7 @@ class AgentConfig(BaseModel):
             raise ValueError(f"Failed to load config: {str(e)}")
 
     @property
-    def has_sensitive_data(self) -> bool:
+    async def has_sensitive_data(self) -> bool:
         """Check if config contains sensitive data"""
         sensitive_patterns = ['password', 'secret', 'key', 'token', 'auth']
         dict_data = self.to_dict()
@@ -219,7 +219,7 @@ class AgentConfig(BaseModel):
             for key, value in dict_data.items()
         )
 
-    def save_to_file(self, path: Path):
+    async def save_to_file(self, path: Path):
         """Save configuration to file with backup"""
         path = Path(path)
         backup_path = None

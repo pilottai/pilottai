@@ -40,7 +40,7 @@ class Agent(BaseAgent):
         agent_config: Optional[AgentConfig] = None,
         llm_config: Optional[LLMConfig] = None,
         io_sample: Optional[AgentIO] = None,
-        reasoning: Optional[bool] = True,
+        reasoning: Optional[bool] = False,
         args: Optional[Dict] = None,
         depends_on: Optional[Union[List[Agent], Agent]] = None,
         memory_config: Optional[Memory] = None,
@@ -152,7 +152,7 @@ class Agent(BaseAgent):
             raise ValueError("LLM configuration required for job execution")
 
         if dependent_agent:
-            job = self._resolve_job_dependency(job, dependent_agent, args)
+            job = await self._resolve_job_dependency(job, dependent_agent, args)
 
         start_time = datetime.now()
 
@@ -171,7 +171,7 @@ class Agent(BaseAgent):
                     )
 
                 # Format job with context
-                formatted_job = self._format_job(job)
+                formatted_job = await self._format_job(job)
                 self.logger.info(f"Executing job: {formatted_job}")
 
                 # Generate execution plan
@@ -237,7 +237,7 @@ class Agent(BaseAgent):
             self.status = AgentStatus.IDLE
             self.current_job = None
 
-    def _format_job(self, job: Job) -> str:
+    async def _format_job(self, job: Job) -> str:
         """Format job with context and more robust error handling"""
         if not job:
             return "No job provided"
@@ -322,7 +322,7 @@ class Agent(BaseAgent):
             messages = [
                 {
                     "role": "system",
-                    "content": self._get_system_prompt()
+                    "content": await self._get_system_prompt()
                 },
                 {
                     "role": "user",
@@ -335,7 +335,7 @@ class Agent(BaseAgent):
             response_content = response["content"]
 
             # Try to extract JSON from response
-            plan = self._extract_json_from_response(response_content)
+            plan = await self._extract_json_from_response(response_content)
 
             # Ensure plan has the proper format
             if not plan:
@@ -408,7 +408,7 @@ class Agent(BaseAgent):
                 }]
             }
 
-    def _extract_json_from_response(self, response: str) -> Dict:
+    async def _extract_json_from_response(self, response: str) -> Dict:
         """Extract JSON from LLM response with better error handling"""
         try:
             # Try to find JSON in code blocks
@@ -576,7 +576,7 @@ class Agent(BaseAgent):
         messages = [
             {
                 "role": "system",
-                "content": self._get_system_prompt()
+                "content": await self._get_system_prompt()
             },
             {
                 "role": "user",
@@ -615,7 +615,7 @@ class Agent(BaseAgent):
                 messages = [
                     {
                         "role": "system",
-                        "content": self._get_system_prompt(True)
+                        "content": await self._get_system_prompt(True)
                     },
                     {
                         "role": "user",
@@ -627,7 +627,7 @@ class Agent(BaseAgent):
                 response = await self.llm.generate_response(messages)
 
                 # Return the final result
-                result = extract_json_from_response(response["content"])
+                result = await extract_json_from_response(response["content"])
                 if result.get("success"):
                     return result.get("job_result")
                 return None
@@ -640,7 +640,7 @@ class Agent(BaseAgent):
             else:
                 return "Failed to generate a result for the requested job."
 
-    def _get_system_prompt(self, is_summary: bool = False) -> str:
+    async def _get_system_prompt(self, is_summary: bool = False) -> str:
         """Get system prompt with fallback error handling"""
         try:
             # Create a basic system prompt
@@ -675,7 +675,7 @@ class Agent(BaseAgent):
             # Super simple fallback
             return f"You are an agent with title: {self.title}. Complete the job to the best of your ability."
 
-    def _parse_json_response(self, response: str) -> str:
+    async def _parse_json_response(self, response: str) -> str:
         """Parse JSON response from LLM"""
         try:
             json_str = response
@@ -774,7 +774,7 @@ class Agent(BaseAgent):
         logger.setLevel(logger.DEBUG if self.agent_config.verbose else logger.INFO)
         return logger
 
-    def _resolve_job_dependency(self, job, dependents=None, context: dict = None):
+    async def _resolve_job_dependency(self, job, dependents=None, context: dict = None):
         if job is None or job.description is None:
             return job  # or raise an error if job must not be None
 
@@ -821,7 +821,7 @@ class Agent(BaseAgent):
         job.description = description
         return job
 
-    def _get_feedback(self, job_description: str, result: str) -> str:
+    async def _get_feedback(self, job_description: str, result: str) -> str:
         """Prompt user for feedback restricted to accept/reject or 1/0"""
         valid_feedback = {"accept": "accept", "1": "accept", "reject": "reject", "0": "reject"}
 
