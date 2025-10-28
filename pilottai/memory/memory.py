@@ -264,9 +264,9 @@ class Memory:
                 self._entries.popleft()
 
             # Rebuild indices
-            self._rebuild_indices()
+            await self._rebuild_indices()
 
-    def _rebuild_indices(self) -> None:
+    async def _rebuild_indices(self) -> None:
         """Rebuild all indices"""
         self._job_index.clear()
         self._tag_index.clear()

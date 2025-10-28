@@ -5,7 +5,6 @@ import yaml
 from typing import Dict, List, Any, Optional
 from pathlib import Path
 from importlib.resources import files
-from pilottai import rules
 
 
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
@@ -32,7 +31,7 @@ def load_yaml_file(file_path: str) -> Dict[str, Any]:
             raise yaml.YAMLError(f"Error parsing YAML file {file_path}: {str(e)}")
 
 
-def _find_project_root() -> Optional[Path]:
+async def _find_project_root() -> Optional[Path]:
     """
     Find the project root by looking for common project files.
 
@@ -52,14 +51,14 @@ def _find_project_root() -> Optional[Path]:
     return current  # Fallback to current directory
 
 
-def _get_package_root() -> Optional[Path]:
+async def _get_package_root() -> Optional[Path]:
     """
     Find the package root by looking for __init__.py files.
 
     Returns:
         Path to the main package directory
     """
-    project_root = _find_project_root()
+    project_root = await _find_project_root()
     if not project_root:
         return None
 
@@ -150,7 +149,7 @@ def get_agent_rule(
     return get_rule_value(key_path, default)
 
 
-def get_prompt_template(
+async def get_prompt_template(
         prompt_type: str,
         agent_type: Optional[str] = None
 ) -> Optional[str]:
@@ -192,7 +191,7 @@ def format_prompt(
     return formatted_prompt
 
 
-def get_agent_prompts(agent_type: Optional[str] = None) -> Dict[str, str]:
+async def get_agent_prompts(agent_type: Optional[str] = None) -> Dict[str, str]:
     """
     Get all prompts for an agent type.
 
@@ -212,7 +211,7 @@ def get_agent_prompts(agent_type: Optional[str] = None) -> Dict[str, str]:
         return {}
 
 
-def get_all_agent_types() -> List[str]:
+async def get_all_agent_types() -> List[str]:
     """
     Get all available agent types from the rules.
 
@@ -257,7 +256,7 @@ def format_system_prompt(
     })
 
 
-def get_tool_rules(
+async def get_tool_rules(
         tool_name: str,
         rule_key: Optional[str] = None,
         default: Any = None
@@ -287,7 +286,7 @@ def get_tool_rules(
         return default
 
 
-def extract_json_from_response(response: str) -> dict:
+async def extract_json_from_response(response: str) -> dict:
     try:
         # Step 1: Try to extract content between triple backticks
         match = re.search(r"```(?:json)?\s*(\{.*?})\s*```", response, re.DOTALL)

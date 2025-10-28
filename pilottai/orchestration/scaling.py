@@ -42,7 +42,7 @@ class FaultTolerance:
             raise
 
 
-    def _setup_logging(self):
+    async def _setup_logging(self):
         """Setup logging for fault tolerance"""
         self.logger.setLevel(self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO)
         if not self.logger.handlers:
@@ -347,7 +347,6 @@ class FaultTolerance:
     async def _check_resource_usage(self, agent: Agent) -> bool:
         """Check if agent's resource usage is within limits"""
         try:
-            # TODO get metrics for agent ops
             metrics = await agent.get_metrics()
             usage = metrics.get('resource_usage', 0)
             is_within_limits = usage < self.config.resource_threshold
@@ -391,7 +390,7 @@ class DynamicScaling:
         self._scaling_lock = asyncio.Lock()
         self._setup_logging()
 
-    def _setup_logging(self):
+    async def _setup_logging(self):
         self.logger.setLevel(self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO)
         if not self.logger.handlers:
             handler = self.logger.StreamHandler()
@@ -406,8 +405,7 @@ class DynamicScaling:
 
         try:
             self.running = True
-            #TODO create job
-            self.scaling_job = asyncio.create_job(self._scaling_loop())
+            self.scaling_job = asyncio.create_task(self._scaling_loop())
             self.logger.info("Dynamic scaling started")
         except Exception as e:
             self.running = False

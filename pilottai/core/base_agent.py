@@ -5,6 +5,7 @@ import asyncio
 import uuid
 from abc import ABC, abstractmethod
 
+from pilottai.agent.helper.agent_io import AgentIO
 from pilottai.core.base_config import AgentConfig, LLMConfig
 from pilottai.config.model import JobResult
 from pilottai.job.job import Job
@@ -27,17 +28,16 @@ class BaseAgent(ABC):
             title: str,
             goal: str,
             description: str,
-            jobs: Union[Job, str, List[str], List[Job]],
+            jobs: Optional[Union[str, Job, List[str], List[Job]]] = None,
             tools: Optional[List[Tool]] = None,
-            config: Optional[AgentConfig] = None,
+            agent_config: Optional[AgentConfig] = None,
             llm_config: Optional[LLMConfig] = None,
-            output_format = None,
-            output_sample = None,
-            memory_enabled: bool = True,
-            reasoning: bool = False,
-            feedback: bool = False,
+            io_sample: Optional[AgentIO] = None,
             args: Optional[Dict] = None,
-            depends_on: Optional[Union[List[BaseAgent], BaseAgent]]=None
+            depends_on: Optional[Union[List[BaseAgent], BaseAgent]] = None,
+            memory_config: Optional[Memory] = None,
+            reasoning: Optional[bool] = True,
+            feedback: Optional[bool] = False,
     ):
         # Basic Configuration
         # Required fields
@@ -49,7 +49,7 @@ class BaseAgent(ABC):
         self.args = args
 
         # Core configuration
-        self.config = config if config else AgentConfig()
+        self.agent_config = agent_config if agent_config else AgentConfig()
         self.id = str(uuid.uuid4())
 
         # State management
@@ -60,12 +60,11 @@ class BaseAgent(ABC):
 
         # Components
         self.tools = tools
-        self.memory = Memory() if memory_enabled else None
+        self.memory = Memory() if not memory_config else memory_config
         self.llm = LLMHandler(llm_config) if llm_config else None
 
-        # Output management
-        self.output_format = output_format
-        self.output_sample = output_sample
+        # I/O management
+        self.io_sample = io_sample
         self.reasoning = reasoning
 
         self.system_prompt = format_system_prompt(title, goal, description)
@@ -91,7 +90,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def _format_job(self, job: Job) -> str:
+    async def _format_job(self, job: Job) -> str:
         """Format job with context and more robust error handling"""
         pass
 
@@ -101,7 +100,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def _extract_json_from_response(self, response: str) -> Dict:
+    async def _extract_json_from_response(self, response: str) -> Dict:
         """Extract JSON from LLM response with better error handling"""
         pass
 
@@ -126,12 +125,12 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def _get_system_prompt(self, is_summary: bool) -> str:
+    async def _get_system_prompt(self, is_summary: bool) -> str:
         """Get system prompt with fallback error handling"""
         pass
 
     @abstractmethod
-    def _parse_json_response(self, response: str) -> str:
+    async def _parse_json_response(self, response: str) -> str:
         """Parse JSON response from LLM"""
         pass
 
@@ -151,6 +150,11 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def _setup_logger(self) -> Logger:
+    async def _setup_logger(self) -> Logger:
         """Setup agent logging"""
+        pass
+
+    @abstractmethod
+    async def get_metrics(self):
+        """Agent Metrics"""
         pass

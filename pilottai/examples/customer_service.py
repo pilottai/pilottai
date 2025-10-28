@@ -30,53 +30,36 @@ async def main():
     )
 
     # Create customer service agent
-    customer_service = await pilott.add_agent(
+    await pilott.add_agent(
         title="customer_service",
         goal="Handle customer inquiries professionally",
+        description = "Handle refund request",
         tools=[email_tool],
         llm_config=llm_config
     )
 
     # Create document processing agent
-    doc_processor = await pilott.add_agent(
+    await pilott.add_agent(
         title="document_processor",
         goal="Process and analyze documents efficiently",
+        description= "Analyze quarterly report",
         tools=[document_tool],
         llm_config=llm_config
     )
 
     # Create research analyst agent
-    research_analyst = await pilott.add_agent(
+    await pilott.add_agent(
         title="research_analyst",
         goal="Analyze data and provide insights",
+        description= "Research competitor pricing",
         tools=[document_tool],
         llm_config=llm_config
     )
 
-    # Example job
-    jobs = [
-        {
-            "type": "customer_inquiry",
-            "description": "Handle refund request",
-            "agent": customer_service
-        },
-        {
-            "type": "document_analysis",
-            "description": "Analyze quarterly report",
-            "agent": doc_processor
-        },
-        {
-            "type": "market_research",
-            "description": "Research competitor pricing",
-            "agent": research_analyst
-        }
-    ]
 
     # Execute job
-    results = await pilott.serve(jobs)
-    for job, result in zip(jobs, results):
-        print(f"Job: {job['description']}")
-        print(f"Result: {result.output}\n")
+    results = await pilott.serve()
+
 
 if __name__ == "__main__":
     import asyncio

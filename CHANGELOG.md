@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.2.0] - 2024-02-09
+## [0.2.0] - 2025-02-09
 
 ### Added
 - New specialized agents with example implementations:
@@ -29,7 +29,7 @@
 - Added required dependencies in pyproject.toml
 - Updated core package requirements
 
-## [0.1.0] - 2024-01-21
+## [0.1.0] - 2025-01-21
 
 ### Added
 - Initial release

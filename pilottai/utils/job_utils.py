@@ -38,9 +38,6 @@ class JobUtility:
 
             return Job(**job_input)
 
-        else:
-            raise ValueError(
-                f"Cannot convert {type(job_input)} to Job. Must be a string, dictionary, or Job object.")
 
     @staticmethod
     def to_job_list(job_inputs: Union[str, Dict, Job, List[str], List[Dict], List[Job]]) -> List[Job]:
@@ -64,11 +61,8 @@ class JobUtility:
                 jobs.append(JobUtility.to_job(item))
             return jobs
 
-        else:
-            raise ValueError(f"Cannot convert {type(job_inputs)} to a list of Jobs")
-
     @staticmethod
-    def is_job_object(job_input: Any) -> bool:
+    async def is_job_object(job_input: Any) -> bool:
         """
         Check if the input is a Job object.
 
@@ -81,7 +75,7 @@ class JobUtility:
         return isinstance(job_input, Job)
 
     @staticmethod
-    def get_job_type(job_input: Any) -> str:
+    async def get_job_type(job_input: Any) -> str:
         """
         Get the type of the job input.
 
@@ -101,7 +95,7 @@ class JobUtility:
             return 'unknown'
 
     @staticmethod
-    def create_empty_result(job: Job, error: Optional[str] = None) -> JobResult:
+    async def create_empty_result(job: Job, error: Optional[str] = None) -> JobResult:
         """
         Create an empty (failed) result for a job.
 
@@ -124,7 +118,7 @@ class JobUtility:
         )
 
     @staticmethod
-    def merge_job_results(results: List[JobResult]) -> JobResult:
+    async def merge_job_results(results: List[JobResult]) -> JobResult:
         """
         Merge multiple job results into a single result.
 

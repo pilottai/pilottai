@@ -48,7 +48,7 @@ class AgentUtils:
         elif assignment_strategy == "suitability":
             return await self._assign_job_by_suitability(job_obj, agents)
         elif assignment_strategy == "round_robin":
-            return self._assign_job_round_robin(job_obj, agents)
+            return await self._assign_job_round_robin(job_obj, agents)
         else:
             self.logger.warning(f"Unknown assignment strategy: {assignment_strategy}, falling back to LLM")
             return await self._assign_job_using_llm(job_obj, agents, llm_handler)
@@ -185,7 +185,7 @@ class AgentUtils:
             # Fallback to first agent with minimum confidence
             return agents[0], 0.1
 
-    def _assign_job_round_robin(
+    async def _assign_job_round_robin(
         self,
         job: Job,
         agents: List[Agent]

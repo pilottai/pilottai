@@ -42,7 +42,7 @@ agent:
     Completed Steps: {completed_steps}
     Last Result: {last_result}
 
-  expected_result: |
+  plan_output_format: |
     Generate a JSON output in the following format. The "steps" array must include at least one `"action": "job"` step. Also if Tools exists then at least one `"action": "tool"` step. Do not skip the job step.
 
     {{
@@ -62,6 +62,21 @@ agent:
       ],
       "job_complete": false
     }}
+
+  sample_input: |
+    The following section provides a sample of the input data that this agent expects.
+    Carefully observe both the structure and the format of the input.
+
+    Input Example: {input_sample}
+    Input Format: {input_sample_type}
+
+  sample_output: |
+    The following section provides a sample of the output that this agent will produce.
+    The response you generate must strictly follow this structure and format.
+    Make sure the final result field names, nesting, and data types match exactly with the example provided below.
+
+    Output Example: {output_sample}
+    Output Format: {output_sample_type}
 
   result_evaluation: |
     Job: {job_description}
