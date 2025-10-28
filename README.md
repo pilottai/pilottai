@@ -8,7 +8,7 @@
   </picture>
   <h3>Build Intelligent Multi-Agent Systems with Python</h3>
   <p><em>Scale your AI applications with orchestrated autonomous agents</em></p>
-</div>
+
 
 [![PyPI version](https://badge.fury.io/py/pilottai.svg)](https://badge.fury.io/py/pilottai)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
@@ -16,6 +16,8 @@
 [![Documentation Status](https://readthedocs.org/projects/pilottai/badge/?version=latest)](https://docs.pilottai.com)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/pygig/pilottai?style=flat-square)](https://github.com/pygig/pilottai)
+
+</div>
 
 ## Overview
 

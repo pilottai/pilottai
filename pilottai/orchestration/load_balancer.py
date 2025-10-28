@@ -69,7 +69,7 @@ class LoadBalancer:
     async def _balance_system_load(self):
         try:
             current_metrics = await self._collect_system_metrics()
-            self._update_metrics_history(current_metrics)
+            await self._update_metrics_history(current_metrics)
             overloaded, underloaded = await self._analyze_agent_loads(current_metrics)
             if not overloaded or not underloaded:
                 return
@@ -110,7 +110,7 @@ class LoadBalancer:
         except Exception as e:
             self.logger.error(f"Error handling overload for agent {agent_id}: {str(e)}")
 
-    def _update_metrics_history(self, metrics: Dict[str, AgentMetrics]):
+    async def _update_metrics_history(self, metrics: Dict[str, AgentMetrics]):
         current_time = datetime.now()
         retention_time = current_time - timedelta(seconds=self.config.metrics_retention_period)
 
@@ -132,8 +132,8 @@ class LoadBalancer:
         underloaded = []
 
         for agent_id, metrics in current_metrics.items():
-            load_trend = self._calculate_load_trend(agent_id)
-            current_load = self._calculate_composite_load(metrics)
+            load_trend = await self._calculate_load_trend(agent_id)
+            current_load = await self._calculate_composite_load(metrics)
 
             if current_load > self.config.overload_threshold and load_trend > 0:
                 overloaded.append(agent_id)
@@ -142,7 +142,7 @@ class LoadBalancer:
 
         return overloaded, underloaded
 
-    def _calculate_load_trend(self, agent_id: str) -> float:
+    async def _calculate_load_trend(self, agent_id: str) -> float:
         if agent_id not in self._metrics_history:
             return 0.0
 
@@ -150,10 +150,10 @@ class LoadBalancer:
         if len(history) < 2:
             return 0.0
 
-        loads = [self._calculate_composite_load(m) for m in history]
+        loads = [await self._calculate_composite_load(m) for m in history]
         return (loads[-1] - loads[0]) / len(loads)
 
-    def _calculate_composite_load(self, metrics: AgentMetrics) -> float:
+    async def _calculate_composite_load(self, metrics: AgentMetrics) -> float:
         return (
             0.3 * metrics.cpu_usage +
             0.3 * metrics.memory_usage +
@@ -178,7 +178,7 @@ class LoadBalancer:
                     if moves_made >= self.config.balance_batch_size:
                         break
 
-                    best_agent_id = await self._find_best_agent(
+                    best_agent_id = self._find_best_agent(
                         job,
                         underloaded,
                         current_metrics
@@ -246,7 +246,7 @@ class LoadBalancer:
             self.logger.error(f"Error getting moveable job: {str(e)}")
             return []
 
-    def _is_job_moveable(self, job: Dict) -> bool:
+    async def _is_job_moveable(self, job: Dict) -> bool:
         return (
             job.get('status') == 'pending' and
             not job.get('locked', False) and
@@ -288,7 +288,7 @@ class LoadBalancer:
         return (
             agent.status != 'stopped' and
             metrics.queue_size < self.config.max_jobs_per_agent and
-            self._calculate_composite_load(metrics) < self.config.overload_threshold
+            await self._calculate_composite_load(metrics) < self.config.overload_threshold
         )
 
     async def _calculate_agent_suitability(
@@ -303,7 +303,7 @@ class LoadBalancer:
             base_score = await agent.evaluate_job_suitability(job)
 
             # Load penalty
-            load_score = 1 - self._calculate_composite_load(metrics)
+            load_score = 1 - await self._calculate_composite_load(metrics)
 
             # Performance score
             perf_score = 1 - metrics.error_rate
@@ -323,7 +323,7 @@ class LoadBalancer:
             self.logger.error(f"Error calculating agent suitability: {str(e)}")
             return float('-inf')
 
-    def _setup_logging(self):
+    async def _setup_logging(self):
         self.logger.setLevel(self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO)
         if not self.logger.handlers:
             handler = self.logger.StreamHandler()

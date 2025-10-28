@@ -71,7 +71,7 @@ class DataController:
             async with self._semantic_lock:
                 self._semantic_store.append(item)
                 index = len(self._semantic_store) - 1
-                self._update_indexes(item, index)
+                await self._update_indexes(item, index)
 
         except Exception as e:
             raise ValueError(f"Failed to store content: {str(e)}")
@@ -87,7 +87,7 @@ class DataController:
             raise ValueError("Query cannot be empty")
         try:
             async with self._semantic_lock:
-                candidate_indexes = self._get_candidate_indexes(tags, min_priority)
+                candidate_indexes = await self._get_candidate_indexes(tags, min_priority)
                 matches = []
                 for idx in candidate_indexes:
                     item = self._semantic_store[idx]
@@ -101,7 +101,7 @@ class DataController:
         except Exception as e:
             raise ValueError(f"Search failed: {str(e)}")
 
-    def _get_candidate_indexes(
+    async def _get_candidate_indexes(
             self,
             tags: Optional[Set[str]] = None,
             min_priority: int = 0
@@ -116,7 +116,7 @@ class DataController:
             candidates &= tag_candidates
         return candidates
 
-    def _update_indexes(self, item: MemoryItem, index: int):
+    async def _update_indexes(self, item: MemoryItem, index: int):
         # Update tag index
         for tag in item.tags:
             if tag not in self._tag_index:
@@ -255,7 +255,7 @@ class DataController:
                 self._timestamp_index.clear()
                 self._priority_index.clear()
                 for idx, item in enumerate(self._semantic_store):
-                    self._update_indexes(item, idx)
+                    await self._update_indexes(item, idx)
                 # Clean up patterns
                 expired_patterns = [
                     name for name, pattern in self._pattern_store.items()
@@ -267,7 +267,7 @@ class DataController:
         except Exception as e:
             raise ValueError(f"Cleanup failed: {str(e)}")
 
-    def clear(self) -> None:
+    async def clear(self) -> None:
         """Clear all memory stores"""
         self._semantic_store.clear()
         self._job_history.clear()

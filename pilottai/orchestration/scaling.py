@@ -42,7 +42,7 @@ class FaultTolerance:
             raise
 
 
-    def _setup_logging(self):
+    async def _setup_logging(self):
         """Setup logging for fault tolerance"""
         self.logger.setLevel(self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO)
         if not self.logger.handlers:
@@ -390,7 +390,7 @@ class DynamicScaling:
         self._scaling_lock = asyncio.Lock()
         self._setup_logging()
 
-    def _setup_logging(self):
+    async def _setup_logging(self):
         self.logger.setLevel(self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO)
         if not self.logger.handlers:
             handler = self.logger.StreamHandler()

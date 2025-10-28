@@ -263,7 +263,7 @@ class DynamicScaling:
             self.logger.error(f"Error getting scaling metrics: {str(e)}")
             return {}
 
-    def _setup_logging(self):
+    async def _setup_logging(self):
         """Setup logging for dynamic scaling"""
         level = self.logger.DEBUG if self.orchestrator.verbose else self.logger.INFO
         self.logger.setLevel(level)

@@ -9,19 +9,19 @@ class AgentIO(BaseModel):
     output_type: Optional[str] = None  # auto-detected
 
     @model_validator(mode="after")
-    def validate_samples(self):
+    async def validate_samples(self):
         # cross-field validation
         if (self.input_sample and not self.output_sample) or (self.output_sample and not self.input_sample):
             raise ValueError("Both input_sample and output_sample must be provided together.")
 
         # type detection
         if self.input_sample:
-            self.input_type = self._detect_input_type(self.input_sample)
+            self.input_type = await self._detect_input_type(self.input_sample)
 
         return self
 
     @staticmethod
-    def _detect_input_type(value: str) -> str:
+    async def _detect_input_type(value: str) -> str:
         try:
             parsed = json.loads(value)
             if isinstance(parsed, dict):
@@ -48,7 +48,7 @@ class AgentIO(BaseModel):
         return "string"
 
     @staticmethod
-    def _detect_output_type(value: str) -> str:
+    async def _detect_output_type(value: str) -> str:
         try:
             parsed = json.loads(value)
             if isinstance(parsed, dict):

@@ -62,7 +62,7 @@ class Config:
         else:
             raise ValueError(f"Config must be a dict or {config_class.__name__} instance, got {type(config)}")
 
-    def update_config(self, config_name: str, config_data: Union[Dict[str, Any], object]) -> None:
+    async def update_config(self, config_name: str, config_data: Union[Dict[str, Any], object]) -> None:
         """Update a specific configuration"""
         if not hasattr(self, config_name):
             raise ValueError(f"Unknown config: {config_name}")
@@ -89,7 +89,7 @@ class Config:
         else:
             raise ValueError(f"Unknown config name: {config_name}")
 
-    def to_dict(self) -> Dict[str, Any]:
+    async def to_dict(self) -> Dict[str, Any]:
         """Convert all configurations to dictionary"""
         result = {'name': self.name}
 

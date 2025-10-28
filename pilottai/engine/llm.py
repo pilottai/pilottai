@@ -67,7 +67,7 @@ class LLMHandler:
         }
 
         if tools:
-            kwargs["tools"] = self._format_tools(tools)
+            kwargs["tools"] = await self._format_tools(tools)
             kwargs["tool_choice"] = "auto"
 
         async with self._api_semaphore:
@@ -75,7 +75,7 @@ class LLMHandler:
                 try:
                     response = await litellm.acompletion(**kwargs)
                     await self._update_rate_limit()
-                    return self._process_response(response)
+                    return await self._process_response(response)
                 except Exception as e:
                     if attempt == self.config["retry_attempts"] - 1:
                         raise
@@ -107,7 +107,7 @@ class LLMHandler:
                 if len(self.call_times) > self.config["max_rpm"]:
                     self.call_times.pop(0)
 
-    def _format_tools(self, tools: List[Dict]) -> List[Dict]:
+    async def _format_tools(self, tools: List[Dict]) -> List[Dict]:
         """Format tools for LLM API"""
         formatted_tools = []
         for tool in tools:
@@ -123,7 +123,7 @@ class LLMHandler:
             })
         return formatted_tools
 
-    def _process_response(self, response: ModelResponse) -> Dict[str, Any]:
+    async def _process_response(self, response: ModelResponse) -> Dict[str, Any]:
         """Process LLM response"""
         if not response or not response.choices:
             raise ValueError("Invalid response from LLM")

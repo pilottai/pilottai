@@ -128,7 +128,7 @@ class JobRouter:
         except Exception:
             return 0.5
 
-    def get_job_priority(self, job: Dict) -> JobPriority:
+    async def get_job_priority(self, job: Dict) -> JobPriority:
         if job.get('urgent', False):
             return JobPriority.CRITICAL
         complexity = job.get('complexity', 1)

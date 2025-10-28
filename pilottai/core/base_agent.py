@@ -90,7 +90,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def _format_job(self, job: Job) -> str:
+    async def _format_job(self, job: Job) -> str:
         """Format job with context and more robust error handling"""
         pass
 
@@ -100,7 +100,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def _extract_json_from_response(self, response: str) -> Dict:
+    async def _extract_json_from_response(self, response: str) -> Dict:
         """Extract JSON from LLM response with better error handling"""
         pass
 
@@ -125,12 +125,12 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def _get_system_prompt(self, is_summary: bool) -> str:
+    async def _get_system_prompt(self, is_summary: bool) -> str:
         """Get system prompt with fallback error handling"""
         pass
 
     @abstractmethod
-    def _parse_json_response(self, response: str) -> str:
+    async def _parse_json_response(self, response: str) -> str:
         """Parse JSON response from LLM"""
         pass
 
@@ -150,7 +150,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    def _setup_logger(self) -> Logger:
+    async def _setup_logger(self) -> Logger:
         """Setup agent logging"""
         pass
 

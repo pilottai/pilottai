@@ -51,46 +51,46 @@ class BaseJob(BaseModel, ABC):
 
     @property
     @abstractmethod
-    def is_completed(self) -> bool:
+    async def is_completed(self) -> bool:
         """Check if job is completed"""
         pass
 
     @property
     @abstractmethod
-    def is_active(self) -> bool:
+    async def is_active(self) -> bool:
         """Check if job is currently active"""
         pass
 
     @property
     @abstractmethod
-    def can_retry(self) -> bool:
+    async def can_retry(self) -> bool:
         """Check if job can be retried"""
         pass
 
     @property
     @abstractmethod
-    def is_expired(self) -> bool:
+    async def is_expired(self) -> bool:
         """Check if job has expired"""
         pass
 
     @property
     @abstractmethod
-    def duration(self) -> Optional[float]:
+    async def duration(self) -> Optional[float]:
         """Get job duration in seconds"""
         pass
 
     @abstractmethod
-    def to_dict(self) -> Dict[str, Any]:
+    async def to_dict(self) -> Dict[str, Any]:
         """Convert job to dictionary"""
         pass
 
     @abstractmethod
-    def copy(self, **kwargs) -> 'BaseJob':
+    async def copy(self, **kwargs) -> 'BaseJob':
         """Create a copy of the job with optional updates"""
         pass
 
     @classmethod
     @abstractmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'BaseJob':
+    async def from_dict(cls, data: Dict[str, Any]) -> 'BaseJob':
         """Create job from dictionary"""
         pass

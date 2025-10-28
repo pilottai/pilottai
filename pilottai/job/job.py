@@ -51,7 +51,7 @@ class Job(BaseJob):
         if result.success:
             self.status = JobStatus.COMPLETED
         else:
-            if hasattr(self, 'can_retry') and self.can_retry:
+            if hasattr(self, 'can_retry') and await self.can_retry:
                 self.retry_count += 1
                 self.status = JobStatus.PENDING
             else:
@@ -118,7 +118,7 @@ class Job(BaseJob):
             "duration": self.duration
         }
 
-    def copy(self, **kwargs) -> 'Job':
+    async def copy(self, **kwargs) -> 'Job':
         """Create a copy of the job with optional updates"""
         data = self.model_dump()
         data.update(kwargs)
