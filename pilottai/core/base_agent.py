@@ -5,7 +5,7 @@ import asyncio
 import uuid
 from abc import ABC, abstractmethod
 
-from pilottai.agent.helper.agent_io import AgentIO
+from pilottai.agent.builtin.agent_io import AgentIO
 from pilottai.core.base_config import AgentConfig, LLMConfig
 from pilottai.config.model import JobResult
 from pilottai.job.job import Job

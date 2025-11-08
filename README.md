@@ -60,6 +60,9 @@ pip install pilottai
 
 ```python
 from pilottai import Pilott
+from pilottai.tools import Tool
+from pilottai.agent import Agent
+from duckduckgo_search import DDGS
 from pilottai.core import AgentConfig, AgentType, LLMConfig
 
 # Configure LLM
@@ -69,47 +72,36 @@ llm_config = LLMConfig(
   api_key="your-api-key"
 )
 
-# Setup agent configuration
-config = AgentConfig(
-  title="processor",
-  agent_type=AgentType.WORKER,
-  goal="Process documents efficiently",
-  description="Document processing worker",
-  max_queue_size=100
-)
+def duckduckgo_search(query, max_results=5):
+    """Perform a DuckDuckGo search and return top results."""
+    with DDGS() as ddgs:
+        results = ddgs.text(query, max_results=max_results)
+        return [{"title": r["title"], "link": r["href"], "snippet": r["body"]} for r in results]
+
+search_tool = Tool(
+                name="duckduckgo_search",
+                description="Search DuckDuckGo for relevant information on any topic",
+                function=duckduckgo_search,
+                parameters={
+                    "query": "str - The search query",
+                    "num_results": "int - Number of results to return (max 10)"
+                }
+            )
+
+query = "Type your question here"
+
+search_agent = Agent(
+                title="search_specialist",
+                goal="Find the most relevant and credible sources for any given query",
+                description="An expert at formulating search queries and identifying high-quality, relevant sources",
+                jobs=f"Search for information about: '{query}' using DuckDuckGo and rank the results by relevance and credibility. Return the top 5 most relevant sources.",
+                tools=[search_tool],
+                llm_config=llm_config
+              )
 
 
-async def main():
-  # Initialize system
-  pilott = Pilott(name="DocumentProcessor")
+synthesis_results = await Pilott(agents=[search_agent], name="Search Bot", llm_config=llm_config).serve()
 
-  try:
-    # Start system
-    await pilott.start()
-
-    # Add agent
-    agent = await pilott.add_agent(
-      agent_type="processor",
-      config=config,
-      llm_config=llm_config
-    )
-
-    # Process document
-    result = await pilott.execute_job({
-      "type": "process_document",
-      "file_path": "document.pdf"
-    })
-
-    print(f"Processing result: {result}")
-
-  finally:
-    await pilott.stop()
-
-
-if __name__ == "__main__":
-  import asyncio
-
-  asyncio.run(main())
 ```
 
 ## Specialized Agents
@@ -133,66 +125,7 @@ PilottAI includes ready-to-use specialized agents:
 The documentation includes:
 - Detailed guides
 - API reference
-- Examples
 - Best practices
-
-## Example Use Cases
-
-- 📄 **Document Processing**
-  ```python
-  # Process PDF documents
-  result = await pilott.execute_job({
-      "type": "process_pdf",
-      "file_path": "document.pdf"
-  })
-  ```
-
-- 🤖 **AI Agents**
-  ```python
-  # Create specialized agents
-  researcher = await pilott.add_agent(
-      agent_type="researcher",
-      config=researcher_config
-  )
-  ```
-
-- 🔄 **Job Orchestration**
-  ```python
-  # Orchestrate complex workflows
-  job_result = await manager_agent.execute_job({
-      "type": "complex_workflow",
-      "steps": ["extract", "analyze", "summarize"]
-  })
-  ```
-
-## Advanced Features
-
-### Memory Management
-```python
-# Store and retrieve context
-await agent.enhanced_memory.store_semantic(
-    text="Important information",
-    metadata={"type": "research"}
-)
-```
-
-### Load Balancing
-```python
-# Configure load balancing
-config = LoadBalancerConfig(
-    check_interval=30,
-    overload_threshold=0.8
-)
-```
-
-### Fault Tolerance
-```python
-# Configure fault tolerance
-config = FaultToleranceConfig(
-    recovery_attempts=3,
-    heartbeat_timeout=60
-)
-```
 
 ## Project Structure
 
@@ -201,7 +134,6 @@ pilott/
 ├── core/            # Core framework components
 ├── agents/          # Agent implementations
 ├── memory/          # Memory management
-├── orchestration/   # System orchestration
 ├── tools/           # Tool integrations
 └── utils/           # Utility functions
 ```
