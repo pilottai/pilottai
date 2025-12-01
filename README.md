@@ -17,7 +17,11 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Commit Activity](https://img.shields.io/github/commit-activity/m/pygig/pilottai?style=flat-square)](https://github.com/pygig/pilottai)
 
+⭐ Star us | 🧠 Agentic AI | 🧰 Multi-Agent Framework | ⚡ Build Anything with LLMs
+
 </div>
+
+
 
 ## Overview
 
